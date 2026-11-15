@@ -37,3 +37,4 @@ use the editor.
 - Define visual styles and colors in the central CSS design system; use the shared Button variants for interactive controls.
 - AI project generation runs in a server route under src/routes/api/ that calls Anthropic's API directly through its official SDK, because prompts, keys and token counts must never reach the browser; generated projects are saved to the database and read back only by the site's own server-side lookup by project id, so a shared link works for anyone.
 - The AI key and the database service key are server-side only: read them from process.env inside a handler, never from browser code, and name the model through server config instead of hardcoding it in app code.
+- AI generation limits are claimed atomically through a database function keyed by a hashed, server-issued HttpOnly visitor cookie, with independent site-wide caps read from server env; failed generations release their slot so only successes count.

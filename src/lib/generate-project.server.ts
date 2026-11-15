@@ -24,12 +24,12 @@ import {
   type GeneratedProjectContent,
   type GenerationFailureKind,
 } from "@/lib/project-generation";
+import { limitMessage, readLimits, type LimitReason } from "@/lib/rate-limit-config";
+import { resolveVisitor } from "@/lib/visitor-session.server";
 
 /** Server-side only: this key must never reach the browser. */
 export const ANTHROPIC_KEY_ENV = "ANTHROPIC_API_KEY";
 export const DEFAULT_MODEL = "claude-sonnet-5-5";
-const MAX_TOKENS = 4096;
-const GENERATIONS_PER_MINUTE = 10;
 
 /** The model can be swapped through server config without touching app code. */
 export function modelId(): string {
@@ -42,12 +42,13 @@ export class UnusableReplyError extends Error {}
 /** The AI took the request and refused to answer it. */
 export class RefusalError extends Error {}
 
+function headers(extra: Record<string, string> = {}): Headers {
+  return new Headers({ "content-type": "application/json", ...extra });
+}
+
 function failure(kind: GenerationFailureKind): Response {
   const { status, message } = describeGenerationFailure(kind);
-  return Response.json(
-    { ok: false, code: kind, message },
-    { status, headers: { "content-type": "application/json" } },
-  );
+  return Response.json({ ok: false, code: kind, message }, { status, headers: headers() });
 }
 
 /**
@@ -112,6 +113,13 @@ function isSameOrigin(request: Request): boolean {
 }
 
 export async function handleGenerateProject(request: Request): Promise<Response> {
+  const visitor = await resolveVisitor(request);
+  const response = await generate(request, visitor.hash);
+  if (visitor.setCookie) response.headers.append("set-cookie", visitor.setCookie);
+  return response;
+}
+
+async function generate(request: Request, visitorHash: string): Promise<Response> {
   if (!isSameOrigin(request)) {
     return failure("validation");
   }
@@ -126,29 +134,57 @@ export async function handleGenerateProject(request: Request): Promise<Response>
   if (!parsed.success) {
     return Response.json(
       { ok: false, code: "validation", message: describeValidationIssues(parsed.error) },
-      { status: 400, headers: { "content-type": "application/json" } },
+      { status: 400, headers: headers() },
     );
   }
   const answers = parsed.data;
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  // Cost guard: a public form must not be able to run the AI in a loop.
-  const windowStart = new Date(Date.now() - 60_000).toISOString();
-  const { count, error: countError } = await supabaseAdmin
-    .from("generated_projects")
-    .select("id", { count: "exact", head: true })
-    .gte("created_at", windowStart);
-  if (countError) console.error("Generation rate check failed", countError);
-  if (count !== null && count >= GENERATIONS_PER_MINUTE) {
-    return failure("rate-limit");
-  }
-
   const apiKey = process.env[ANTHROPIC_KEY_ENV];
   if (!apiKey) {
     console.error("AI generation requested but ANTHROPIC_API_KEY is not configured");
     return failure("config");
   }
+
+  // Cost guard: per-visitor limit plus independent site-wide safety caps,
+  // claimed atomically in the database.
+  const limits = readLimits(process.env);
+  const { data: slot, error: slotError } = await supabaseAdmin.rpc("claim_generation_slot", {
+    _visitor_hash: visitorHash,
+    _visitor_limit: limits.visitorLimit,
+    _visitor_window_seconds: limits.visitorWindowSeconds,
+    _global_per_minute: limits.globalPerMinute,
+    _global_per_day: limits.globalPerDay,
+    _daily_token_limit: limits.dailyTokenLimit,
+  });
+  if (slotError || !slot) {
+    console.error("Generation rate check failed", slotError?.message);
+    return failure("upstream");
+  }
+  const claim = slot as {
+    allowed: boolean;
+    reason?: LimitReason;
+    retry_after_seconds?: number;
+    attempt_id?: string;
+  };
+  if (!claim.allowed) {
+    const retry = claim.retry_after_seconds ?? 60;
+    return Response.json(
+      {
+        ok: false,
+        code: "rate-limit",
+        message: limitMessage(claim.reason ?? "global_minute", retry),
+        retry_after_seconds: retry,
+      },
+      { status: 429, headers: headers({ "retry-after": String(retry) }) },
+    );
+  }
+  // Only successful generations count toward a visitor's limit.
+  const releaseSlot = async () => {
+    if (!claim.attempt_id) return;
+    await supabaseAdmin.from("generation_attempts").delete().eq("id", claim.attempt_id);
+  };
 
   const model = modelId();
   const client = new Anthropic({ apiKey, maxRetries: 0 });
@@ -160,7 +196,7 @@ export async function handleGenerateProject(request: Request): Promise<Response>
     // schema below lists, so there is no prose to unpick.
     const stream = client.messages.stream({
       model,
-      max_tokens: MAX_TOKENS,
+      max_tokens: limits.maxOutputTokens,
       system: systemPrompt(),
       messages: [{ role: "user", content: userPrompt(answers) }],
       output_config: { format: generatedProjectOutputFormat },
@@ -177,7 +213,8 @@ export async function handleGenerateProject(request: Request): Promise<Response>
     usage = message.usage;
   } catch (error) {
     const kind = kindFromError(error);
-    console.error(`AI generation failed (${kind})`, error);
+    console.error(`AI generation failed (${kind})`, error instanceof Error ? error.message : "");
+    await releaseSlot();
     return failure(kind);
   }
 
@@ -199,7 +236,8 @@ export async function handleGenerateProject(request: Request): Promise<Response>
     .single();
 
   if (error || !data) {
-    console.error("Generated project could not be saved", error);
+    console.error("Generated project could not be saved", error?.message);
+    await releaseSlot();
     return failure("save");
   }
 
@@ -218,6 +256,6 @@ export async function handleGenerateProject(request: Request): Promise<Response>
       input_tokens: usage?.input_tokens ?? null,
       output_tokens: usage?.output_tokens ?? null,
     },
-    { status: 200, headers: { "content-type": "application/json" } },
+    { status: 200, headers: headers() },
   );
 }

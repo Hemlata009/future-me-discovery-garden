@@ -36,6 +36,13 @@
       "when": 1794759782197,
       "tag": "0004_restrict_generated_project_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794761399977,
+      "tag": "0005_generation_rate_limits",
+      "breakpoints": true
     }
   ]
 }

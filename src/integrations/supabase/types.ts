@@ -106,6 +106,24 @@ export type Database = {
         }
         Relationships: []
       }
+      generation_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          visitor_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          visitor_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          visitor_hash?: string
+        }
+        Relationships: []
+      }
       niat_interests: {
         Row: {
           contact: string
@@ -364,6 +382,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_generation_slot: {
+        Args: {
+          _daily_token_limit: number
+          _global_per_day: number
+          _global_per_minute: number
+          _visitor_hash: string
+          _visitor_limit: number
+          _visitor_window_seconds: number
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
