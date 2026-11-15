@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project conventions
+- Keep this iteration frontend-only with static sample projects and explicitly labeled demo analytics; no AI calls or data collection are implemented.
+- Keep shared project data and demo rules in browser-safe library modules and reusable UI in components; routes compose these so sample experiences stay consistent.
+- Carry discovery selections through validated project search parameters rather than browser storage so shared projects work without a backend.
+- Define visual styles and colors in the central CSS design system; use the shared Button variants for interactive controls.

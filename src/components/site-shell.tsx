@@ -1,0 +1,115 @@
+import { Link, useRouterState } from "@tanstack/react-router";
+import { ArrowRight, ArrowUpRight, Menu, Sparkles, X } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+
+export function Brand() {
+  return (
+    <Link to="/" className="brand">
+      <span className="brand-mark">
+        <Sparkles size={21} />
+      </span>
+      <span>
+        FutureMe <span className="text-primary">AI</span>
+      </span>
+    </Link>
+  );
+}
+
+export function SiteShell({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  return (
+    <>
+      <header className="site-header">
+        <div className="page-width header-inner">
+          <Brand />
+          <nav className="desktop-nav" aria-label="Main navigation">
+            <Link to="/" activeOptions={{ exact: true }} activeProps={{ className: "nav-active" }}>
+              Discover
+            </Link>
+            <Link to="/projects" activeProps={{ className: "nav-active" }}>
+              Explore projects
+            </Link>
+            <Link to="/how-it-works" activeProps={{ className: "nav-active" }}>
+              How it works
+            </Link>
+            <Link to="/showcase" activeProps={{ className: "nav-active" }}>
+              Student showcase
+            </Link>
+          </nav>
+          <div className="header-actions">
+            <Button asChild variant="premium" className="header-cta">
+              <Link to="/discover">
+                Find my future <ArrowUpRight />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mobile-menu"
+              aria-label={open ? "Close menu" : "Open menu"}
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <X /> : <Menu />}
+            </Button>
+          </div>
+        </div>
+        {open && (
+          <nav className="mobile-nav" aria-label="Mobile navigation" key={pathname}>
+            <Link to="/" onClick={() => setOpen(false)}>
+              Discover
+            </Link>
+            <Link to="/projects" onClick={() => setOpen(false)}>
+              Explore projects
+            </Link>
+            <Link to="/how-it-works" onClick={() => setOpen(false)}>
+              How it works
+            </Link>
+            <Link to="/showcase" onClick={() => setOpen(false)}>
+              Student showcase
+            </Link>
+          </nav>
+        )}
+      </header>
+      <main>{children}</main>
+      <footer className="site-footer page-width">
+        <Brand />
+        <p>A little curiosity. A world of possibilities.</p>
+        <div>
+          <Link to="/admin">
+            Demo dashboard <ArrowUpRight size={14} />
+          </Link>
+          <span>© 2026 FutureMe AI</span>
+        </div>
+      </footer>
+    </>
+  );
+}
+
+export function SectionHeading({
+  eyebrow,
+  title,
+  description,
+  link = false,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  link?: boolean;
+}) {
+  return (
+    <div className="section-heading">
+      <div>
+        <p className="eyebrow">{eyebrow}</p>
+        <h2>{title}</h2>
+        {description && <p className="section-description">{description}</p>}
+      </div>
+      {link && (
+        <Link className="text-link" to="/projects">
+          Explore all projects <ArrowRight size={17} />
+        </Link>
+      )}
+    </div>
+  );
+}
