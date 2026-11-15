@@ -28,16 +28,19 @@ function positiveInt(raw: string | undefined, fallback: number, allowZero = fals
 
 export function readLimits(env: Record<string, string | undefined>): GenerationLimits {
   return {
-    visitorLimit: positiveInt(env.VISITOR_GENERATIONS_LIMIT, DEFAULT_LIMITS.visitorLimit),
+    visitorLimit: positiveInt(env["VISITOR_GENERATIONS_LIMIT"], DEFAULT_LIMITS.visitorLimit),
     visitorWindowSeconds: positiveInt(
-      env.VISITOR_GENERATIONS_WINDOW_SECONDS,
+      env["VISITOR_GENERATIONS_WINDOW_SECONDS"],
       DEFAULT_LIMITS.visitorWindowSeconds,
     ),
-    globalPerMinute: positiveInt(env.GLOBAL_GENERATIONS_PER_MINUTE, DEFAULT_LIMITS.globalPerMinute),
-    globalPerDay: positiveInt(env.GLOBAL_GENERATIONS_PER_DAY, DEFAULT_LIMITS.globalPerDay),
-    dailyTokenLimit: positiveInt(env.DAILY_TOKEN_LIMIT, DEFAULT_LIMITS.dailyTokenLimit, true),
+    globalPerMinute: positiveInt(
+      env["GLOBAL_GENERATIONS_PER_MINUTE"],
+      DEFAULT_LIMITS.globalPerMinute,
+    ),
+    globalPerDay: positiveInt(env["GLOBAL_GENERATIONS_PER_DAY"], DEFAULT_LIMITS.globalPerDay),
+    dailyTokenLimit: positiveInt(env["DAILY_TOKEN_LIMIT"], DEFAULT_LIMITS.dailyTokenLimit, true),
     maxOutputTokens: positiveInt(
-      env.MAX_OUTPUT_TOKENS_PER_GENERATION,
+      env["MAX_OUTPUT_TOKENS_PER_GENERATION"],
       DEFAULT_LIMITS.maxOutputTokens,
     ),
   };
