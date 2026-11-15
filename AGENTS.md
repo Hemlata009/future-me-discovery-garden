@@ -35,4 +35,5 @@ use the editor.
 - Keep shared project data and demo rules in browser-safe library modules and reusable UI in components; routes compose these so sample experiences stay consistent.
 - Carry discovery selections through validated project search parameters rather than browser storage so shared projects work without a backend.
 - Define visual styles and colors in the central CSS design system; use the shared Button variants for interactive controls.
-- AI project generation runs in a server route under src/routes/api/ that calls Lovable's AI gateway, because prompts, keys and token counts must never reach the browser; generated projects are saved to the database and read back by their own id so a shared link works for anyone.
+- AI project generation runs in a server route under src/routes/api/ that calls Anthropic's API directly through its official SDK, because prompts, keys and token counts must never reach the browser; generated projects are saved to the database and read back only by the site's own server-side lookup by project id, so a shared link works for anyone.
+- The AI key and the database service key are server-side only: read them from process.env inside a handler, never from browser code, and name the model through server config instead of hardcoding it in app code.

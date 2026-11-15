@@ -5,6 +5,7 @@ import {
   describeGenerationFailure,
   describeValidationIssues,
   discoveryAnswersSchema,
+  generatedProjectOutputFormat,
   normalizeGeneratedProject,
   systemPrompt,
   userPrompt,
@@ -45,7 +46,9 @@ describe("discovery answers", () => {
   });
 
   it("rejects an invented interest, technology or language", () => {
-    expect(discoveryAnswersSchema.safeParse({ ...answers, interest: "crypto" }).success).toBe(false);
+    expect(discoveryAnswersSchema.safeParse({ ...answers, interest: "crypto" }).success).toBe(
+      false,
+    );
     expect(discoveryAnswersSchema.safeParse({ ...answers, technology: "quantum" }).success).toBe(
       false,
     );
@@ -201,5 +204,51 @@ describe("interactive demo choice", () => {
     expect(demoThemeForInterest("gaming")).toBe("gaming");
     expect(demoThemeForInterest("robotics")).toBe("robotics");
     expect(demoThemeForInterest("creativity")).toBe("farming");
+  });
+});
+
+describe("structured output request", () => {
+  it("asks Claude with its native json_schema format", () => {
+    expect(generatedProjectOutputFormat.type).toBe("json_schema");
+    expect(generatedProjectOutputFormat.schema.type).toBe("object");
+  });
+
+  it("requires every field the project page shows", () => {
+    expect(generatedProjectOutputFormat.schema.required).toEqual([
+      "title",
+      "tagline",
+      "interest_connection",
+      "problem",
+      "description",
+      "difficulty",
+      "technologies",
+      "roadmap",
+      "first_milestone",
+      "future_extensions",
+      "career_connection",
+      "motivation",
+    ]);
+  });
+
+  it("keeps the answer to the fields the app can display", () => {
+    expect(generatedProjectOutputFormat.schema.additionalProperties).toBe(false);
+    const properties = generatedProjectOutputFormat.schema.properties as Record<string, unknown>;
+    expect(Object.keys(properties)).toHaveLength(12);
+    expect(properties["difficulty"]).toMatchObject({
+      enum: ["Beginner", "Intermediate", "Advanced"],
+    });
+  });
+});
+
+describe("failure copy for provider problems", () => {
+  it("says the key was rejected when the key was rejected", () => {
+    expect(describeGenerationFailure("auth")).toMatchObject({
+      status: 500,
+      message: expect.stringContaining("wasn't accepted"),
+    });
+  });
+
+  it("says the AI service couldn't use the request when it returned 400", () => {
+    expect(describeGenerationFailure("bad-request").status).toBe(502);
   });
 });

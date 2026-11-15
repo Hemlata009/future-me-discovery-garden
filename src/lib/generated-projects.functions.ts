@@ -1,7 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 
-import type { Database } from "@/integrations/supabase/types";
 import {
   generatedProjectContentSchema,
   type GeneratedProjectContent,
@@ -22,34 +20,22 @@ export type GeneratedProject = {
 };
 
 /**
- * Public read of one generated project so a shared link opens the same project.
- * Uses the publishable key, so row-level security still decides what is visible.
+ * Public read of exactly one generated project, so a shared link opens the same
+ * project for anyone. The browser only ever sends a project id; the row is
+ * fetched on the server with the service-role key, which is never shipped to
+ * the browser. A id that isn't a real project id is refused before any query
+ * runs, and only the one matching row is ever returned.
  */
 export const getGeneratedProject = createServerFn({ method: "GET" })
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }): Promise<GeneratedProject | null> => {
     if (!UUID.test(data.id)) return null;
 
-    const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
-    const url = process.env["SUPABASE_URL"];
-    if (!key || !url) return null;
+    // Loaded inside the handler: a top-level import would pull the service-role
+    // client into the browser bundle.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const supabasePublic = createClient<Database>(url, key, {
-      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-      // Opaque sb_ keys are not JWTs: send only apikey, never a bearer token.
-      global: {
-        fetch: (input, init) => {
-          const headers = new Headers(init?.headers);
-          if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) {
-            headers.delete("Authorization");
-          }
-          headers.set("apikey", key);
-          return fetch(input, { ...init, headers });
-        },
-      },
-    });
-
-    const { data: row, error } = await supabasePublic
+    const { data: row, error } = await supabaseAdmin
       .from("generated_projects")
       .select(
         "id, interest, technology, project_type, class_status, language, custom_idea, created_at, generated_content",

@@ -29,6 +29,13 @@
       "when": 1794758128295,
       "tag": "0003_create_generated_projects",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794759782197,
+      "tag": "0004_restrict_generated_project_reads",
+      "breakpoints": true
     }
   ]
 }

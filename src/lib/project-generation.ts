@@ -244,9 +244,11 @@ export function normalizeGeneratedProject(value: unknown): GeneratedProjectConte
 export type GenerationFailureKind =
   | "validation"
   | "config"
+  | "auth"
   | "rate-limit"
   | "credits"
   | "denied"
+  | "bad-request"
   | "no-object"
   | "network"
   | "upstream"
@@ -263,6 +265,11 @@ const FAILURE_COPY: Record<GenerationFailureKind, GenerationFailure> = {
     status: 500,
     message: "AI generation isn't switched on for this site yet. Please try again later.",
   },
+  auth: {
+    status: 500,
+    message:
+      "This site's AI key wasn't accepted by the AI service, so no project was generated. Please try again later.",
+  },
   "rate-limit": {
     status: 429,
     message: "We're generating a lot of projects right now. Please wait a moment and try again.",
@@ -274,6 +281,10 @@ const FAILURE_COPY: Record<GenerationFailureKind, GenerationFailure> = {
   denied: {
     status: 403,
     message: "The AI service refused this request, so no project was generated. Please try again.",
+  },
+  "bad-request": {
+    status: 502,
+    message: "The AI service couldn't use that request. Please try generating again.",
   },
   "no-object": {
     status: 502,
@@ -289,7 +300,8 @@ const FAILURE_COPY: Record<GenerationFailureKind, GenerationFailure> = {
   },
   save: {
     status: 502,
-    message: "Your project was generated but couldn't be saved, so there's no link to share yet. Please try again.",
+    message:
+      "Your project was generated but couldn't be saved, so there's no link to share yet. Please try again.",
   },
 };
 
@@ -309,3 +321,71 @@ export function describeValidationIssues(error: z.ZodError): string {
   if (field) return `Please choose a real ${field} before generating your project.`;
   return describeGenerationFailure("validation").message;
 }
+
+/** Anthropic's `output_config.format` shape: a JSON Schema the reply must fit. */
+export type JsonSchemaOutputFormat = {
+  type: "json_schema";
+  schema: {
+    type: "object";
+    additionalProperties: false;
+    required: string[];
+    properties: Record<string, unknown>;
+  };
+};
+
+/**
+ * Anthropic's native structured-output request: `output_config.format` with
+ * `type: "json_schema"`, so the model must answer with exactly these fields.
+ * The bounds here match the guard rails in generatedProjectContentSchema, so
+ * anything the model is allowed to send is something the app can display.
+ */
+export const generatedProjectOutputFormat: JsonSchemaOutputFormat = {
+  type: "json_schema",
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: [
+      "title",
+      "tagline",
+      "interest_connection",
+      "problem",
+      "description",
+      "difficulty",
+      "technologies",
+      "roadmap",
+      "first_milestone",
+      "future_extensions",
+      "career_connection",
+      "motivation",
+    ],
+    properties: {
+      title: { type: "string", minLength: 3, maxLength: 90 },
+      tagline: { type: "string", minLength: 4, maxLength: 160 },
+      interest_connection: { type: "string", minLength: 12, maxLength: 700 },
+      problem: { type: "string", minLength: 12, maxLength: 700 },
+      description: { type: "string", minLength: 24, maxLength: 1800 },
+      difficulty: { type: "string", enum: ["Beginner", "Intermediate", "Advanced"] },
+      technologies: {
+        type: "array",
+        items: { type: "string", minLength: 1, maxLength: 48 },
+        minItems: 2,
+        maxItems: 6,
+      },
+      roadmap: {
+        type: "array",
+        items: { type: "string", minLength: 3, maxLength: 200 },
+        minItems: 3,
+        maxItems: 7,
+      },
+      first_milestone: { type: "string", minLength: 12, maxLength: 500 },
+      future_extensions: {
+        type: "array",
+        items: { type: "string", minLength: 3, maxLength: 240 },
+        minItems: 2,
+        maxItems: 5,
+      },
+      career_connection: { type: "string", minLength: 6, maxLength: 400 },
+      motivation: { type: "string", minLength: 12, maxLength: 600 },
+    },
+  },
+};

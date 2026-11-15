@@ -1,98 +1,103 @@
-import { APICallError, NoObjectGeneratedError, Output, streamText } from "ai";
-import { createAnthropic } from "@ai-sdk/anthropic";
+// Server-side only. This module runs the AI call with Anthropic's official
+// TypeScript SDK, straight against Anthropic's API. The key and the prompt
+// never reach the browser: the wizard posts five answers and gets back the
+// finished project.
+import Anthropic, {
+  APIConnectionError,
+  APIConnectionTimeoutError,
+  APIError,
+  AuthenticationError,
+  BadRequestError,
+  InternalServerError,
+  PermissionDeniedError,
+  RateLimitError,
+} from "@anthropic-ai/sdk";
 
-import {
-  createLovableAiGatewayRunIdFetch,
-  getLovableAiGatewayResponseHeaders,
-  getLovableAiGatewayRunId,
-} from "@/lib/ai-gateway-run-id";
 import {
   describeGenerationFailure,
   describeValidationIssues,
-  generatedProjectModelSchema,
+  discoveryAnswersSchema,
+  generatedProjectOutputFormat,
   normalizeGeneratedProject,
   systemPrompt,
   userPrompt,
-  discoveryAnswersSchema,
+  type GeneratedProjectContent,
   type GenerationFailureKind,
 } from "@/lib/project-generation";
 
-const GATEWAY_BASE_URL = "https://ai.gateway.lovable.dev/v1";
-const DEFAULT_MODEL = "anthropic/claude-sonnet-5";
-const MAX_OUTPUT_TOKENS = 4096;
+/** Server-side only: this key must never reach the browser. */
+export const ANTHROPIC_KEY_ENV = "ANTHROPIC_API_KEY";
+export const DEFAULT_MODEL = "claude-sonnet-5-5";
+const MAX_TOKENS = 4096;
 const GENERATIONS_PER_MINUTE = 10;
 
-function failure(
-  kind: GenerationFailureKind,
-  runId?: string,
-  override?: { status?: number; message?: string },
-) {
-  const base = describeGenerationFailure(kind);
-  const status = override?.status ?? base.status;
-  const message = override?.message ?? base.message;
-  const headers = getLovableAiGatewayResponseHeaders(undefined, {
-    "content-type": "application/json",
-  });
-  if (runId) headers.set("X-Lovable-AIG-Run-ID", runId);
+/** The model can be swapped through server config without touching app code. */
+export function modelId(): string {
+  return process.env["ANTHROPIC_MODEL"]?.trim() || DEFAULT_MODEL;
+}
+
+/** The AI answered, but not with a project the app can show. */
+export class UnusableReplyError extends Error {}
+
+/** The AI took the request and refused to answer it. */
+export class RefusalError extends Error {}
+
+function failure(kind: GenerationFailureKind): Response {
+  const { status, message } = describeGenerationFailure(kind);
   return Response.json(
     { ok: false, code: kind, message },
-    { status, headers: getLovableAiGatewayResponseHeaders(headers) },
+    { status, headers: { "content-type": "application/json" } },
   );
 }
 
-function kindFromError(error: unknown): GenerationFailureKind {
-  if (error instanceof NoObjectGeneratedError) return "no-object";
-  if (error instanceof APICallError) {
-    const status = error.statusCode ?? 0;
-    if (status === 401) return "config";
-    if (status === 402) return "credits";
-    if (status === 403) return "denied";
-    if (status === 429) return "rate-limit";
+/**
+ * Maps an Anthropic failure to the kind of problem the student should hear
+ * about. Terminal statuses keep their own meaning: a rejected key or an empty
+ * bill is never reported as a hiccup the student should retry.
+ */
+export function kindFromError(error: unknown): GenerationFailureKind {
+  if (error instanceof RefusalError) return "denied";
+  if (error instanceof UnusableReplyError) return "no-object";
+  if (error instanceof AuthenticationError) return "auth";
+  if (error instanceof PermissionDeniedError) return "denied";
+  if (error instanceof RateLimitError) return "rate-limit";
+  if (error instanceof BadRequestError) return "bad-request";
+  if (error instanceof APIConnectionTimeoutError || error instanceof APIConnectionError) {
+    return "network";
+  }
+  if (error instanceof InternalServerError) return "upstream";
+  if (error instanceof APIError) {
+    if (error.type === "billing_error" || error.status === 402) return "credits";
+    if (error.status === 401) return "auth";
+    if (error.status === 403) return "denied";
+    if (error.status === 429) return "rate-limit";
+    if (error.status === 400) return "bad-request";
     return "upstream";
   }
+  // fetch() rejects with TypeError when the connection itself fails.
   if (error instanceof TypeError) return "network";
   return "upstream";
 }
 
-/** The gateway's own user-facing reason, when the response body carries one. */
-function gatewayReason(error: APICallError): string | undefined {
-  const raw = error.responseBody;
-  if (typeof raw !== "string" || !raw.trim()) return undefined;
+/** Strips any code fence, then requires JSON that fits the guard rails. */
+export function parseReply(text: string): GeneratedProjectContent {
+  const stripped = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/```\s*$/, "");
+  let raw: unknown;
   try {
-    const body = JSON.parse(raw) as { message?: unknown; error?: { message?: unknown } };
-    const candidate =
-      typeof body.message === "string"
-        ? body.message
-        : typeof body.error?.message === "string"
-          ? body.error.message
-          : undefined;
-    const clean = candidate?.trim().replace(/\s+/g, " ").slice(0, 300);
-    return clean && clean.length > 8 ? clean : undefined;
+    raw = JSON.parse(stripped);
   } catch {
-    return undefined;
+    throw new UnusableReplyError("The AI's answer was not valid JSON.");
   }
-}
-
-/**
- * Terminal failures keep the gateway's status and safe reason instead of being
- * rewritten into a generic 502 the student would retry pointlessly.
- */
-function upstreamDetail(error: unknown): { status?: number; message?: string } {
-  if (!(error instanceof APICallError)) return {};
-  const status = error.statusCode ?? 0;
-  if (status === 403) {
-    return { status: 403, message: gatewayReason(error) ?? describeGenerationFailure("denied").message };
+  try {
+    return normalizeGeneratedProject(raw);
+  } catch (error) {
+    throw new UnusableReplyError(
+      error instanceof Error ? error.message : "The AI's answer was unusable.",
+    );
   }
-  if (status === 402) {
-    return { status: 402, message: gatewayReason(error) ?? describeGenerationFailure("credits").message };
-  }
-  if (status === 400) {
-    return {
-      status: 400,
-      message: "The AI service couldn't use that request. Please try generating again.",
-    };
-  }
-  return {};
 }
 
 /** Only this site's own pages may ask for a generation. */
@@ -119,16 +124,9 @@ export async function handleGenerateProject(request: Request): Promise<Response>
   const body: unknown = await request.json().catch(() => null);
   const parsed = discoveryAnswersSchema.safeParse(body);
   if (!parsed.success) {
-    const headers = getLovableAiGatewayResponseHeaders(undefined, {
-      "content-type": "application/json",
-    });
     return Response.json(
-      {
-        ok: false,
-        code: "validation",
-        message: describeValidationIssues(parsed.error),
-      },
-      { status: 400, headers },
+      { ok: false, code: "validation", message: describeValidationIssues(parsed.error) },
+      { status: 400, headers: { "content-type": "application/json" } },
     );
   }
   const answers = parsed.data;
@@ -146,46 +144,43 @@ export async function handleGenerateProject(request: Request): Promise<Response>
     return failure("rate-limit");
   }
 
-  const apiKey = process.env["LOVABLE_API_KEY"];
+  const apiKey = process.env[ANTHROPIC_KEY_ENV];
   if (!apiKey) {
-    console.error("AI generation requested but LOVABLE_API_KEY is not configured");
+    console.error("AI generation requested but ANTHROPIC_API_KEY is not configured");
     return failure("config");
   }
 
-  const model = process.env["ANTHROPIC_MODEL"]?.trim() || DEFAULT_MODEL;
-  const runIdFetch = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(request));
-  const anthropic = createAnthropic({
-    baseURL: GATEWAY_BASE_URL,
-    apiKey,
-    headers: { "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
-    fetch: runIdFetch.fetch,
-  });
+  const model = modelId();
+  const client = new Anthropic({ apiKey, maxRetries: 0 });
 
-  let content;
-  let usage;
+  let content: GeneratedProjectContent;
+  let usage: { input_tokens: number; output_tokens: number } | undefined;
   try {
-    const result = streamText({
-      model: anthropic(model),
+    // Native structured output: Claude must answer with exactly the fields the
+    // schema below lists, so there is no prose to unpick.
+    const stream = client.messages.stream({
+      model,
+      max_tokens: MAX_TOKENS,
       system: systemPrompt(),
-      prompt: userPrompt(answers),
-      output: Output.object({
-        name: "student_project",
-        description: "A personalized, beginner-friendly technology project for this student.",
-        schema: generatedProjectModelSchema,
-      }),
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      maxRetries: 0,
+      messages: [{ role: "user", content: userPrompt(answers) }],
+      output_config: { format: generatedProjectOutputFormat },
     });
     // Consume the stream server-side: the browser only ever sees the finished project.
-    content = normalizeGeneratedProject(await result.output);
-    usage = await result.usage;
+    const message = await stream.finalMessage();
+    if (message.stop_reason === "refusal") {
+      throw new RefusalError("The AI service declined to answer this request.");
+    }
+    const text = message.content
+      .flatMap((block) => (block.type === "text" ? [block.text] : []))
+      .join("");
+    content = parseReply(text);
+    usage = message.usage;
   } catch (error) {
     const kind = kindFromError(error);
     console.error(`AI generation failed (${kind})`, error);
-    return failure(kind, runIdFetch.getRunId(), upstreamDetail(error));
+    return failure(kind);
   }
 
-  const runId = runIdFetch.getRunId();
   const { data, error } = await supabaseAdmin
     .from("generated_projects")
     .insert({
@@ -197,28 +192,22 @@ export async function handleGenerateProject(request: Request): Promise<Response>
       custom_idea: answers.custom_idea || null,
       generated_content: content,
       model,
-      input_tokens: usage?.inputTokens ?? null,
-      output_tokens: usage?.outputTokens ?? null,
+      input_tokens: usage?.input_tokens ?? null,
+      output_tokens: usage?.output_tokens ?? null,
     })
     .select("id")
     .single();
 
   if (error || !data) {
     console.error("Generated project could not be saved", error);
-    return failure("save", runId);
+    return failure("save");
   }
 
   console.info(
-    `Generated project ${data.id} with ${model} (in ${usage?.inputTokens ?? "?"} / out ${
-      usage?.outputTokens ?? "?"
-    } tokens, run ${runId ?? "unknown"})`,
+    `Generated project ${data.id} with ${model} (in ${usage?.input_tokens ?? "?"} / out ${
+      usage?.output_tokens ?? "?"
+    } tokens)`,
   );
-
-  const headers = getLovableAiGatewayResponseHeaders(
-    undefined,
-    new Headers({ "content-type": "application/json" }),
-  );
-  if (runId) headers.set("X-Lovable-AIG-Run-ID", runId);
 
   return Response.json(
     {
@@ -226,9 +215,9 @@ export async function handleGenerateProject(request: Request): Promise<Response>
       id: data.id,
       generated_content: content,
       model,
-      input_tokens: usage?.inputTokens ?? null,
-      output_tokens: usage?.outputTokens ?? null,
+      input_tokens: usage?.input_tokens ?? null,
+      output_tokens: usage?.output_tokens ?? null,
     },
-    { status: 200, headers: getLovableAiGatewayResponseHeaders(headers) },
+    { status: 200, headers: { "content-type": "application/json" } },
   );
 }

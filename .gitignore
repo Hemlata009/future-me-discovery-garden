@@ -30,3 +30,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files: real values live in Project Settings → Secrets, never in git.
+.env
+.env.*
+!.env.example
