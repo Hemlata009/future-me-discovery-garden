@@ -22,6 +22,7 @@ import { Route as ApiGenerateProjectRouteImport } from './routes/api/generate-pr
 import { Route as ApiReferralLinkRouteImport } from './routes/api/referral-link'
 import { Route as ApiTrackRouteImport } from './routes/api/track'
 import { Route as ApiVisitorRouteImport } from './routes/api/visitor'
+import { Route as ApiPublicCronPurgeGrowthDataRouteImport } from './routes/api/public/cron/purge-growth-data'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -87,6 +88,12 @@ const ApiVisitorRoute = ApiVisitorRouteImport.update({
   path: '/api/visitor',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronPurgeGrowthDataRoute =
+  ApiPublicCronPurgeGrowthDataRouteImport.update({
+    id: '/api/public/cron/purge-growth-data',
+    path: '/api/public/cron/purge-growth-data',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/api/referral-link': typeof ApiReferralLinkRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
+  '/api/public/cron/purge-growth-data': typeof ApiPublicCronPurgeGrowthDataRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -115,6 +123,7 @@ export interface FileRoutesByTo {
   '/api/referral-link': typeof ApiReferralLinkRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
+  '/api/public/cron/purge-growth-data': typeof ApiPublicCronPurgeGrowthDataRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,6 +140,7 @@ export interface FileRoutesById {
   '/api/referral-link': typeof ApiReferralLinkRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
+  '/api/public/cron/purge-growth-data': typeof ApiPublicCronPurgeGrowthDataRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/api/referral-link'
     | '/api/track'
     | '/api/visitor'
+    | '/api/public/cron/purge-growth-data'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/api/referral-link'
     | '/api/track'
     | '/api/visitor'
+    | '/api/public/cron/purge-growth-data'
   id:
     | '__root__'
     | '/'
@@ -176,6 +188,7 @@ export interface FileRouteTypes {
     | '/api/referral-link'
     | '/api/track'
     | '/api/visitor'
+    | '/api/public/cron/purge-growth-data'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -191,6 +204,7 @@ export interface RootRouteChildren {
   ApiReferralLinkRoute: typeof ApiReferralLinkRoute
   ApiTrackRoute: typeof ApiTrackRoute
   ApiVisitorRoute: typeof ApiVisitorRoute
+  ApiPublicCronPurgeGrowthDataRoute: typeof ApiPublicCronPurgeGrowthDataRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -286,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVisitorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/purge-growth-data': {
+      id: '/api/public/cron/purge-growth-data'
+      path: '/api/public/cron/purge-growth-data'
+      fullPath: '/api/public/cron/purge-growth-data'
+      preLoaderRoute: typeof ApiPublicCronPurgeGrowthDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -313,6 +334,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiReferralLinkRoute: ApiReferralLinkRoute,
   ApiTrackRoute: ApiTrackRoute,
   ApiVisitorRoute: ApiVisitorRoute,
+  ApiPublicCronPurgeGrowthDataRoute: ApiPublicCronPurgeGrowthDataRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

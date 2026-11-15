@@ -26,8 +26,10 @@ export type GrowthEventInput = {
   class_status?: string | null | undefined;
   failure_kind?: string | null | undefined;
   cta?: string | null | undefined;
+  entry_page?: string | null | undefined;
 };
 
+/** Returns ok | duplicate | ignored | rate_limited | error. */
 export async function recordGrowthEvent(input: GrowthEventInput): Promise<string> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const args = compact({
@@ -45,13 +47,20 @@ export async function recordGrowthEvent(input: GrowthEventInput): Promise<string
     _class_status: input.class_status ?? undefined,
     _failure_kind: input.failure_kind ?? undefined,
     _cta: input.cta ?? undefined,
+    _entry_page: input.entry_page ?? undefined,
   });
   const { data, error } = await supabaseAdmin.rpc(
     "record_growth_event",
     args as { _event: string; _visitor_hash: string },
   );
   if (error) {
-    console.error("Growth event not recorded", input.event, error.message);
+    console.error(
+      JSON.stringify({
+        msg: "growth_event_write_failed",
+        event: input.event,
+        error: error.message,
+      }),
+    );
     return "error";
   }
   return String(data);

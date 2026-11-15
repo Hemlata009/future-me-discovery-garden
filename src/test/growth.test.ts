@@ -9,6 +9,12 @@ import {
 import { attributionFromSearch, referralUrl, trackPayloadSchema } from "@/lib/tracking";
 
 const zero: GrowthTotals = {
+  segmented: false,
+  gen_rejected: 0,
+  niat_modal_opens: 0,
+  niat_outbound: 0,
+  niat_outbound_visitors: 0,
+  ref_niat_outbound: 0,
   visitors: 0,
   starts: 0,
   completions: 0,
@@ -20,8 +26,6 @@ const zero: GrowthTotals = {
   ref_visitors: 0,
   ref_starts: 0,
   ref_gens: 0,
-  cta: 0,
-  ref_cta: 0,
   views: 0,
 };
 

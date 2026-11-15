@@ -113,6 +113,30 @@ function isSameOrigin(request: Request): boolean {
   }
 }
 
+/**
+ * The failure_kind stored on generation_failed. Pre-AI rejections (config,
+ * limits) are kept apart from Anthropic errors, invalid replies and save failures.
+ */
+export type GenerationOutcomeKind =
+  | "config"
+  | "visitor_limit"
+  | "global_limit"
+  | "limit_check"
+  | "invalid_response"
+  | "save"
+  | `anthropic:${GenerationFailureKind}`;
+
+export function outcomeKindFor(kind: GenerationFailureKind): GenerationOutcomeKind {
+  if (kind === "no-object") return "invalid_response";
+  if (kind === "save") return "save";
+  if (kind === "config") return "config";
+  return `anthropic:${kind}`;
+}
+
+export function limitOutcome(reason: LimitReason | undefined): GenerationOutcomeKind {
+  return reason === "visitor" ? "visitor_limit" : "global_limit";
+}
+
 export async function handleGenerateProject(request: Request): Promise<Response> {
   const visitor = await resolveVisitor(request);
   const response = await generate(request, visitor.hash);
@@ -147,7 +171,7 @@ async function generate(request: Request, visitorHash: string): Promise<Response
     class_status: answers.class_status,
   };
   await recordGrowthEvent({ event: "discovery_completed", ...answerFields });
-  const recordFailure = (kind: GenerationFailureKind) =>
+  const recordFailure = (kind: GenerationOutcomeKind) =>
     recordGrowthEvent({ event: "generation_failed", failure_kind: kind, ...answerFields });
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -155,6 +179,7 @@ async function generate(request: Request, visitorHash: string): Promise<Response
   const apiKey = process.env[ANTHROPIC_KEY_ENV];
   if (!apiKey) {
     console.error("AI generation requested but ANTHROPIC_API_KEY is not configured");
+    await recordFailure("config");
     return failure("config");
   }
 
@@ -171,6 +196,7 @@ async function generate(request: Request, visitorHash: string): Promise<Response
   });
   if (slotError || !slot) {
     console.error("Generation rate check failed", slotError?.message);
+    await recordFailure("limit_check");
     return failure("upstream");
   }
   const claim = slot as {
@@ -180,6 +206,7 @@ async function generate(request: Request, visitorHash: string): Promise<Response
     attempt_id?: string;
   };
   if (!claim.allowed) {
+    await recordFailure(limitOutcome(claim.reason));
     const retry = claim.retry_after_seconds ?? 60;
     return Response.json(
       {
@@ -226,7 +253,7 @@ async function generate(request: Request, visitorHash: string): Promise<Response
     const kind = kindFromError(error);
     console.error(`AI generation failed (${kind})`, error instanceof Error ? error.message : "");
     await releaseSlot();
-    await recordFailure(kind);
+    await recordFailure(outcomeKindFor(kind));
     return failure(kind);
   }
 

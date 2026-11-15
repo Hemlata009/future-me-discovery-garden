@@ -40,3 +40,7 @@ use the editor.
 - AI generation limits are claimed atomically through a database function keyed by a hashed, server-issued HttpOnly visitor cookie, with independent site-wide caps read from server env; failed generations release their slot so only successes count.
 - Growth events go through /api/track into one database event log via a server-only function that applies first-touch attribution, dedupe keys, self-referral and spam guards; browsers may only send a fixed allow-list of events and fields, and nothing is written to other analytics pipelines.
 - The admin dashboard lives under the managed _authenticated gate, and its report server function re-checks the admin role on every call before reading with the service client; admin roles are granted only by trusted SQL, never through the app.
+- Visitor entry is tracked once per page load from the root route on any public page; the referral code rides on the entry and referral visits so first-touch attribution never loses it.
+- /api/track returns 503 on write failure and 429 on rate limits; only recorded, duplicate or ignored events count as success, and it requires an existing visitor cookie.
+- Answer filters on the growth report define a visitor cohort; metrics that can't be attributed to answers are returned as null rather than shown with mismatched denominators.
+- Team accounts are invitation-only (sign-up disabled); retention purges run from a scheduled /api/public/cron route.

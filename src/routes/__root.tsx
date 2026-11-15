@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEntryOnce } from "@/lib/tracking";
 
 function NotFoundComponent() {
   return (
@@ -141,6 +142,10 @@ function RootComponent() {
     });
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
+  // Counts the visitor on whichever public page they enter (once per page load).
+  useEffect(() => {
+    trackEntryOnce();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

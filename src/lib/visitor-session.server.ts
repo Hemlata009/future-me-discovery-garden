@@ -22,8 +22,22 @@ function newVisitorId(): string {
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-export async function hashVisitorId(id: string): Promise<string> {
-  const salt = process.env["VISITOR_HASH_SALT"] ?? "futureme-visitor";
+const DEV_SALT = "futureme-dev-only-salt";
+
+/**
+ * VISITOR_HASH_SALT is a required server secret: without it, hashes could be
+ * reversed by anyone who can guess cookie values. Only local development
+ * (localhost) may fall back to a fixed dev salt.
+ */
+export function visitorSalt(requestUrl?: string): string {
+  const salt = process.env["VISITOR_HASH_SALT"]?.trim();
+  if (salt && salt.length >= 32) return salt;
+  const host = requestUrl ? new URL(requestUrl).hostname : "";
+  if (host === "localhost" || host === "127.0.0.1") return DEV_SALT;
+  throw new Error("VISITOR_HASH_SALT must be set to a strong secret (32+ characters).");
+}
+
+export async function hashVisitorId(id: string, salt: string = visitorSalt()): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${salt}:${id}`));
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
@@ -32,14 +46,22 @@ export async function hashVisitorId(id: string): Promise<string> {
 export async function resolveVisitor(
   request: Request,
 ): Promise<{ hash: string; setCookie: string | null }> {
+  const salt = visitorSalt(request.url);
   const existing = readCookie(request, VISITOR_COOKIE);
   if (existing && ID_PATTERN.test(existing)) {
-    return { hash: await hashVisitorId(existing), setCookie: null };
+    return { hash: await hashVisitorId(existing, salt), setCookie: null };
   }
   const id = newVisitorId();
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
   return {
-    hash: await hashVisitorId(id),
+    hash: await hashVisitorId(id, salt),
     setCookie: `${VISITOR_COOKIE}=${id}; Path=/; Max-Age=${MAX_AGE_SECONDS}; HttpOnly; SameSite=Lax${secure}`,
   };
+}
+
+/** The hash for an existing well-formed cookie, or null; never issues a new one. */
+export async function readVisitor(request: Request): Promise<string | null> {
+  const existing = readCookie(request, VISITOR_COOKIE);
+  if (!existing || !ID_PATTERN.test(existing)) return null;
+  return hashVisitorId(existing, visitorSalt(request.url));
 }

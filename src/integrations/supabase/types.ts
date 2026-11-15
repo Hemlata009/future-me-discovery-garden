@@ -134,6 +134,7 @@ export type Database = {
           created_at: string
           cta: string | null
           dedupe_key: string | null
+          entry_page: string | null
           event_date: string
           event_name: string
           failure_kind: string | null
@@ -154,6 +155,7 @@ export type Database = {
           created_at?: string
           cta?: string | null
           dedupe_key?: string | null
+          entry_page?: string | null
           event_date?: string
           event_name: string
           failure_kind?: string | null
@@ -174,6 +176,7 @@ export type Database = {
           created_at?: string
           cta?: string | null
           dedupe_key?: string | null
+          entry_page?: string | null
           event_date?: string
           event_name?: string
           failure_kind?: string | null
@@ -453,6 +456,7 @@ export type Database = {
       }
       visitor_attribution: {
         Row: {
+          entry_page: string | null
           first_seen_at: string
           referral_code: string | null
           utm_campaign: string | null
@@ -461,6 +465,7 @@ export type Database = {
           visitor_hash: string
         }
         Insert: {
+          entry_page?: string | null
           first_seen_at?: string
           referral_code?: string | null
           utm_campaign?: string | null
@@ -469,6 +474,7 @@ export type Database = {
           visitor_hash: string
         }
         Update: {
+          entry_page?: string | null
           first_seen_at?: string
           referral_code?: string | null
           utm_campaign?: string | null
@@ -517,13 +523,15 @@ export type Database = {
       }
       growth_report: {
         Args: {
-          _campaign?: string
           _class_status?: string
           _from: string
           _interest?: string
           _language?: string
           _technology?: string
           _to: string
+          _utm_campaign?: string
+          _utm_medium?: string
+          _utm_source?: string
         }
         Returns: Json
       }
@@ -534,11 +542,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      purge_expired_growth_data: {
+        Args: { _attempt_days?: number; _event_days?: number }
+        Returns: Json
+      }
       record_growth_event: {
         Args: {
           _channel?: string
           _class_status?: string
           _cta?: string
+          _entry_page?: string
           _event: string
           _failure_kind?: string
           _generated_project_id?: string

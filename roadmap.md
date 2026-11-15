@@ -21,3 +21,12 @@
 - [ ] Assign the first admin (waiting on the admin's email from the owner)
 - [ ] Phase 9: Privacy, retention and data quality
 - [ ] Phase 10: Full test pass
+## Targeted corrections (Nov 15)
+- [x] Entry-page visitor tracking on all public routes
+- [x] /api/track returns 503/429 honestly; client checks status
+- [x] Separate NIAT modal opens vs outbound clicks
+- [x] Cohort-consistent segmented funnel + utm source/medium/campaign filters
+- [x] Share-action labels
+- [x] Complete generation outcome events
+- [x] Hardening: salt required in prod, retention, invite-only admin accounts
+- [x] Tests

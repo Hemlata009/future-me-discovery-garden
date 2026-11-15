@@ -12,7 +12,34 @@ export const BROWSER_EVENTS = [
 ] as const;
 export type BrowserEvent = (typeof BROWSER_EVENTS)[number];
 
+// explore_niat = opened the NIAT pop-up; visit_niat = clicked the outbound NIAT link.
 export const CTA_IDS = ["explore_niat", "visit_niat"] as const;
+
+export const ENTRY_PAGES = [
+  "home",
+  "discover",
+  "project",
+  "projects",
+  "how_it_works",
+  "showcase",
+  "other",
+] as const;
+export type EntryPage = (typeof ENTRY_PAGES)[number];
+
+/** Maps a path to a fixed entry-page name; team pages return null and are never counted. */
+export function entryPageFor(pathname: string): EntryPage | null {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  if (path === "/admin" || path === "/auth" || path.startsWith("/api/")) return null;
+  const map: Record<string, EntryPage> = {
+    "/": "home",
+    "/discover": "discover",
+    "/project": "project",
+    "/projects": "projects",
+    "/how-it-works": "how_it_works",
+    "/showcase": "showcase",
+  };
+  return map[path] ?? "other";
+}
 
 const tag = z
   .string()
@@ -29,6 +56,7 @@ export const trackPayloadSchema = z
     ref: referralCodeSchema.optional(),
     channel: z.enum(["copy", "whatsapp"]).optional(),
     cta: z.enum(CTA_IDS).optional(),
+    entry_page: z.enum(ENTRY_PAGES).optional(),
     utm_source: tag.optional(),
     utm_medium: tag.optional(),
     utm_campaign: tag.optional(),
@@ -43,6 +71,12 @@ export const trackPayloadSchema = z
     }
     if (v.event === "referral_visit" && !v.ref) {
       ctx.addIssue({ code: "custom", message: "ref required" });
+    }
+    if (v.event === "landing_visit" && !v.entry_page) {
+      ctx.addIssue({ code: "custom", message: "entry_page required" });
+    }
+    if (v.event !== "landing_visit" && v.entry_page) {
+      ctx.addIssue({ code: "custom", message: "entry_page only on landing_visit" });
     }
     if (v.event === "cta_clicked" && !v.cta) {
       ctx.addIssue({ code: "custom", message: "cta required" });
@@ -77,21 +111,49 @@ export function ensureVisitor(): Promise<void> {
   return visitorReady;
 }
 
-/** Fire-and-forget; tracking must never break the page. */
-export async function track(payload: TrackPayload): Promise<void> {
-  if (typeof window === "undefined") return;
-  await ensureVisitor();
-  const body = { ...attributionFromSearch(window.location.search), ...payload };
-  if (body.event !== "referral_visit" && !payload.ref) delete body.ref;
-  return fetch("/api/track", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-    keepalive: true,
-    credentials: "same-origin",
-  })
-    .then(() => undefined)
-    .catch(() => undefined);
+/**
+ * Builds the body sent to /api/track. The referral code from the URL rides
+ * along on the entry visit and the referral visit so first-touch attribution
+ * keeps it whichever arrives first; other events never carry it.
+ */
+export function buildTrackBody(payload: TrackPayload, search: string): TrackPayload {
+  const body = { ...attributionFromSearch(search), ...payload };
+  const keepsRef = body.event === "referral_visit" || body.event === "landing_visit";
+  if (!keepsRef && !payload.ref) delete body.ref;
+  return body;
+}
+
+/**
+ * Fire-and-forget; tracking must never break the page. Resolves true only when
+ * the server confirms the event was recorded (or recognised as a duplicate).
+ */
+export async function track(payload: TrackPayload): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  try {
+    await ensureVisitor();
+    const res = await fetch("/api/track", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(buildTrackBody(payload, window.location.search)),
+      keepalive: true,
+      credentials: "same-origin",
+    });
+    if (!res.ok) return false;
+    const data = (await res.json().catch(() => null)) as { ok?: boolean } | null;
+    return data?.ok === true;
+  } catch {
+    return false;
+  }
+}
+
+let entryTracked = false;
+/** Records the entry visit once per page load, so remounts and in-app navigation never repeat it. */
+export function trackEntryOnce(): void {
+  if (typeof window === "undefined" || entryTracked) return;
+  const page = entryPageFor(window.location.pathname);
+  if (!page) return;
+  entryTracked = true;
+  void track({ event: "landing_visit", entry_page: page });
 }
 
 export function referralUrl(origin: string, projectId: string, code: string | null): string {

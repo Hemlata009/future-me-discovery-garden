@@ -66,7 +66,7 @@ function Admin() {
   const fetchReport = useServerFn(getGrowthReport);
   const [preset, setPreset] = useState<"7" | "30" | "custom">("7");
   const [custom, setCustom] = useState(presetRange(30));
-  const [campaign, setCampaign] = useState("");
+  const [utm, setUtm] = useState({ utm_source: "", utm_medium: "", utm_campaign: "" });
   const [answers, setAnswers] = useState<Record<keyof typeof ANSWER_OPTIONS, string>>({
     interest: "",
     technology: "",
@@ -77,10 +77,10 @@ function Admin() {
   const filters = useMemo<ReportFilters>(() => {
     const range = preset === "custom" ? custom : presetRange(Number(preset));
     const f: Record<string, string> = { ...range };
-    if (campaign) f["campaign"] = campaign;
+    for (const [k, v] of Object.entries(utm)) if (v) f[k] = v;
     for (const [k, v] of Object.entries(answers)) if (v) f[k] = v;
     return f as ReportFilters;
-  }, [preset, custom, campaign, answers]);
+  }, [preset, custom, utm, answers]);
 
   const query = useQuery({
     queryKey: ["growth-report", filters],
@@ -192,17 +192,25 @@ function Admin() {
               </label>
             </>
           )}
-          <label className="text-xs">
-            Campaign{" "}
-            <select value={campaign} onChange={(e) => setCampaign(e.target.value)}>
-              <option value="">All</option>
-              {(report?.campaign_options ?? []).map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
+          {(
+            [
+              { key: "utm_source", label: "Source", options: report?.source_options },
+              { key: "utm_medium", label: "Medium", options: report?.medium_options },
+              { key: "utm_campaign", label: "Campaign", options: report?.campaign_options },
+            ] as const
+          ).map(({ key, label, options }) => (
+            <label className="text-xs" key={key}>
+              {label}{" "}
+              <select value={utm[key]} onChange={(e) => setUtm({ ...utm, [key]: e.target.value })}>
+                <option value="">All</option>
+                {(options ?? []).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
           {(Object.keys(ANSWER_OPTIONS) as (keyof typeof ANSWER_OPTIONS)[]).map((key) => (
             <label className="text-xs" key={key}>
               {key === "class_status" ? "Academic status" : key[0]!.toUpperCase() + key.slice(1)}{" "}
@@ -221,8 +229,11 @@ function Admin() {
           ))}
         </div>
         <p className="text-xs text-muted-foreground mb-4">
-          Interest, technology, language and academic-status filters narrow discovery completions
-          and generations; the campaign filter applies to every metric.
+          Source, medium and campaign filters use each visitor's first touch and apply to every
+          number. Interest, technology, language and academic-status filters switch to one cohort:
+          visitors who completed a matching discovery, counting only their matching generations and
+          projects. Discovery starts carry no answers, so starts and completion rate aren't shown
+          for a cohort.
         </p>
 
         {query.isLoading && <p role="status">Loading live data…</p>}
@@ -249,9 +260,24 @@ function Admin() {
 
         {t && m && report && !isEmptyReport(t) && (
           <>
+            {t.segmented && (
+              <p className="notice text-sm mb-4" role="note">
+                Showing one cohort: {t.visitors.toLocaleString("en-US")} visitors who completed a
+                matching discovery. Overall funnel numbers appear when answer filters are cleared.
+              </p>
+            )}
             <div className="metrics-grid">
-              <Metric Icon={Eye} label="Unique visitors" value={t.visitors} />
-              <Metric Icon={Compass} label="Discovery starts" value={t.starts} />
+              <Metric
+                Icon={Eye}
+                label={t.segmented ? "Visitors in this cohort" : "Unique visitors"}
+                value={t.visitors}
+              />
+              <Metric
+                Icon={Compass}
+                label="Discovery starts"
+                text={t.starts === null ? "—" : t.starts.toLocaleString("en-US")}
+                {...(t.starts === null ? { note: "Not attributable to answers" } : {})}
+              />
               <Metric
                 Icon={CheckCircle2}
                 label="Discovery completion rate"
@@ -263,21 +289,33 @@ function Admin() {
                 Icon={Activity}
                 label="Generation success rate"
                 text={formatRate(m.generationSuccessRate)}
-                note={`${t.gen_fail} failed`}
+                note={`${t.gen_fail} failed after reaching the AI · ${t.gen_rejected} turned away before it`}
               />
               <Metric
                 Icon={Share2}
-                label="Project share rate"
-                text={formatRate(m.shareRate)}
-                note={`${t.shares} shares · copy ${report.shares_by_channel["copy"] ?? 0} · WhatsApp ${report.shares_by_channel["whatsapp"] ?? 0}`}
+                label="Share actions"
+                value={t.shares}
+                note={`copy ${report.shares_by_channel["copy"] ?? 0} · WhatsApp ${report.shares_by_channel["whatsapp"] ?? 0}`}
+              />
+              <Metric
+                Icon={Share2}
+                label="Projects with at least one share action"
+                value={t.shared_projects}
+                note={`${formatRate(m.shareRate)} of successful generations`}
               />
               <Metric
                 Icon={Users}
                 label="Referral visits"
                 value={t.ref_visits}
-                note={`${t.ref_visitors} unique visitors`}
+                note={`${t.ref_visitors} unique referral visitors`}
               />
-              <Metric Icon={MousePointer2} label="NIAT button clicks" value={t.cta} />
+              <Metric Icon={MousePointer2} label="NIAT pop-up opens" value={t.niat_modal_opens} />
+              <Metric
+                Icon={MousePointer2}
+                label="NIAT outbound clicks"
+                value={t.niat_outbound}
+                note={`${t.niat_outbound_visitors} unique visitors · ${t.ref_niat_outbound} from referrals`}
+              />
               <Metric Icon={Inbox} label="Inquiry submissions" text="Not collected yet" />
             </div>
 
@@ -357,14 +395,18 @@ function Admin() {
                 <Activity size={17} className="inline mr-2 text-primary" />
                 From discovery to possibility.
               </h2>
-              <p>Conversion funnel · share of unique visitors</p>
+              <p>
+                {t.segmented
+                  ? "Cohort funnel · share of visitors in this cohort"
+                  : "Overall funnel · share of unique visitors"}
+              </p>
               {[
                 { name: "Visitors", value: t.visitors },
-                { name: "Discoveries started", value: t.starts },
+                ...(t.starts === null ? [] : [{ name: "Discoveries started", value: t.starts }]),
                 { name: "Discoveries completed", value: t.completions },
                 { name: "Projects generated", value: t.gen_ok },
-                { name: "Projects shared", value: t.shared_projects },
-                { name: "NIAT button clicks", value: t.cta },
+                { name: "Projects with a share action", value: t.shared_projects },
+                { name: "Visitors who clicked out to NIAT", value: t.niat_outbound_visitors },
               ].map((item) => {
                 const percent = Math.min(
                   100,
@@ -389,12 +431,20 @@ function Admin() {
               <Table
                 head={[
                   "Referral visits",
-                  "Unique referred visitors",
-                  "Referred discovery starts",
-                  "Referred generations",
-                  "Referred NIAT clicks",
+                  "Unique referral visitors",
+                  "Referral discovery starts",
+                  "Referral generations",
+                  "Referral NIAT outbound clicks",
                 ]}
-                rows={[[t.ref_visits, t.ref_visitors, t.ref_starts, t.ref_gens, t.ref_cta]]}
+                rows={[
+                  [
+                    t.ref_visits,
+                    t.ref_visitors,
+                    t.starts === null ? "—" : t.ref_starts,
+                    t.ref_gens,
+                    t.ref_niat_outbound,
+                  ],
+                ]}
               />
             </section>
 
@@ -406,15 +456,15 @@ function Admin() {
                   "Source",
                   "Visitors",
                   "Generations",
-                  "Visitors who clicked NIAT",
+                  "Visitors who clicked out to NIAT",
                   "Click-through",
                 ]}
                 rows={report.acquisition.map((a) => [
                   a.name,
                   a.visitors,
                   a.generations,
-                  a.cta_visitors,
-                  formatRate(rate(a.cta_visitors, a.visitors)),
+                  a.outbound_visitors,
+                  formatRate(rate(a.outbound_visitors, a.visitors)),
                 ])}
               />
             </section>
@@ -431,8 +481,8 @@ function Admin() {
                     "Campaign",
                     "Visitors",
                     "Generations",
-                    "Shares",
-                    "NIAT clicks",
+                    "Share actions",
+                    "NIAT outbound clicks",
                   ]}
                   rows={report.campaigns.map((c) => [
                     c.source,
@@ -441,7 +491,7 @@ function Admin() {
                     c.visitors,
                     c.generations,
                     c.shares,
-                    c.cta,
+                    c.niat_outbound,
                   ])}
                 />
               )}

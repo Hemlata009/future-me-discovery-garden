@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DEFAULT_LIMITS, limitMessage, readLimits } from "@/lib/rate-limit-config";
-import { hashVisitorId, resolveVisitor } from "@/lib/visitor-session.server";
+import { hashVisitorId, resolveVisitor, visitorSalt } from "@/lib/visitor-session.server";
 
 describe("generation limits", () => {
   it("defaults to 3 per visitor per 15 minutes", () => {
@@ -29,6 +29,19 @@ describe("generation limits", () => {
 });
 
 describe("visitor session", () => {
+  beforeEach(() => {
+    process.env["VISITOR_HASH_SALT"] = "s".repeat(40);
+  });
+  afterEach(() => {
+    delete process.env["VISITOR_HASH_SALT"];
+  });
+  it("refuses to hash without a strong salt outside localhost", () => {
+    delete process.env["VISITOR_HASH_SALT"];
+    expect(() => visitorSalt("https://futureme.example/")).toThrow(/VISITOR_HASH_SALT/);
+    process.env["VISITOR_HASH_SALT"] = "short";
+    expect(() => visitorSalt("https://futureme.example/")).toThrow();
+    expect(visitorSalt("http://localhost:8080/")).toBeTruthy();
+  });
   it("issues an HttpOnly SameSite=Lax cookie for new visitors", async () => {
     const r = await resolveVisitor(new Request("https://x.test/api"));
     expect(r.setCookie).toMatch(/HttpOnly/);

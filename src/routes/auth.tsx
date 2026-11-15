@@ -22,7 +22,6 @@ function safePath(path: string | undefined): string {
 function AuthPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
@@ -34,29 +33,13 @@ function AuthPage() {
     setPending(true);
     setError(null);
     setMessage(null);
-    if (mode === "signin") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      setPending(false);
-      if (error) {
-        setError("That email and password didn't match an account.");
-        return;
-      }
-      navigate({ to: safePath(search.redirect), replace: true });
-      return;
-    }
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/auth` },
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setPending(false);
     if (error) {
-      setError(error.message);
+      setError("That email and password didn't match an account.");
       return;
     }
-    setMessage(
-      "Check your email to confirm your account. Dashboard access is granted separately by an existing administrator.",
-    );
+    navigate({ to: safePath(search.redirect), replace: true });
   }
 
   return (
@@ -65,11 +48,10 @@ function AuthPage() {
         <Brand />
         <div className="chart-panel mt-8">
           <LockKeyhole className="text-primary" />
-          <h1 className="mt-3 text-2xl font-semibold">
-            {mode === "signin" ? "Team sign in" : "Create a team account"}
-          </h1>
+          <h1 className="mt-3 text-2xl font-semibold">Team sign in</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            The growth dashboard is for the FutureMe AI team. Students don't need an account.
+            The growth dashboard is for the FutureMe AI team. Students don't need an account. Team
+            accounts are by invitation only.
           </p>
           <form className="mt-6 grid gap-3" onSubmit={submit}>
             <label className="grid gap-1 text-sm">
@@ -88,7 +70,7 @@ function AuthPage() {
                 type="password"
                 required
                 minLength={8}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -104,20 +86,9 @@ function AuthPage() {
               </p>
             )}
             <Button type="submit" variant="premium" disabled={pending}>
-              {pending ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+              {pending ? "Please wait…" : "Sign in"}
             </Button>
           </form>
-          <Button
-            variant="ghost"
-            className="mt-3"
-            onClick={() => {
-              setMode(mode === "signin" ? "signup" : "signin");
-              setError(null);
-              setMessage(null);
-            }}
-          >
-            {mode === "signin" ? "Need an account? Create one" : "Have an account? Sign in"}
-          </Button>
         </div>
         <Link className="admin-back mt-6" to="/">
           <ArrowLeft size={15} />

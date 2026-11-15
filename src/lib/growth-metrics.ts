@@ -2,19 +2,28 @@
 // Every rate is null (shown as "—") when its denominator is zero, never a guess.
 
 export type GrowthTotals = {
+  /** True when an answer filter is active: numbers cover one visitor cohort. */
+  segmented: boolean;
   visitors: number;
-  starts: number;
+  /** Null inside a segment: starts carry no answers, so they can't be attributed to one. */
+  starts: number | null;
   completions: number;
   gen_ok: number;
+  /** Failures after the request reached the AI stage (Anthropic, invalid reply, save). */
   gen_fail: number;
+  /** Rejected before any AI call (config, visitor or site-wide limits). */
+  gen_rejected: number;
+  /** Share actions: link copied or WhatsApp opened, not proof a link was received. */
   shares: number;
   shared_projects: number;
   ref_visits: number;
   ref_visitors: number;
   ref_starts: number;
   ref_gens: number;
-  cta: number;
-  ref_cta: number;
+  niat_modal_opens: number;
+  niat_outbound: number;
+  niat_outbound_visitors: number;
+  ref_niat_outbound: number;
   views: number;
 };
 
@@ -22,6 +31,8 @@ export type Named = { name: string | null; value: number };
 export type GrowthReport = {
   totals: GrowthTotals;
   shares_by_channel: Record<string, number>;
+  failures_by_kind: Record<string, number>;
+  entry_pages: Named[];
   daily: { day: string; visitors: number; generations: number; referral_visits: number }[];
   interests: Named[];
   technologies: Named[];
@@ -33,9 +44,11 @@ export type GrowthReport = {
     visitors: number;
     generations: number;
     shares: number;
-    cta: number;
+    niat_outbound: number;
   }[];
-  acquisition: { name: string; visitors: number; generations: number; cta_visitors: number }[];
+  acquisition: { name: string; visitors: number; generations: number; outbound_visitors: number }[];
+  source_options: string[];
+  medium_options: string[];
   campaign_options: string[];
 };
 
@@ -50,9 +63,13 @@ export function formatRate(value: number | null): string {
 
 export function deriveMetrics(t: GrowthTotals) {
   return {
-    completionRate: rate(t.completions, t.starts),
+    // In a segment, every completer is in the cohort by definition, so a
+    // completion rate would always read 100%; it is withheld instead.
+    completionRate: t.segmented || t.starts === null ? null : rate(t.completions, t.starts),
+    // Pre-AI rejections are not generation failures.
     generationSuccessRate: rate(t.gen_ok, t.gen_ok + t.gen_fail),
     shareRate: rate(t.shared_projects, t.gen_ok),
+    niatOutboundRate: rate(t.niat_outbound_visitors, t.visitors),
   };
 }
 
