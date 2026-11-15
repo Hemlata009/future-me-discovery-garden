@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794757931294,
+      "tag": "0000_create_futureme_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794757968639,
+      "tag": "0001_tighten_table_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794757994670,
+      "tag": "0002_fix_function_and_admin_grants",
+      "breakpoints": true
+    }
+  ]
 }

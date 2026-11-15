@@ -30,7 +30,8 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Project conventions
-- Keep this iteration frontend-only with static sample projects and explicitly labeled demo analytics; no AI calls or data collection are implemented.
+- Keep pages reading the static sample catalog in src/lib/projects.ts and the growth dashboard labeled as demo until a surface is explicitly wired to the database.
+- Recorded student activity (discovery journeys, saves, shares, invitations, interest notes, visits) lives in the connected Cloud database under `public`, always with row-level security; read-back is owner-scoped or admin-scoped, never public.
 - Keep shared project data and demo rules in browser-safe library modules and reusable UI in components; routes compose these so sample experiences stay consistent.
 - Carry discovery selections through validated project search parameters rather than browser storage so shared projects work without a backend.
 - Define visual styles and colors in the central CSS design system; use the shared Button variants for interactive controls.
