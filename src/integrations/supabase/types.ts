@@ -61,6 +61,51 @@ export type Database = {
           },
         ]
       }
+      generated_projects: {
+        Row: {
+          class_status: string
+          created_at: string
+          custom_idea: string | null
+          generated_content: Json
+          id: string
+          input_tokens: number | null
+          interest: string
+          language: string
+          model: string | null
+          output_tokens: number | null
+          project_type: string
+          technology: string
+        }
+        Insert: {
+          class_status: string
+          created_at?: string
+          custom_idea?: string | null
+          generated_content: Json
+          id?: string
+          input_tokens?: number | null
+          interest: string
+          language: string
+          model?: string | null
+          output_tokens?: number | null
+          project_type: string
+          technology: string
+        }
+        Update: {
+          class_status?: string
+          created_at?: string
+          custom_idea?: string | null
+          generated_content?: Json
+          id?: string
+          input_tokens?: number | null
+          interest?: string
+          language?: string
+          model?: string | null
+          output_tokens?: number | null
+          project_type?: string
+          technology?: string
+        }
+        Relationships: []
+      }
       niat_interests: {
         Row: {
           contact: string

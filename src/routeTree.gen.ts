@@ -16,6 +16,7 @@ import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as ProjectRouteImport } from './routes/project'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
+import { Route as ApiGenerateProjectRouteImport } from './routes/api/generate-project'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const ShowcaseRoute = ShowcaseRouteImport.update({
   path: '/showcase',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGenerateProjectRoute = ApiGenerateProjectRouteImport.update({
+  id: '/api/generate-project',
+  path: '/api/generate-project',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/api/generate-project': typeof ApiGenerateProjectRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/api/generate-project': typeof ApiGenerateProjectRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/api/generate-project': typeof ApiGenerateProjectRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/api/generate-project'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/api/generate-project'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/api/generate-project'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   ProjectRoute: typeof ProjectRoute
   ProjectsRoute: typeof ProjectsRoute
   ShowcaseRoute: typeof ShowcaseRoute
+  ApiGenerateProjectRoute: typeof ApiGenerateProjectRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShowcaseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/generate-project': {
+      id: '/api/generate-project'
+      path: '/api/generate-project'
+      fullPath: '/api/generate-project'
+      preLoaderRoute: typeof ApiGenerateProjectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectRoute: ProjectRoute,
   ProjectsRoute: ProjectsRoute,
   ShowcaseRoute: ShowcaseRoute,
+  ApiGenerateProjectRoute: ApiGenerateProjectRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

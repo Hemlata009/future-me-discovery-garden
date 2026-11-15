@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -22,10 +22,11 @@ export const Route = createFileRoute("/discover")({
   head: () =>
     pageHead(
       "Discover your future",
-      "Explore your interests and find a beginner-friendly sample project that feels like you.",
+      "Answer five quick questions and get an AI-generated beginner project you can start building.",
     ),
   component: Discover,
 });
+
 const steps = [
   {
     title: "What sparks your curiosity?",
@@ -45,14 +46,25 @@ const steps = [
   },
   {
     title: "Which language feels like home?",
-    description: "Choose your preferred language for a future guided experience.",
+    description: "Your project will be written in the language you pick.",
   },
 ];
-function Discover() {
+
+const loadingMessages = [
+  "Understanding your interests...",
+  "Finding a real-world problem...",
+  "Designing your technology project...",
+  "Creating your personal roadmap...",
+];
+
+export default function Discover() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(["", "", "", "", ""]);
   const [idea, setIdea] = useState("");
+  const [pending, setPending] = useState(false);
+  const [stage, setStage] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const options =
     step === 0
       ? [
@@ -94,31 +106,67 @@ function Discover() {
   function select(value: string) {
     setAnswers((prev) => prev.map((answer, index) => (index === step ? value : answer)));
   }
+  async function generate() {
+    setPending(true);
+    setStage(0);
+    setError(null);
+    try {
+      const response = await fetch("/api/generate-project", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interest: answers[0] || "farming",
+          technology: answers[1] || "ai",
+          project_type: idea.trim() ? "custom" : answers[2] || "solution",
+          class_status: answers[3] || "class12",
+          language: answers[4] || "english",
+          custom_idea: idea.trim() || undefined,
+        }),
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { ok?: boolean; id?: string; message?: string }
+        | null;
+      if (!response.ok || !data?.ok || !data.id) {
+        throw new Error(
+          data?.message || "We couldn't generate your project just now. Please try again.",
+        );
+      }
+      navigate({
+        to: "/project",
+        search: {
+          id: data.id,
+          theme: answers[0],
+          tech: answers[1],
+          idea: idea.trim() || answers[2],
+          status: answers[3],
+          language: answers[4],
+          source: "discovery",
+        },
+      });
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "We couldn't generate your project just now. Please try again.",
+      );
+      setPending(false);
+    }
+  }
   function next() {
     if (step < 4) {
       setStep(step + 1);
       return;
     }
-    const interest = answers[0] ?? "farming";
-    const theme = ["farming", "gaming", "robotics"].includes(interest)
-      ? interest
-      : interest === "creativity"
-        ? "gaming"
-        : interest === "science"
-          ? "robotics"
-          : "farming";
-    navigate({
-      to: "/project",
-      search: {
-        theme,
-        tech: answers[1],
-        idea: idea.trim() || answers[2],
-        status: answers[3],
-        language: answers[4],
-        source: "discovery",
-      },
-    });
+    void generate();
   }
+  useEffect(() => {
+    if (!pending) return;
+    const timer = setInterval(
+      () => setStage((current) => Math.min(current + 1, loadingMessages.length - 1)),
+      2600,
+    );
+    return () => clearInterval(timer);
+  }, [pending]);
   return (
     <SiteShell>
       <div className="page-width wizard-width">
@@ -191,25 +239,55 @@ function Discover() {
           )}
           {step === 4 && (
             <p className="wizard-note">
-              Sample projects are currently in English. Your language preference stays with this
-              discovery.
+              Your project will be written in the language you pick here.
             </p>
+          )}
+          {error && (
+            <div className="demo-panel mt-6" role="alert">
+              <div className="demo-top">
+                <h2>That didn't work.</h2>
+                <span className="demo-badge">Try again</span>
+              </div>
+              <p>{error}</p>
+              <div className="modal-actions">
+                <Button variant="premium" onClick={() => void generate()}>
+                  <Sparkles />
+                  Generate my project again
+                </Button>
+                <Button variant="soft" onClick={() => setError(null)}>
+                  Dismiss
+                </Button>
+              </div>
+            </div>
           )}
         </div>
         <div className="wizard-footer">
-          <Button variant="ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>
+          <Button variant="ghost" disabled={step === 0 || pending} onClick={() => setStep(step - 1)}>
             <ArrowLeft />
             Back
           </Button>
-          <Button variant="premium" disabled={!answers[step]} onClick={next}>
+          <Button variant="premium" disabled={!answers[step] || pending} onClick={next}>
             {step === 4 ? "Discover my project" : "Continue"}
             {step === 4 ? <Sparkles /> : <ArrowRight />}
           </Button>
         </div>
         <p className="wizard-note">
-          A sample discovery experience · No AI calls or personal data storage
+          Your five answers power a real AI generation · Nothing personal is stored
         </p>
       </div>
+      {pending && (
+        <div className="gen-overlay" role="status" aria-live="polite">
+          <div className="gen-card">
+            <Sparkles className="gen-spark" size={26} />
+            <p className="eyebrow">MAKING SOMETHING JUST FOR YOU</p>
+            <strong className="gen-message">{loadingMessages[stage]}</strong>
+            <div className="gen-progress">
+              <span style={{ width: `${((stage + 1) / loadingMessages.length) * 100}%` }} />
+            </div>
+            <p className="gen-hint">This usually takes a few seconds.</p>
+          </div>
+        </div>
+      )}
     </SiteShell>
   );
 }

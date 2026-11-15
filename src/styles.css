@@ -711,6 +711,69 @@ h2 {
   color: var(--muted-foreground);
   font-size: 11px;
 }
+.gen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in oklab, var(--background) 78%, transparent);
+  backdrop-filter: blur(6px);
+}
+.gen-card {
+  width: min(430px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 34px 30px;
+  text-align: center;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.gen-spark {
+  color: var(--primary);
+  animation: gen-pulse 1.8s ease-in-out infinite;
+}
+.gen-message {
+  display: block;
+  font-size: 17px;
+  font-weight: 500;
+  margin-top: 6px;
+}
+.gen-progress {
+  height: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--secondary) 70%, transparent);
+  margin-top: 22px;
+}
+.gen-progress span {
+  display: block;
+  height: 100%;
+  background: var(--gradient-primary);
+  transition: width 0.6s ease;
+}
+.gen-hint {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  margin-top: 14px;
+}
+@keyframes gen-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gen-spark {
+    animation: none;
+  }
+}
 .form-field {
   display: block;
   width: 100%;

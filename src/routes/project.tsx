@@ -6,9 +6,16 @@ import { Button } from "@/components/ui/button";
 import { ProjectDemo } from "@/components/project-demo";
 import { ProjectActions } from "@/components/project-actions";
 import { getProject, pageHead } from "@/lib/projects";
+import { getGeneratedProject, type GeneratedProject } from "@/lib/generated-projects.functions";
+import {
+  demoThemeForInterest,
+  languageName,
+  type GeneratedProjectContent,
+} from "@/lib/project-generation";
 
 export const Route = createFileRoute("/project")({
   validateSearch: z.object({
+    id: z.string().optional(),
     theme: z.string().optional(),
     tech: z.string().optional(),
     idea: z.string().optional(),
@@ -16,12 +23,193 @@ export const Route = createFileRoute("/project")({
     language: z.string().optional(),
     source: z.string().optional(),
   }),
-  head: ({ match }) =>
-    pageHead(getProject(match.search.theme).title, getProject(match.search.theme).description),
+  loaderDeps: ({ search }) => ({ id: search.id }),
+  loader: async ({ deps }) => {
+    if (!deps.id) return null;
+    try {
+      return await getGeneratedProject({ data: { id: deps.id } });
+    } catch {
+      return null;
+    }
+  },
+  head: ({ match }) => {
+    const generated = match.loaderData as GeneratedProject | null;
+    if (generated) {
+      const content = generated.content as GeneratedProjectContent;
+      return pageHead(
+        content.title,
+        `${content.tagline} — an AI-generated beginner project from your discovery answers.`,
+      );
+    }
+    const project = getProject(match.search.theme);
+    return pageHead(project.title, project.description);
+  },
   component: ProjectPage,
 });
+
 function ProjectPage() {
   const search = Route.useSearch();
+  const generated = Route.useLoaderData();
+  if (search.id) return <GeneratedProjectView generated={generated} />;
+  return <SampleProjectView search={search} />;
+}
+
+function GeneratedProjectView({ generated }: { generated: GeneratedProject | null }) {
+  if (!generated) {
+    return (
+      <SiteShell>
+        <div className="page-width">
+          <div className="page-intro">
+            <p className="eyebrow">LINK NOT FOUND</p>
+            <h1>We couldn't find that project.</h1>
+            <p>
+              The link may have expired, or the project was never saved. You can generate a fresh
+              one in under a minute.
+            </p>
+            <div className="project-tools">
+              <Button asChild variant="premium">
+                <Link to="/discover">
+                  <Sparkles />
+                  Find my future
+                </Link>
+              </Button>
+              <Button asChild variant="soft">
+                <Link to="/projects">
+                  <ArrowLeft />
+                  All projects
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </SiteShell>
+    );
+  }
+
+  const content = generated.content as GeneratedProjectContent;
+  const theme = demoThemeForInterest(
+    generated.interest as Parameters<typeof demoThemeForInterest>[0],
+  );
+  const cover = getProject(theme);
+
+  return (
+    <SiteShell>
+      <div className="page-width">
+        <div className="mt-8">
+          <Link to="/projects" className="text-link">
+            <ArrowLeft size={14} />
+            All projects
+          </Link>
+        </div>
+        <div className="project-header">
+          <div className="project-header-copy">
+            <span className="hero-pill">
+              <Sparkles size={13} />
+              YOUR DISCOVERY · AI-GENERATED PROJECT
+            </span>
+            <h1>{content.title}</h1>
+            <p>{content.tagline}</p>
+            <div className="technology-tags">
+              {content.technologies.map((tech) => (
+                <span key={tech}>{tech}</span>
+              ))}
+              <span>{content.difficulty}</span>
+            </div>
+            <p className="mt-4">{content.description}</p>
+            {generated.language !== "english" && (
+              <p className="text-xs mt-2">
+                Written in {languageName(generated.language as "hindi" | "telugu")} because that's
+                what you chose.
+              </p>
+            )}
+            <div className="project-tools">
+              <ProjectActions title={content.title} />
+              <Button asChild variant="soft">
+                <Link to="/discover">
+                  <RotateCcw />
+                  Generate Another
+                </Link>
+              </Button>
+            </div>
+          </div>
+          <img
+            className="project-cover"
+            src={cover.image}
+            alt={content.title}
+            width={1024}
+            height={768}
+          />
+        </div>
+
+        <div className="result-layout">
+          <section>
+            <p className="eyebrow">WHY THIS ONE IS YOURS</p>
+            <h2>Built from your answers.</h2>
+            <p className="section-description">{content.interest_connection}</p>
+            <p className="eyebrow mt-6">THE PROBLEM IT SOLVES</p>
+            <h2>Worth fixing in the real world.</h2>
+            <p className="section-description">{content.problem}</p>
+          </section>
+          <ProjectDemo key={theme} theme={theme} />
+        </div>
+
+        <section>
+          <p className="eyebrow">MAKE IT HAPPEN, ONE STEP AT A TIME</p>
+          <h2>Your build roadmap.</h2>
+          <ol className="roadmap-list">
+            {content.roadmap.map((step, index) => (
+              <li key={step}>
+                <span className="step-icon">0{index + 1}</span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <div className="result-layout">
+          <div className="demo-panel">
+            <div className="demo-top">
+              <h2>Build this today.</h2>
+              <span className="demo-badge">First milestone</span>
+            </div>
+            <p>{content.first_milestone}</p>
+          </div>
+          <div className="demo-panel">
+            <div className="demo-top">
+              <h2>When you're ready for more.</h2>
+              <span className="demo-badge">Next levels</span>
+            </div>
+            <div className="technology-tags">
+              {content.future_extensions.map((extension) => (
+                <span key={extension}>{extension}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="result-layout">
+          <section>
+            <p className="eyebrow">WHERE THIS COULD TAKE YOU</p>
+            <h2>A look at the work behind it.</h2>
+            <p className="section-description">{content.career_connection}</p>
+          </section>
+          <section>
+            <p className="eyebrow">A NOTE FOR YOU</p>
+            <h2>Start small, start today.</h2>
+            <p className="section-description">{content.motivation}</p>
+          </section>
+        </div>
+
+        <p className="wizard-note">
+          AI-generated from your discovery answers · The interactive sample above is a rule-based
+          simulation, not AI
+        </p>
+      </div>
+    </SiteShell>
+  );
+}
+
+function SampleProjectView({ search }: { search: ReturnType<typeof Route.useSearch> }) {
   const project = getProject(search.theme);
   const custom = search.idea && !["assistant", "experience", "solution"].includes(search.idea);
   return (

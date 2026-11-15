@@ -129,6 +129,7 @@ export function ProjectDemo({ theme }: { theme: string }) {
               </p>
             </div>
           </div>
+          <p className="mt-5">A rule-based path simulation, not AI.</p>
         </>
       )}
     </div>
