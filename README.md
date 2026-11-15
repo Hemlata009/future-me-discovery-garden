@@ -33,6 +33,38 @@ exactly one project by its id on the server.
 Environment files are not committed — `.env` and `.env.*` are ignored, with
 `.env.example` kept as the documented template.
 
+## Admin access (one-time setup)
+
+There is no way to become an admin through the website. To grant access:
+
+1. The person signs up at `/auth` with "Create a team account" and confirms their email.
+2. A trusted operator runs this once in the backend SQL editor, replacing the placeholder:
+
+```sql
+insert into public.user_roles (user_id, role)
+select id, 'admin'::public.app_role from auth.users
+where email = 'ADMIN_EMAIL_HERE'
+on conflict (user_id, role) do nothing;
+```
+
+To remove access: `delete from public.user_roles where role = 'admin' and user_id = (select id from auth.users where email = 'ADMIN_EMAIL_HERE');`
+
+## Growth dashboard formulas
+
+All numbers come from `growth_events` for the chosen UTC date range.
+
+| Metric | Formula |
+| --- | --- |
+| Unique visitors | distinct anonymous visitors with any event |
+| Discovery starts | visitors who picked a first answer (max one per visitor per day) |
+| Discovery completion rate | completions ÷ starts (completion = all five answers submitted, one per visitor per day) |
+| Successful generations | AI projects generated and saved |
+| Generation success rate | successful ÷ (successful + failed); limit refusals are not counted as failures |
+| Project share rate | distinct AI projects shared ÷ successful generations |
+| Referral visits | first visit per visitor per referral link, excluding the link's owner |
+| NIAT button clicks | Explore NIAT / Visit NIAT clicks (one per visitor, button, project and day) |
+| Acquisition source | first touch: referral link, else campaign tags, else direct |
+
 ## Development
 
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).

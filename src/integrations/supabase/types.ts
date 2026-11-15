@@ -73,6 +73,7 @@ export type Database = {
           language: string
           model: string | null
           output_tokens: number | null
+          owner_visitor_hash: string | null
           project_type: string
           technology: string
         }
@@ -87,6 +88,7 @@ export type Database = {
           language: string
           model?: string | null
           output_tokens?: number | null
+          owner_visitor_hash?: string | null
           project_type: string
           technology: string
         }
@@ -101,6 +103,7 @@ export type Database = {
           language?: string
           model?: string | null
           output_tokens?: number | null
+          owner_visitor_hash?: string | null
           project_type?: string
           technology?: string
         }
@@ -120,6 +123,69 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          visitor_hash?: string
+        }
+        Relationships: []
+      }
+      growth_events: {
+        Row: {
+          channel: string | null
+          class_status: string | null
+          created_at: string
+          cta: string | null
+          dedupe_key: string | null
+          event_date: string
+          event_name: string
+          failure_kind: string | null
+          generated_project_id: string | null
+          id: string
+          interest: string | null
+          language: string | null
+          referral_code: string | null
+          technology: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          visitor_hash: string
+        }
+        Insert: {
+          channel?: string | null
+          class_status?: string | null
+          created_at?: string
+          cta?: string | null
+          dedupe_key?: string | null
+          event_date?: string
+          event_name: string
+          failure_kind?: string | null
+          generated_project_id?: string | null
+          id?: string
+          interest?: string | null
+          language?: string | null
+          referral_code?: string | null
+          technology?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_hash: string
+        }
+        Update: {
+          channel?: string | null
+          class_status?: string | null
+          created_at?: string
+          cta?: string | null
+          dedupe_key?: string | null
+          event_date?: string
+          event_name?: string
+          failure_kind?: string | null
+          generated_project_id?: string | null
+          id?: string
+          interest?: string | null
+          language?: string | null
+          referral_code?: string | null
+          technology?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
           visitor_hash?: string
         }
         Relationships: []
@@ -277,6 +343,35 @@ export type Database = {
           },
         ]
       }
+      referral_links: {
+        Row: {
+          code: string
+          created_at: string
+          generated_project_id: string
+          owner_visitor_hash: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          generated_project_id: string
+          owner_visitor_hash: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          generated_project_id?: string
+          owner_visitor_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_links_generated_project_id_fkey"
+            columns: ["generated_project_id"]
+            isOneToOne: false
+            referencedRelation: "generated_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_visits: {
         Row: {
           code: string
@@ -356,6 +451,33 @@ export type Database = {
         }
         Relationships: []
       }
+      visitor_attribution: {
+        Row: {
+          first_seen_at: string
+          referral_code: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          visitor_hash: string
+        }
+        Insert: {
+          first_seen_at?: string
+          referral_code?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_hash: string
+        }
+        Update: {
+          first_seen_at?: string
+          referral_code?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_hash?: string
+        }
+        Relationships: []
+      }
       visits: {
         Row: {
           created_at: string
@@ -393,12 +515,43 @@ export type Database = {
         }
         Returns: Json
       }
+      growth_report: {
+        Args: {
+          _campaign?: string
+          _class_status?: string
+          _from: string
+          _interest?: string
+          _language?: string
+          _technology?: string
+          _to: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      record_growth_event: {
+        Args: {
+          _channel?: string
+          _class_status?: string
+          _cta?: string
+          _event: string
+          _failure_kind?: string
+          _generated_project_id?: string
+          _interest?: string
+          _language?: string
+          _referral_code?: string
+          _technology?: string
+          _utm_campaign?: string
+          _utm_medium?: string
+          _utm_source?: string
+          _visitor_hash: string
+        }
+        Returns: string
       }
     }
     Enums: {

@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { track } from "@/lib/tracking";
 import { ArrowRight, Play, Sparkles, Zap } from "lucide-react";
 import heroImage from "@/assets/future-world.jpg";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  useEffect(() => {
+    void track({ event: "landing_visit" });
+  }, []);
   return (
     <SiteShell>
       <section className="hero">

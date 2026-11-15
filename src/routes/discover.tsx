@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ensureVisitor, track } from "@/lib/tracking";
 import {
   ArrowLeft,
   ArrowRight,
@@ -65,6 +66,7 @@ export default function Discover() {
   const [pending, setPending] = useState(false);
   const [stage, setStage] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const started = useRef(false);
   const options =
     step === 0
       ? [
@@ -104,6 +106,10 @@ export default function Discover() {
                 { id: "telugu", name: "తెలుగు · Telugu", Icon: Globe },
               ];
   function select(value: string) {
+    if (!started.current) {
+      started.current = true;
+      void track({ event: "discovery_started" });
+    }
     setAnswers((prev) => prev.map((answer, index) => (index === step ? value : answer)));
   }
   async function generate() {
@@ -111,6 +117,7 @@ export default function Discover() {
     setStage(0);
     setError(null);
     try {
+      await ensureVisitor();
       const response = await fetch("/api/generate-project", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -123,9 +130,11 @@ export default function Discover() {
           custom_idea: idea.trim() || undefined,
         }),
       });
-      const data = (await response.json().catch(() => null)) as
-        | { ok?: boolean; id?: string; message?: string }
-        | null;
+      const data = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        id?: string;
+        message?: string;
+      } | null;
       if (!response.ok || !data?.ok || !data.id) {
         throw new Error(
           data?.message || "We couldn't generate your project just now. Please try again.",
@@ -262,7 +271,11 @@ export default function Discover() {
           )}
         </div>
         <div className="wizard-footer">
-          <Button variant="ghost" disabled={step === 0 || pending} onClick={() => setStep(step - 1)}>
+          <Button
+            variant="ghost"
+            disabled={step === 0 || pending}
+            onClick={() => setStep(step - 1)}
+          >
             <ArrowLeft />
             Back
           </Button>

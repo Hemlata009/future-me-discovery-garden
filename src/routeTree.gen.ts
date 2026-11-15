@@ -10,22 +10,31 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as ProjectRouteImport } from './routes/project'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiGenerateProjectRouteImport } from './routes/api/generate-project'
+import { Route as ApiReferralLinkRouteImport } from './routes/api/referral-link'
+import { Route as ApiTrackRouteImport } from './routes/api/track'
+import { Route as ApiVisitorRouteImport } from './routes/api/visitor'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiscoverRoute = DiscoverRouteImport.update({
@@ -53,85 +62,135 @@ const ShowcaseRoute = ShowcaseRouteImport.update({
   path: '/showcase',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiGenerateProjectRoute = ApiGenerateProjectRouteImport.update({
   id: '/api/generate-project',
   path: '/api/generate-project',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReferralLinkRoute = ApiReferralLinkRouteImport.update({
+  id: '/api/referral-link',
+  path: '/api/referral-link',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTrackRoute = ApiTrackRouteImport.update({
+  id: '/api/track',
+  path: '/api/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVisitorRoute = ApiVisitorRouteImport.update({
+  id: '/api/visitor',
+  path: '/api/visitor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/referral-link': typeof ApiReferralLinkRoute
+  '/api/track': typeof ApiTrackRoute
+  '/api/visitor': typeof ApiVisitorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/referral-link': typeof ApiReferralLinkRoute
+  '/api/track': typeof ApiTrackRoute
+  '/api/visitor': typeof ApiVisitorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/referral-link': typeof ApiReferralLinkRoute
+  '/api/track': typeof ApiTrackRoute
+  '/api/visitor': typeof ApiVisitorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
+    | '/auth'
     | '/discover'
     | '/how-it-works'
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/admin'
     | '/api/generate-project'
+    | '/api/referral-link'
+    | '/api/track'
+    | '/api/visitor'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
+    | '/auth'
     | '/discover'
     | '/how-it-works'
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/admin'
     | '/api/generate-project'
+    | '/api/referral-link'
+    | '/api/track'
+    | '/api/visitor'
   id:
     | '__root__'
     | '/'
-    | '/admin'
+    | '/_authenticated'
+    | '/auth'
     | '/discover'
     | '/how-it-works'
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/_authenticated/admin'
     | '/api/generate-project'
+    | '/api/referral-link'
+    | '/api/track'
+    | '/api/visitor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   DiscoverRoute: typeof DiscoverRoute
   HowItWorksRoute: typeof HowItWorksRoute
   ProjectRoute: typeof ProjectRoute
   ProjectsRoute: typeof ProjectsRoute
   ShowcaseRoute: typeof ShowcaseRoute
   ApiGenerateProjectRoute: typeof ApiGenerateProjectRoute
+  ApiReferralLinkRoute: typeof ApiReferralLinkRoute
+  ApiTrackRoute: typeof ApiTrackRoute
+  ApiVisitorRoute: typeof ApiVisitorRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -143,11 +202,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/discover': {
@@ -185,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShowcaseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/generate-project': {
       id: '/api/generate-project'
       path: '/api/generate-project'
@@ -192,18 +265,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerateProjectRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/referral-link': {
+      id: '/api/referral-link'
+      path: '/api/referral-link'
+      fullPath: '/api/referral-link'
+      preLoaderRoute: typeof ApiReferralLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/track': {
+      id: '/api/track'
+      path: '/api/track'
+      fullPath: '/api/track'
+      preLoaderRoute: typeof ApiTrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/visitor': {
+      id: '/api/visitor'
+      path: '/api/visitor'
+      fullPath: '/api/visitor'
+      preLoaderRoute: typeof ApiVisitorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   DiscoverRoute: DiscoverRoute,
   HowItWorksRoute: HowItWorksRoute,
   ProjectRoute: ProjectRoute,
   ProjectsRoute: ProjectsRoute,
   ShowcaseRoute: ShowcaseRoute,
   ApiGenerateProjectRoute: ApiGenerateProjectRoute,
+  ApiReferralLinkRoute: ApiReferralLinkRoute,
+  ApiTrackRoute: ApiTrackRoute,
+  ApiVisitorRoute: ApiVisitorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

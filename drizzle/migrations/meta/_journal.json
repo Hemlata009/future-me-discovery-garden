@@ -43,6 +43,20 @@
       "when": 1794761399977,
       "tag": "0005_generation_rate_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794762044281,
+      "tag": "0006_growth_tracking_and_referrals",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794762627413,
+      "tag": "0007_tighten_growth_table_grants",
+      "breakpoints": true
     }
   ]
 }

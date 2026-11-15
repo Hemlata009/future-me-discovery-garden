@@ -13,10 +13,11 @@
 - [x] Phase 1: Remove unused AI packages; Anthropic SDK only
 - [x] Phase 2: Per-visitor limit (3/15 min) + configurable global caps, atomic in database
 - [x] Phase 3: Saved projects readable only by the server (done earlier)
-- [ ] Phase 4: Real event tracking with campaign attribution
-- [ ] Phase 5: Referral codes and referral visit attribution
+- [x] Phase 4: Real event tracking with campaign attribution
+- [x] Phase 5: Referral codes and referral visit attribution
 - [ ] Phase 6: NxtWave learning pathway section + inquiry form (needs real NxtWave links and privacy notice)
-- [ ] Phase 7: Real growth dashboard replacing demo numbers
-- [ ] Phase 8: Admin sign-in with server-side role checks
+- [x] Phase 7: Real growth dashboard replacing demo numbers
+- [x] Phase 8: Admin sign-in with server-side role checks
+- [ ] Assign the first admin (waiting on the admin's email from the owner)
 - [ ] Phase 9: Privacy, retention and data quality
 - [ ] Phase 10: Full test pass

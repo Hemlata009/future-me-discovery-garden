@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ensureVisitor, referralUrl, track } from "@/lib/tracking";
 
-export function ProjectActions({ title }: { title: string }) {
+export function ProjectActions({ title, projectId }: { title: string; projectId?: string }) {
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [dialog, setDialog] = useState<"share" | "niat" | null>(null);
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
@@ -16,28 +18,64 @@ export function ProjectActions({ title }: { title: string }) {
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
   }, [dialog]);
+  // AI projects get this visitor's referral link (fetched up front so it's ready
+  // when the dialog opens); sample projects share the page itself.
+  useEffect(() => {
+    if (!projectId) return;
+    let cancelled = false;
+    void (async () => {
+      let code: string | null = null;
+      try {
+        await ensureVisitor();
+        const res = await fetch("/api/referral-link", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ project_id: projectId }),
+        });
+        const data = (await res.json().catch(() => null)) as { code?: string } | null;
+        code = data?.code ?? null;
+      } catch {
+        code = null;
+      }
+      if (!cancelled) setShareUrl(referralUrl(window.location.origin, projectId, code));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+  function openShare() {
+    setCopied(false);
+    setDialog("share");
+    if (!projectId) setShareUrl(window.location.href);
+  }
+  const linkReady = shareUrl !== null;
+  const link = shareUrl ?? (typeof window !== "undefined" ? window.location.href : "");
+  function recordShare(channel: "copy" | "whatsapp") {
+    if (projectId) void track({ event: "project_shared", project_id: projectId, channel });
+  }
   async function copy() {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(link);
       setCopied(true);
       setCopyFailed(false);
+      recordShare("copy");
     } catch {
       setCopyFailed(true);
     }
   }
   return (
     <>
-      <Button
-        variant="soft"
-        onClick={() => {
-          setCopied(false);
-          setDialog("share");
-        }}
-      >
+      <Button variant="soft" onClick={openShare}>
         <Share2 />
         Share Project
       </Button>
-      <Button variant="premium" onClick={() => setDialog("niat")}>
+      <Button
+        variant="premium"
+        onClick={() => {
+          setDialog("niat");
+          void track({ event: "cta_clicked", cta: "explore_niat", project_id: projectId });
+        }}
+      >
         Explore NIAT <ArrowUpRight />
       </Button>
       {dialog && (
@@ -79,28 +117,39 @@ export function ProjectActions({ title }: { title: string }) {
               <>
                 <Share2 className="text-primary" />
                 <h2 id="dialog-title">Good ideas deserve company.</h2>
-                <p>Share your sample {title} project with someone who might love it.</p>
+                <p>Share your {title} project with someone who might love it.</p>
                 <div className="modal-actions">
-                  <Button variant="premium" onClick={copy}>
+                  <Button variant="premium" onClick={copy} disabled={!linkReady}>
                     {copied ? <Check /> : <Copy />}
-                    {copied ? "Link copied" : "Copy project link"}
+                    {!linkReady
+                      ? "Preparing your link…"
+                      : copied
+                        ? "Link copied"
+                        : "Copy project link"}
                   </Button>
-                  <Button variant="soft" asChild>
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(`${title} — my sample FutureMe AI project: ${typeof window !== "undefined" ? window.location.href : ""}`)}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                  {!linkReady ? (
+                    <Button variant="soft" disabled>
                       WhatsApp <ArrowUpRight />
-                    </a>
-                  </Button>
+                    </Button>
+                  ) : (
+                    <Button variant="soft" asChild>
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(`${title} — my FutureMe AI project: ${link}`)}`}
+                        onClick={() => recordShare("whatsapp")}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        WhatsApp <ArrowUpRight />
+                      </a>
+                    </Button>
+                  )}
                 </div>
                 {copied && (
                   <p className="notice" role="status">
                     Your project link is ready to share.
                   </p>
                 )}
-                {copyFailed && <p role="alert">Copy this link: {window.location.href}</p>}
+                {copyFailed && <p role="alert">Copy this link: {link}</p>}
               </>
             ) : (
               <>
@@ -116,7 +165,18 @@ export function ProjectActions({ title }: { title: string }) {
                 </p>
                 <div className="modal-actions">
                   <Button asChild variant="premium">
-                    <a href="https://www.niatindia.com/" target="_blank" rel="noreferrer">
+                    <a
+                      href="https://www.niatindia.com/"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() =>
+                        void track({
+                          event: "cta_clicked",
+                          cta: "visit_niat",
+                          project_id: projectId,
+                        })
+                      }
+                    >
                       Visit NIAT <ArrowUpRight />
                     </a>
                   </Button>

@@ -26,6 +26,7 @@ import {
 } from "@/lib/project-generation";
 import { limitMessage, readLimits, type LimitReason } from "@/lib/rate-limit-config";
 import { resolveVisitor } from "@/lib/visitor-session.server";
+import { recordGrowthEvent } from "@/lib/growth.server";
 
 /** Server-side only: this key must never reach the browser. */
 export const ANTHROPIC_KEY_ENV = "ANTHROPIC_API_KEY";
@@ -138,6 +139,16 @@ async function generate(request: Request, visitorHash: string): Promise<Response
     );
   }
   const answers = parsed.data;
+  const answerFields = {
+    visitorHash,
+    interest: answers.interest,
+    technology: answers.technology,
+    language: answers.language,
+    class_status: answers.class_status,
+  };
+  await recordGrowthEvent({ event: "discovery_completed", ...answerFields });
+  const recordFailure = (kind: GenerationFailureKind) =>
+    recordGrowthEvent({ event: "generation_failed", failure_kind: kind, ...answerFields });
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -215,6 +226,7 @@ async function generate(request: Request, visitorHash: string): Promise<Response
     const kind = kindFromError(error);
     console.error(`AI generation failed (${kind})`, error instanceof Error ? error.message : "");
     await releaseSlot();
+    await recordFailure(kind);
     return failure(kind);
   }
 
@@ -231,6 +243,7 @@ async function generate(request: Request, visitorHash: string): Promise<Response
       model,
       input_tokens: usage?.input_tokens ?? null,
       output_tokens: usage?.output_tokens ?? null,
+      owner_visitor_hash: visitorHash,
     })
     .select("id")
     .single();
@@ -238,8 +251,11 @@ async function generate(request: Request, visitorHash: string): Promise<Response
   if (error || !data) {
     console.error("Generated project could not be saved", error?.message);
     await releaseSlot();
+    await recordFailure("save");
     return failure("save");
   }
+
+  await recordGrowthEvent({ event: "generation_succeeded", projectId: data.id, ...answerFields });
 
   console.info(
     `Generated project ${data.id} with ${model} (in ${usage?.input_tokens ?? "?"} / out ${

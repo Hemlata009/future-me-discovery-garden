@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { referralCodeSchema, track } from "@/lib/tracking";
 import { ArrowLeft, RotateCcw, Sparkles } from "lucide-react";
 import { z } from "zod";
 import { SiteShell } from "@/components/site-shell";
@@ -22,6 +24,10 @@ export const Route = createFileRoute("/project")({
     status: z.string().optional(),
     language: z.string().optional(),
     source: z.string().optional(),
+    ref: z.string().optional(),
+    utm_source: z.string().optional(),
+    utm_medium: z.string().optional(),
+    utm_campaign: z.string().optional(),
   }),
   loaderDeps: ({ search }) => ({ id: search.id }),
   loader: async ({ deps }) => {
@@ -50,6 +56,15 @@ export const Route = createFileRoute("/project")({
 function ProjectPage() {
   const search = Route.useSearch();
   const generated = Route.useLoaderData();
+  useEffect(() => {
+    if (!generated) return;
+    const ref = referralCodeSchema.safeParse(search.ref);
+    // Referral first, so the visitor's first touch is credited to the share.
+    void (async () => {
+      if (ref.success) await track({ event: "referral_visit", ref: ref.data });
+      await track({ event: "project_viewed", project_id: generated.id });
+    })();
+  }, [generated, search.ref]);
   if (search.id) return <GeneratedProjectView generated={generated} />;
   return <SampleProjectView search={search} />;
 }
@@ -123,7 +138,7 @@ function GeneratedProjectView({ generated }: { generated: GeneratedProject | nul
               </p>
             )}
             <div className="project-tools">
-              <ProjectActions title={content.title} />
+              <ProjectActions title={content.title} projectId={generated.id} />
               <Button asChild variant="soft">
                 <Link to="/discover">
                   <RotateCcw />

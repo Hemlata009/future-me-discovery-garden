@@ -30,7 +30,7 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Project conventions
-- Keep pages reading the static sample catalog in src/lib/projects.ts and the growth dashboard labeled as demo until a surface is explicitly wired to the database.
+- Keep sample project pages reading the static catalog in src/lib/projects.ts; the growth dashboard reads only live database aggregates and never shows illustrative numbers.
 - Recorded student activity (discovery journeys, saves, shares, invitations, interest notes, visits) lives in the connected Cloud database under `public`, always with row-level security; read-back is owner-scoped or admin-scoped, never public.
 - Keep shared project data and demo rules in browser-safe library modules and reusable UI in components; routes compose these so sample experiences stay consistent.
 - Carry discovery selections through validated project search parameters rather than browser storage so shared projects work without a backend.
@@ -38,3 +38,5 @@ use the editor.
 - AI project generation runs in a server route under src/routes/api/ that calls Anthropic's API directly through its official SDK, because prompts, keys and token counts must never reach the browser; generated projects are saved to the database and read back only by the site's own server-side lookup by project id, so a shared link works for anyone.
 - The AI key and the database service key are server-side only: read them from process.env inside a handler, never from browser code, and name the model through server config instead of hardcoding it in app code.
 - AI generation limits are claimed atomically through a database function keyed by a hashed, server-issued HttpOnly visitor cookie, with independent site-wide caps read from server env; failed generations release their slot so only successes count.
+- Growth events go through /api/track into one database event log via a server-only function that applies first-touch attribution, dedupe keys, self-referral and spam guards; browsers may only send a fixed allow-list of events and fields, and nothing is written to other analytics pipelines.
+- The admin dashboard lives under the managed _authenticated gate, and its report server function re-checks the admin role on every call before reading with the service client; admin roles are granted only by trusted SQL, never through the app.
