@@ -338,6 +338,8 @@ export type JsonSchemaOutputFormat = {
  * `type: "json_schema"`, so the model must answer with exactly these fields.
  * The bounds here match the guard rails in generatedProjectContentSchema, so
  * anything the model is allowed to send is something the app can display.
+ * (Anthropic's json_schema only accepts minItems 0 or 1 and rejects maxItems,
+ * so the list counts are enforced by the guard rails after the reply arrives.)
  */
 export const generatedProjectOutputFormat: JsonSchemaOutputFormat = {
   type: "json_schema",
@@ -368,21 +370,18 @@ export const generatedProjectOutputFormat: JsonSchemaOutputFormat = {
       technologies: {
         type: "array",
         items: { type: "string", minLength: 1, maxLength: 48 },
-        minItems: 2,
-        maxItems: 6,
+        minItems: 1,
       },
       roadmap: {
         type: "array",
         items: { type: "string", minLength: 3, maxLength: 200 },
-        minItems: 3,
-        maxItems: 7,
+        minItems: 1,
       },
       first_milestone: { type: "string", minLength: 12, maxLength: 500 },
       future_extensions: {
         type: "array",
         items: { type: "string", minLength: 3, maxLength: 240 },
-        minItems: 2,
-        maxItems: 5,
+        minItems: 1,
       },
       career_connection: { type: "string", minLength: 6, maxLength: 400 },
       motivation: { type: "string", minLength: 12, maxLength: 600 },
