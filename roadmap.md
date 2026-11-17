@@ -30,3 +30,9 @@
 - [x] Complete generation outcome events
 - [x] Hardening: salt required in prod, retention, invite-only admin accounts
 - [x] Tests
+## Explore before you apply (Nov 17)
+- [ ] Add the verified NIAT fact sheet and private parent briefs.
+- [ ] Add grounded parent Q&A with per-brief visitor limits.
+- [ ] Add consented counsellor requests, webhook delivery and retention.
+- [ ] Extend tracking, referral qualification and the live family dashboard.
+- [ ] Complete housekeeping, regression tests and end-to-end verification.
