@@ -104,7 +104,7 @@ export function ProjectDecisionCard({
         {yearOne && <p>{yearOne.text}</p>}
         {degree && <p className="niat-degree-note">{degree.text}</p>}
         <a
-          className="text-link"
+          className="text-link mt-4"
           href={NIAT_SOURCE_URL}
           target="_blank"
           rel="noopener noreferrer"
