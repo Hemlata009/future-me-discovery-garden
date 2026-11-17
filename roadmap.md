@@ -87,3 +87,5 @@
 - [x] Establish brand-aligned tokens and refine the shared shell and components.
 - [x] Refine the homepage, discovery, project, decision and parent experiences without behavior changes.
 - [x] Verify interactions, accessibility and layouts at phone and desktop widths; run tests, lint and build.
+- [x] Fresh acceptance audit: all five wizard steps, all three themes, both parent routes, every action and feedback state at phone/desktop widths.
+- [x] Fix any audit gaps, rerun checks and save the verified result.
