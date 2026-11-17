@@ -70,3 +70,4 @@
 - [x] Localize friend-invite dialog and share messages in English, Hindi and Telugu.
 - [x] Audit referred-project entry and add a referral-only discovery action if needed.
 - [x] Add regression tests; run the full suite, changed-file lint, build and browser verification.
+- [x] Re-audit all languages and project themes at desktop and phone widths, including each action's next step.

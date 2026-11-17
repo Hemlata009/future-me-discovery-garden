@@ -124,6 +124,16 @@ function GeneratedProjectView({
             All projects
           </Link>
         </div>
+        {search.ref && (
+          <div className="project-tools">
+            <ReferredDiscoveryAction
+              referralCode={search.ref}
+              utmSource={search.utm_source}
+              utmMedium={search.utm_medium}
+              utmCampaign={search.utm_campaign}
+            />
+          </div>
+        )}
         <div className="project-header">
           <div className="project-header-copy">
             <span className="hero-pill">
@@ -146,12 +156,6 @@ function GeneratedProjectView({
               </p>
             )}
             <div className="project-tools">
-              <ReferredDiscoveryAction
-                referralCode={search.ref}
-                utmSource={search.utm_source}
-                utmMedium={search.utm_medium}
-                utmCampaign={search.utm_campaign}
-              />
               <ProjectActions title={content.title} projectId={generated.id} />
               {!search.ref && (
                 <Button asChild variant="soft">
