@@ -7,6 +7,7 @@ import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { ProjectDemo } from "@/components/project-demo";
 import { ProjectActions } from "@/components/project-actions";
+import { FamilyPanel } from "@/components/family-actions";
 import { getProject, pageHead } from "@/lib/projects";
 import { getGeneratedProject, type GeneratedProject } from "@/lib/generated-projects.functions";
 import {
@@ -155,6 +156,11 @@ function GeneratedProjectView({ generated }: { generated: GeneratedProject | nul
             height={768}
           />
         </div>
+
+        <FamilyPanel
+          projectId={generated.id}
+          language={generated.language as "english" | "hindi" | "telugu"}
+        />
 
         <div className="result-layout">
           <section>

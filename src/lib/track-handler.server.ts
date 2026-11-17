@@ -41,6 +41,7 @@ export async function handleTrack(request: Request): Promise<Response> {
     event: p.event,
     visitorHash: visitor,
     projectId: p.project_id,
+    briefId: p.brief_id,
     ref: p.ref,
     channel: p.channel,
     cta: p.cta,

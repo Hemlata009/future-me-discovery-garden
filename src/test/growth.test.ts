@@ -26,7 +26,14 @@ const zero: GrowthTotals = {
   ref_visitors: 0,
   ref_starts: 0,
   ref_gens: 0,
+  qualified_referrals: 0,
   views: 0,
+  briefs_generated: 0,
+  briefs_shared: 0,
+  briefs_opened: 0,
+  parent_questions: 0,
+  counsellor_requests: 0,
+  application_clicks: 0,
 };
 
 describe("dashboard formulas", () => {

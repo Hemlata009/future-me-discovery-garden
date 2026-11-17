@@ -180,6 +180,22 @@ export function ProjectActions({ title, projectId }: { title: string; projectId?
                       Visit NIAT <ArrowUpRight />
                     </a>
                   </Button>
+                  <Button asChild variant="soft">
+                    <a
+                      href="https://apply.niatindia.com/"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() =>
+                        void track({
+                          event: "cta_clicked",
+                          cta: "start_application",
+                          project_id: projectId,
+                        })
+                      }
+                    >
+                      Start application <ArrowUpRight />
+                    </a>
+                  </Button>
                 </div>
               </>
             )}

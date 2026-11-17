@@ -9,11 +9,18 @@ export const BROWSER_EVENTS = [
   "project_shared",
   "referral_visit",
   "cta_clicked",
+  "parent_brief_shared",
+  "parent_brief_opened",
 ] as const;
 export type BrowserEvent = (typeof BROWSER_EVENTS)[number];
 
 // explore_niat = opened the NIAT pop-up; visit_niat = clicked the outbound NIAT link.
-export const CTA_IDS = ["explore_niat", "visit_niat"] as const;
+export const CTA_IDS = [
+  "explore_niat",
+  "visit_niat",
+  "start_application",
+  "talk_to_counsellor",
+] as const;
 
 export const ENTRY_PAGES = [
   "home",
@@ -22,6 +29,7 @@ export const ENTRY_PAGES = [
   "projects",
   "how_it_works",
   "showcase",
+  "parent_brief",
   "other",
 ] as const;
 export type EntryPage = (typeof ENTRY_PAGES)[number];
@@ -37,6 +45,7 @@ export function entryPageFor(pathname: string): EntryPage | null {
     "/projects": "projects",
     "/how-it-works": "how_it_works",
     "/showcase": "showcase",
+    "/parent-brief": "parent_brief",
   };
   return map[path] ?? "other";
 }
@@ -53,6 +62,7 @@ export const trackPayloadSchema = z
   .object({
     event: z.enum(BROWSER_EVENTS),
     project_id: z.string().uuid().optional(),
+    brief_id: z.string().uuid().optional(),
     ref: referralCodeSchema.optional(),
     channel: z.enum(["copy", "whatsapp"]).optional(),
     cta: z.enum(CTA_IDS).optional(),
@@ -67,6 +77,12 @@ export const trackPayloadSchema = z
       ctx.addIssue({ code: "custom", message: "project_id required" });
     }
     if (v.event === "project_shared" && !v.channel) {
+      ctx.addIssue({ code: "custom", message: "channel required" });
+    }
+    if ((v.event === "parent_brief_opened" || v.event === "parent_brief_shared") && !v.brief_id) {
+      ctx.addIssue({ code: "custom", message: "brief_id required" });
+    }
+    if (v.event === "parent_brief_shared" && !v.channel) {
       ctx.addIssue({ code: "custom", message: "channel required" });
     }
     if (v.event === "referral_visit" && !v.ref) {

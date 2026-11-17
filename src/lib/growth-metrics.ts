@@ -20,11 +20,19 @@ export type GrowthTotals = {
   ref_visitors: number;
   ref_starts: number;
   ref_gens: number;
+  /** First-touch referred visitors who completed a discovery; link clicks alone never qualify. */
+  qualified_referrals: number;
   niat_modal_opens: number;
   niat_outbound: number;
   niat_outbound_visitors: number;
   ref_niat_outbound: number;
   views: number;
+  briefs_generated: number;
+  briefs_shared: number;
+  briefs_opened: number;
+  parent_questions: number;
+  counsellor_requests: number;
+  application_clicks: number;
 };
 
 export type Named = { name: string | null; value: number };
@@ -70,7 +78,24 @@ export function deriveMetrics(t: GrowthTotals) {
     generationSuccessRate: rate(t.gen_ok, t.gen_ok + t.gen_fail),
     shareRate: rate(t.shared_projects, t.gen_ok),
     niatOutboundRate: rate(t.niat_outbound_visitors, t.visitors),
+    qualifiedReferralRate: rate(t.qualified_referrals, t.ref_visitors),
   };
+}
+
+/** Live family-funnel counts and each step's conversion from the preceding step. */
+export function familyFunnel(t: GrowthTotals) {
+  const values = [
+    t.briefs_generated,
+    t.briefs_shared,
+    t.briefs_opened,
+    t.parent_questions,
+    t.counsellor_requests,
+    t.application_clicks,
+  ];
+  return values.map((value, index) => ({
+    value,
+    conversion: index === 0 ? null : rate(value, values[index - 1]!),
+  }));
 }
 
 export function isEmptyReport(t: GrowthTotals): boolean {

@@ -37,6 +37,7 @@ import { pageHead } from "@/lib/projects";
 import { getGrowthReport, type ReportFilters } from "@/lib/growth-report.functions";
 import {
   deriveMetrics,
+  familyFunnel,
   formatRate,
   isEmptyReport,
   presetRange,
@@ -435,6 +436,8 @@ function Admin() {
                   "Referral discovery starts",
                   "Referral generations",
                   "Referral NIAT outbound clicks",
+                  "Qualified referrals",
+                  "Qualification rate",
                 ]}
                 rows={[
                   [
@@ -443,8 +446,37 @@ function Admin() {
                     t.starts === null ? "—" : t.ref_starts,
                     t.ref_gens,
                     t.ref_niat_outbound,
+                    t.qualified_referrals,
+                    formatRate(m.qualifiedReferralRate),
                   ],
                 ]}
+              />
+              <p className="mt-4">
+                Qualified referrals are distinct first-touch referred visitors who completed a
+                discovery. Link clicks alone do not qualify.
+              </p>
+            </section>
+
+            <section className="chart-panel funnel">
+              <h2>Family funnel.</h2>
+              <p>
+                Live brief, question, counsellor-request and application-click activity. Rates use
+                the preceding step; a zero denominator shows “—”.
+              </p>
+              <Table
+                head={["Step", "Count", "Previous-step conversion"]}
+                rows={familyFunnel(t).map((step, index) => [
+                  [
+                    "Parent briefs generated",
+                    "Briefs shared",
+                    "Briefs opened",
+                    "Parent questions asked",
+                    "Counsellor requests",
+                    "Start application clicks",
+                  ][index]!,
+                  step.value,
+                  index === 0 ? "—" : formatRate(step.conversion),
+                ])}
               />
             </section>
 

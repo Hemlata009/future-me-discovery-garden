@@ -14,11 +14,15 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ParentBriefRouteImport } from './routes/parent-brief'
 import { Route as ProjectRouteImport } from './routes/project'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiCounsellorRequestRouteImport } from './routes/api/counsellor-request'
 import { Route as ApiGenerateProjectRouteImport } from './routes/api/generate-project'
+import { Route as ApiParentBriefRouteImport } from './routes/api/parent-brief'
+import { Route as ApiParentQuestionRouteImport } from './routes/api/parent-question'
 import { Route as ApiReferralLinkRouteImport } from './routes/api/referral-link'
 import { Route as ApiTrackRouteImport } from './routes/api/track'
 import { Route as ApiVisitorRouteImport } from './routes/api/visitor'
@@ -48,6 +52,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParentBriefRoute = ParentBriefRouteImport.update({
+  id: '/parent-brief',
+  path: '/parent-brief',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectRoute = ProjectRouteImport.update({
   id: '/project',
   path: '/project',
@@ -68,9 +77,24 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiCounsellorRequestRoute = ApiCounsellorRequestRouteImport.update({
+  id: '/api/counsellor-request',
+  path: '/api/counsellor-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerateProjectRoute = ApiGenerateProjectRouteImport.update({
   id: '/api/generate-project',
   path: '/api/generate-project',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiParentBriefRoute = ApiParentBriefRouteImport.update({
+  id: '/api/parent-brief',
+  path: '/api/parent-brief',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiParentQuestionRoute = ApiParentQuestionRouteImport.update({
+  id: '/api/parent-question',
+  path: '/api/parent-question',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiReferralLinkRoute = ApiReferralLinkRouteImport.update({
@@ -100,11 +124,15 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/parent-brief': typeof ParentBriefRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/parent-brief': typeof ApiParentBriefRoute
+  '/api/parent-question': typeof ApiParentQuestionRoute
   '/api/referral-link': typeof ApiReferralLinkRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
@@ -115,11 +143,15 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/parent-brief': typeof ParentBriefRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/parent-brief': typeof ApiParentBriefRoute
+  '/api/parent-question': typeof ApiParentQuestionRoute
   '/api/referral-link': typeof ApiReferralLinkRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
@@ -132,11 +164,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/parent-brief': typeof ParentBriefRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/parent-brief': typeof ApiParentBriefRoute
+  '/api/parent-question': typeof ApiParentQuestionRoute
   '/api/referral-link': typeof ApiReferralLinkRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
@@ -149,11 +185,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/discover'
     | '/how-it-works'
+    | '/parent-brief'
     | '/project'
     | '/projects'
     | '/showcase'
     | '/admin'
+    | '/api/counsellor-request'
     | '/api/generate-project'
+    | '/api/parent-brief'
+    | '/api/parent-question'
     | '/api/referral-link'
     | '/api/track'
     | '/api/visitor'
@@ -164,11 +204,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/discover'
     | '/how-it-works'
+    | '/parent-brief'
     | '/project'
     | '/projects'
     | '/showcase'
     | '/admin'
+    | '/api/counsellor-request'
     | '/api/generate-project'
+    | '/api/parent-brief'
+    | '/api/parent-question'
     | '/api/referral-link'
     | '/api/track'
     | '/api/visitor'
@@ -180,11 +224,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/discover'
     | '/how-it-works'
+    | '/parent-brief'
     | '/project'
     | '/projects'
     | '/showcase'
     | '/_authenticated/admin'
+    | '/api/counsellor-request'
     | '/api/generate-project'
+    | '/api/parent-brief'
+    | '/api/parent-question'
     | '/api/referral-link'
     | '/api/track'
     | '/api/visitor'
@@ -197,10 +245,14 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DiscoverRoute: typeof DiscoverRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  ParentBriefRoute: typeof ParentBriefRoute
   ProjectRoute: typeof ProjectRoute
   ProjectsRoute: typeof ProjectsRoute
   ShowcaseRoute: typeof ShowcaseRoute
+  ApiCounsellorRequestRoute: typeof ApiCounsellorRequestRoute
   ApiGenerateProjectRoute: typeof ApiGenerateProjectRoute
+  ApiParentBriefRoute: typeof ApiParentBriefRoute
+  ApiParentQuestionRoute: typeof ApiParentQuestionRoute
   ApiReferralLinkRoute: typeof ApiReferralLinkRoute
   ApiTrackRoute: typeof ApiTrackRoute
   ApiVisitorRoute: typeof ApiVisitorRoute
@@ -244,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parent-brief': {
+      id: '/parent-brief'
+      path: '/parent-brief'
+      fullPath: '/parent-brief'
+      preLoaderRoute: typeof ParentBriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/project': {
       id: '/project'
       path: '/project'
@@ -272,11 +331,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/counsellor-request': {
+      id: '/api/counsellor-request'
+      path: '/api/counsellor-request'
+      fullPath: '/api/counsellor-request'
+      preLoaderRoute: typeof ApiCounsellorRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generate-project': {
       id: '/api/generate-project'
       path: '/api/generate-project'
       fullPath: '/api/generate-project'
       preLoaderRoute: typeof ApiGenerateProjectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/parent-brief': {
+      id: '/api/parent-brief'
+      path: '/api/parent-brief'
+      fullPath: '/api/parent-brief'
+      preLoaderRoute: typeof ApiParentBriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/parent-question': {
+      id: '/api/parent-question'
+      path: '/api/parent-question'
+      fullPath: '/api/parent-question'
+      preLoaderRoute: typeof ApiParentQuestionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/referral-link': {
@@ -327,10 +407,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DiscoverRoute: DiscoverRoute,
   HowItWorksRoute: HowItWorksRoute,
+  ParentBriefRoute: ParentBriefRoute,
   ProjectRoute: ProjectRoute,
   ProjectsRoute: ProjectsRoute,
   ShowcaseRoute: ShowcaseRoute,
+  ApiCounsellorRequestRoute: ApiCounsellorRequestRoute,
   ApiGenerateProjectRoute: ApiGenerateProjectRoute,
+  ApiParentBriefRoute: ApiParentBriefRoute,
+  ApiParentQuestionRoute: ApiParentQuestionRoute,
   ApiReferralLinkRoute: ApiReferralLinkRoute,
   ApiTrackRoute: ApiTrackRoute,
   ApiVisitorRoute: ApiVisitorRoute,

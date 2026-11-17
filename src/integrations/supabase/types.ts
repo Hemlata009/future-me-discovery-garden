@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      counsellor_requests: {
+        Row: {
+          consent: boolean
+          contact_name: string
+          created_at: string
+          generated_project_id: string
+          id: string
+          language: string
+          parent_brief_id: string | null
+          phone: string
+          referral_code: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          who: string
+        }
+        Insert: {
+          consent: boolean
+          contact_name: string
+          created_at?: string
+          generated_project_id: string
+          id?: string
+          language: string
+          parent_brief_id?: string | null
+          phone: string
+          referral_code?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          who: string
+        }
+        Update: {
+          consent?: boolean
+          contact_name?: string
+          created_at?: string
+          generated_project_id?: string
+          id?: string
+          language?: string
+          parent_brief_id?: string | null
+          phone?: string
+          referral_code?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          who?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "counsellor_requests_generated_project_id_fkey"
+            columns: ["generated_project_id"]
+            isOneToOne: false
+            referencedRelation: "generated_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "counsellor_requests_parent_brief_id_fkey"
+            columns: ["parent_brief_id"]
+            isOneToOne: false
+            referencedRelation: "parent_briefs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discovery_responses: {
         Row: {
           build_idea: string
@@ -142,6 +205,7 @@ export type Database = {
           id: string
           interest: string | null
           language: string | null
+          parent_brief_id: string | null
           referral_code: string | null
           technology: string | null
           utm_campaign: string | null
@@ -163,6 +227,7 @@ export type Database = {
           id?: string
           interest?: string | null
           language?: string | null
+          parent_brief_id?: string | null
           referral_code?: string | null
           technology?: string | null
           utm_campaign?: string | null
@@ -184,6 +249,7 @@ export type Database = {
           id?: string
           interest?: string | null
           language?: string | null
+          parent_brief_id?: string | null
           referral_code?: string | null
           technology?: string | null
           utm_campaign?: string | null
@@ -191,7 +257,15 @@ export type Database = {
           utm_source?: string | null
           visitor_hash?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "growth_events_parent_brief_id_fkey"
+            columns: ["parent_brief_id"]
+            isOneToOne: false
+            referencedRelation: "parent_briefs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       niat_interests: {
         Row: {
@@ -221,6 +295,67 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_briefs: {
+        Row: {
+          content: Json
+          created_at: string
+          generated_project_id: string
+          id: string
+          language: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          generated_project_id: string
+          id?: string
+          language: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          generated_project_id?: string
+          id?: string
+          language?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_briefs_generated_project_id_fkey"
+            columns: ["generated_project_id"]
+            isOneToOne: false
+            referencedRelation: "generated_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_question_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          parent_brief_id: string
+          visitor_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_brief_id: string
+          visitor_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_brief_id?: string
+          visitor_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_question_attempts_parent_brief_id_fkey"
+            columns: ["parent_brief_id"]
+            isOneToOne: false
+            referencedRelation: "parent_briefs"
             referencedColumns: ["id"]
           },
         ]
@@ -521,6 +656,10 @@ export type Database = {
         }
         Returns: Json
       }
+      claim_parent_question: {
+        Args: { _brief_id: string; _limit?: number; _visitor_hash: string }
+        Returns: Json
+      }
       growth_report: {
         Args: {
           _class_status?: string
@@ -543,7 +682,11 @@ export type Database = {
         Returns: boolean
       }
       purge_expired_growth_data: {
-        Args: { _attempt_days?: number; _event_days?: number }
+        Args: {
+          _attempt_days?: number
+          _counsellor_days?: number
+          _event_days?: number
+        }
         Returns: Json
       }
       record_growth_event: {
@@ -557,6 +700,7 @@ export type Database = {
           _generated_project_id?: string
           _interest?: string
           _language?: string
+          _parent_brief_id?: string
           _referral_code?: string
           _technology?: string
           _utm_campaign?: string

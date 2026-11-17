@@ -1,4 +1,5 @@
 <!-- LOVABLE:BEGIN -->
+
 > [!IMPORTANT]
 > This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
 > published git history — force pushing, or rebasing/amending/squashing commits
@@ -27,9 +28,11 @@ use the editor.
   `LOVABLE_API_KEY`. When Lovable does not provide one, users can bring their
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
+
 <!-- LOVABLE:END -->
 
 ## Project conventions
+
 - Keep sample project pages reading the static catalog in src/lib/projects.ts; the growth dashboard reads only live database aggregates and never shows illustrative numbers.
 - Recorded student activity (discovery journeys, saves, shares, invitations, interest notes, visits) lives in the connected Cloud database under `public`, always with row-level security; read-back is owner-scoped or admin-scoped, never public.
 - Keep shared project data and demo rules in browser-safe library modules and reusable UI in components; routes compose these so sample experiences stay consistent.
@@ -44,3 +47,5 @@ use the editor.
 - /api/track returns 503 on write failure and 429 on rate limits; only recorded, duplicate or ignored events count as success, and it requires an existing visitor cookie.
 - Answer filters on the growth report define a visitor cohort; metrics that can't be attributed to answers are returned as null rather than shown with mismatched denominators.
 - Team accounts are invitation-only (sign-up disabled); retention purges run from a scheduled /api/public/cron route.
+- Parent briefs and grounded Q&A use only the saved project and the browser-safe NIAT fact sheet; parent briefs are read by id through a server lookup, and counsellor contact details are never written to analytics.
+- Consented counsellor requests reuse visitor first-touch attribution and the existing event log, retain the database row when webhook delivery fails, and are purged after 180 days by the existing retention function.

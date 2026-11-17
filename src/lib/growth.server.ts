@@ -9,12 +9,19 @@ type ServerEvent =
   | "project_viewed"
   | "project_shared"
   | "referral_visit"
-  | "cta_clicked";
+  | "cta_clicked"
+  | "parent_brief_generated"
+  | "parent_brief_failed"
+  | "parent_brief_shared"
+  | "parent_brief_opened"
+  | "parent_question_asked"
+  | "counsellor_requested";
 
 export type GrowthEventInput = {
   event: ServerEvent;
   visitorHash: string;
   projectId?: string | null | undefined;
+  briefId?: string | null | undefined;
   ref?: string | null | undefined;
   channel?: string | null | undefined;
   utm_source?: string | null | undefined;
@@ -36,6 +43,7 @@ export async function recordGrowthEvent(input: GrowthEventInput): Promise<string
     _event: input.event,
     _visitor_hash: input.visitorHash,
     _generated_project_id: input.projectId ?? undefined,
+    _parent_brief_id: input.briefId ?? undefined,
     _referral_code: input.ref ?? undefined,
     _channel: input.channel ?? undefined,
     _utm_source: input.utm_source ?? undefined,
