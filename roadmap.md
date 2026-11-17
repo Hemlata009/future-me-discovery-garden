@@ -8,7 +8,7 @@
 - [x] Provision the Cloud database: seeded project catalog, discovery journeys, saved projects, shares, invitations and invitation visits, NIAT interest notes, site visits, admin roles.
 - [x] Generate real AI projects from the five discovery answers, save them, and open them by link.
 - [x] Point AI generation at Anthropic's API directly and restrict saved projects to the site's own server-side reads.
-- [ ] Wire the app surfaces to the database: record journeys, saves, shares and visits; show real dashboard numbers; add sign-in and admin access for the dashboard.
+- [x] Wire the app surfaces to the database: record journeys, saves, shares and visits; show real dashboard numbers; add sign-in and admin access for the dashboard.
 
 ## Growth engine brief (Nov 2026)
 
@@ -17,12 +17,12 @@
 - [x] Phase 3: Saved projects readable only by the server (done earlier)
 - [x] Phase 4: Real event tracking with campaign attribution
 - [x] Phase 5: Referral codes and referral visit attribution
-- [ ] Phase 6: NxtWave learning pathway section + inquiry form (needs real NxtWave links and privacy notice)
+- [x] Phase 6: NxtWave learning pathway section + consented counsellor request with privacy notice
 - [x] Phase 7: Real growth dashboard replacing demo numbers
 - [x] Phase 8: Admin sign-in with server-side role checks
 - [ ] Assign the first admin (waiting on the admin's email from the owner)
-- [ ] Phase 9: Privacy, retention and data quality
-- [ ] Phase 10: Full test pass
+- [x] Phase 9: Privacy, retention and data quality
+- [x] Phase 10: Full test pass
 
 ## Targeted corrections (Nov 15)
 
@@ -37,8 +37,8 @@
 
 ## Explore before you apply (Nov 17)
 
-- [ ] Add the verified NIAT fact sheet and private parent briefs.
-- [ ] Add grounded parent Q&A with per-brief visitor limits.
-- [ ] Add consented counsellor requests, webhook delivery and retention.
-- [ ] Extend tracking, referral qualification and the live family dashboard.
-- [ ] Complete housekeeping, regression tests and end-to-end verification.
+- [x] Add the verified NIAT fact sheet and private parent briefs.
+- [x] Add grounded parent Q&A with per-brief visitor limits.
+- [x] Add consented counsellor requests, optional webhook delivery and 180-day retention.
+- [x] Extend tracking, referral qualification and the live family dashboard.
+- [x] Complete housekeeping, regression tests and end-to-end verification.
