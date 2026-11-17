@@ -27,11 +27,11 @@ export const Route = createFileRoute("/parent")({
     const base = brief
       ? pageHead(
           brief.content.headline,
-          `A grounded FutureMe AI Parent Brief about ${brief.project_title}.`,
+          `A grounded FutureMe Family Parent Brief about ${brief.project_title}.`,
         )
       : pageHead(
           "Parent Brief unavailable",
-          "Open a valid FutureMe AI Parent Brief link or create a new brief from a generated project.",
+          "Open a valid FutureMe Family Parent Brief link or create a new brief from a generated project.",
         );
     return { meta: [...base.meta, { name: "robots", content: "noindex, nofollow" }] };
   },

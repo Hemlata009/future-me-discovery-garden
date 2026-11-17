@@ -11,7 +11,10 @@ import { pageHead } from "@/lib/projects";
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({ redirect: z.string().optional() }),
   head: () =>
-    pageHead("Team sign in", "Sign in to the FutureMe AI growth dashboard for the NxtWave team."),
+    pageHead(
+      "Team sign in",
+      "Sign in to the FutureMe Family growth dashboard for the NxtWave team.",
+    ),
   component: AuthPage,
 });
 
@@ -50,8 +53,8 @@ function AuthPage() {
           <LockKeyhole className="text-primary" />
           <h1 className="mt-3 text-2xl font-semibold">Team sign in</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            The growth dashboard is for the FutureMe AI team. Students don't need an account. Team
-            accounts are by invitation only.
+            The growth dashboard is for the FutureMe Family team. Students don't need an account.
+            Team accounts are by invitation only.
           </p>
           <form className="mt-6 grid gap-3" onSubmit={submit}>
             <label className="grid gap-1 text-sm">

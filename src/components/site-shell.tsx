@@ -10,7 +10,7 @@ export function Brand() {
         <Sparkles size={21} />
       </span>
       <span>
-        FutureMe <span className="text-primary">AI</span>
+        FutureMe <span className="text-primary">Family</span>
       </span>
     </Link>
   );
@@ -92,12 +92,14 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <footer className="site-footer page-width">
         <Brand />
-        <p>FutureMe Family · Explore first. Decide together.</p>
+        <p>
+          Explore first. Decide together. · AI-powered project discovery for students and families.
+        </p>
         <div>
           <Link to="/admin">
             Demo dashboard <ArrowUpRight size={14} />
           </Link>
-          <span>© 2026 FutureMe AI</span>
+          <span>© 2026 FutureMe Family</span>
         </div>
       </footer>
     </>

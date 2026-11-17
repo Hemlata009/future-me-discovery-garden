@@ -24,7 +24,7 @@ function Index() {
         <div className="page-width hero-layout">
           <div className="hero-copy">
             <div className="hero-pill">
-              <Sparkles size={13} /> FUTUREME FAMILY <ArrowRight size={12} />
+              <Sparkles size={13} /> AI-POWERED PROJECT DISCOVERY <ArrowRight size={12} />
             </div>
             <h1 className="hero-headline">
               Before you choose your future,

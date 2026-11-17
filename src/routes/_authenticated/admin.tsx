@@ -49,7 +49,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () =>
     pageHead(
       "Growth dashboard",
-      "Live visitor, discovery, generation, sharing and referral analytics for FutureMe AI.",
+      "Live visitor, discovery, generation, sharing and referral analytics for FutureMe Family.",
     ),
   component: Admin,
 });
@@ -144,7 +144,7 @@ function Admin() {
       <main className="admin-main">
         <div className="admin-heading">
           <div>
-            <p className="eyebrow">FUTUREME AI · GROWTH</p>
+            <p className="eyebrow">FUTUREME FAMILY · GROWTH</p>
             <h1>A little spark. A growing impact.</h1>
             <p>
               Live data from {filters.from} to {filters.to} (UTC).

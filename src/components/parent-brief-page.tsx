@@ -58,7 +58,7 @@ export function ParentBriefPageView({
       <div className="page-width parent-brief-page" lang={lang}>
         <header className="parent-brief-header">
           <span className="hero-pill">
-            <BookOpen size={13} /> FUTUREME AI · PARENT BRIEF
+            <BookOpen size={13} /> FUTUREME FAMILY · PARENT BRIEF
           </span>
           <h1>{content.headline}</h1>
           <p className="prepared-from">

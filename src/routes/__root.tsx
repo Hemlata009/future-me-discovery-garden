@@ -83,17 +83,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "FutureMe AI — Your next chapter" },
+      { title: "FutureMe Family — Explore first. Decide together." },
       {
         name: "description",
         content:
-          "Discover your interests and explore your first technology project with FutureMe AI.",
+          "AI-powered project discovery for students and families. Explore first. Decide together.",
       },
-      { name: "author", content: "FutureMe AI" },
-      { property: "og:title", content: "FutureMe AI" },
+      { name: "author", content: "FutureMe Family" },
+      { property: "og:title", content: "FutureMe Family" },
       {
         property: "og:description",
-        content: "Your interests. Your future. Your first AI project.",
+        content: "AI-powered project discovery for students and families.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

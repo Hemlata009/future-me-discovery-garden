@@ -121,7 +121,7 @@ export function ProjectActions({ title, projectId }: { title: string; projectId?
                   ) : (
                     <Button variant="soft" asChild>
                       <a
-                        href={`https://wa.me/?text=${encodeURIComponent(`${title} — my FutureMe AI project: ${link}`)}`}
+                        href={`https://wa.me/?text=${encodeURIComponent(`${title} — my FutureMe Family project: ${link}`)}`}
                         onClick={() => recordShare(projectId, "whatsapp")}
                         target="_blank"
                         rel="noreferrer"

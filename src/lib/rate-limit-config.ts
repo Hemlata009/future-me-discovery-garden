@@ -99,5 +99,5 @@ export function limitMessage(reason: LimitReason, retryAfterSeconds: number): st
   if (reason === "global_minute") {
     return "Lots of students are generating projects right now. Please try again in about a minute.";
   }
-  return "FutureMe AI has reached today's project limit. Please come back a little later.";
+  return "FutureMe Family has reached today's project limit. Please come back a little later.";
 }

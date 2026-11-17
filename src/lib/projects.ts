@@ -73,9 +73,9 @@ export function getProject(theme?: string): Project {
 export function pageHead(title: string, description: string) {
   return {
     meta: [
-      { title: `${title} | FutureMe AI` },
+      { title: `${title} | FutureMe Family` },
       { name: "description", content: description },
-      { property: "og:title", content: `${title} | FutureMe AI` },
+      { property: "og:title", content: `${title} | FutureMe Family` },
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

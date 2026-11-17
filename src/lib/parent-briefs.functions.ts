@@ -40,7 +40,7 @@ export const getParentBrief = createServerFn({ method: "GET" })
     return {
       id: brief.id,
       project_id: brief.generated_project_id,
-      project_title: typeof title === "string" ? title : "Your child's FutureMe AI project",
+      project_title: typeof title === "string" ? title : "Your child's FutureMe Family project",
       language: language.data,
       created_at: brief.created_at,
       content: content.data,
