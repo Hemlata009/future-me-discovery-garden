@@ -18,14 +18,17 @@ AI project generation talks to Anthropic directly. The values below are read on
 the server only — none of them is ever sent to the browser. Set them in Project
 Settings → Secrets (`.env.example` lists the same names with placeholders).
 
-| Name                        | Needed for                                    | Notes                                                                                       |
-| --------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `ANTHROPIC_API_KEY`         | Generating a student's project                | Anthropic API key. Without it the wizard reports that AI generation isn't switched on.      |
-| `ANTHROPIC_MODEL`           | Choosing the model                            | Optional. Defaults to `claude-sonnet-5-5`.                                                  |
-| `SUPABASE_URL`              | Saving and reading projects                   | Provided by Lovable Cloud.                                                                  |
-| `SUPABASE_SERVICE_ROLE_KEY` | Saving a project, and opening a shared link   | Server-only. It is the only path that can read a saved project.                             |
-| `SUPABASE_PUBLISHABLE_KEY`  | Public, read-only lookups from server code    | Server-only here; the browser gets the `VITE_` copy.                                        |
-| `COUNSELLOR_WEBHOOK_URL`    | Delivering consented counsellor-call requests | Optional server-only webhook. The request stays saved when this is unset or delivery fails. |
+| Name                                         | Needed for                                    | Notes                                                                                       |
+| -------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`                          | Generating a student's project                | Anthropic API key. Without it the wizard reports that AI generation isn't switched on.      |
+| `ANTHROPIC_MODEL`                            | Choosing the model                            | Optional. Defaults to `claude-sonnet-5-5`.                                                  |
+| `SUPABASE_URL`                               | Saving and reading projects                   | Provided by Lovable Cloud.                                                                  |
+| `SUPABASE_SERVICE_ROLE_KEY`                  | Saving a project, and opening a shared link   | Server-only. It is the only path that can read a saved project.                             |
+| `SUPABASE_PUBLISHABLE_KEY`                   | Public, read-only lookups from server code    | Server-only here; the browser gets the `VITE_` copy.                                        |
+| `COUNSELLOR_WEBHOOK_URL`                     | Delivering consented counsellor-call requests | Optional server-only webhook. The request stays saved when this is unset or delivery fails. |
+| `VISITOR_COUNSELLOR_REQUESTS_LIMIT`          | Counsellor-request visitor cap                | Server-only. Defaults to 3 successful requests per visitor in each window.                  |
+| `VISITOR_COUNSELLOR_REQUESTS_WINDOW_SECONDS` | Counsellor-request visitor window             | Server-only. Defaults to 3600 seconds (one hour).                                           |
+| `GLOBAL_COUNSELLOR_REQUESTS_PER_DAY`         | Site-wide counsellor-request cap              | Server-only. Defaults to 200 successful requests per rolling 24 hours.                      |
 
 Saved student projects are not readable straight from the database: anonymous
 visitors and signed-in users have no access, and the shared-link page fetches
@@ -43,11 +46,16 @@ A counsellor-call request requires explicit consent and a valid 10-digit Indian
 mobile number. Contact details are never written to the growth event log. The
 request keeps the visitor's existing first-touch referral and campaign tags,
 then is delivered to `COUNSELLOR_WEBHOOK_URL` when configured. A missing or
-failed webhook is recorded safely without discarding the saved request.
-Signed-in admins can read requests only through the existing admin role.
+failed webhook is recorded safely without discarding the saved request. Each
+visitor can save three requests per hour, with a site-wide default of 200 per
+rolling 24 hours. The same mobile number and project cannot create another
+request within 24 hours; repeats receive the already-received response without
+another webhook call. Successful webhook responses set the delivery timestamp,
+and the admin family funnel shows the live undelivered count without phone
+numbers. Signed-in admins can read requests only through the existing admin role.
 
-Environment files are not committed — `.env` and `.env.*` are ignored, with
-`.env.example` kept as the documented template.
+Real environment values must never be committed. Ignore rules cover `.env` and
+`.env.*`, with `.env.example` kept as the documented template.
 
 ## Admin access (one-time setup)
 

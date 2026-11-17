@@ -14,11 +14,31 @@ export type Database = {
   }
   public: {
     Tables: {
+      counsellor_request_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          visitor_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          visitor_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          visitor_hash?: string
+        }
+        Relationships: []
+      }
       counsellor_requests: {
         Row: {
           consent: boolean
           contact_name: string
           created_at: string
+          delivered: boolean
+          delivered_at: string | null
           generated_project_id: string
           id: string
           language: string
@@ -34,6 +54,8 @@ export type Database = {
           consent: boolean
           contact_name: string
           created_at?: string
+          delivered?: boolean
+          delivered_at?: string | null
           generated_project_id: string
           id?: string
           language: string
@@ -49,6 +71,8 @@ export type Database = {
           consent?: boolean
           contact_name?: string
           created_at?: string
+          delivered?: boolean
+          delivered_at?: string | null
           generated_project_id?: string
           id?: string
           language?: string
@@ -645,6 +669,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_counsellor_request_slot: {
+        Args: {
+          _generated_project_id: string
+          _global_per_day?: number
+          _phone: string
+          _visitor_hash: string
+          _visitor_limit?: number
+          _visitor_window_seconds?: number
+        }
+        Returns: Json
+      }
       claim_generation_slot: {
         Args: {
           _daily_token_limit: number

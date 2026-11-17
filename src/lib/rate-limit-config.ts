@@ -46,6 +46,48 @@ export function readLimits(env: Record<string, string | undefined>): GenerationL
   };
 }
 
+export type CounsellorLimits = {
+  visitorLimit: number;
+  visitorWindowSeconds: number;
+  globalPerDay: number;
+};
+
+export const DEFAULT_COUNSELLOR_LIMITS: CounsellorLimits = {
+  visitorLimit: 3,
+  visitorWindowSeconds: 3600,
+  globalPerDay: 200,
+};
+
+export function readCounsellorLimits(env: Record<string, string | undefined>): CounsellorLimits {
+  return {
+    visitorLimit: positiveInt(
+      env["VISITOR_COUNSELLOR_REQUESTS_LIMIT"],
+      DEFAULT_COUNSELLOR_LIMITS.visitorLimit,
+    ),
+    visitorWindowSeconds: positiveInt(
+      env["VISITOR_COUNSELLOR_REQUESTS_WINDOW_SECONDS"],
+      DEFAULT_COUNSELLOR_LIMITS.visitorWindowSeconds,
+    ),
+    globalPerDay: positiveInt(
+      env["GLOBAL_COUNSELLOR_REQUESTS_PER_DAY"],
+      DEFAULT_COUNSELLOR_LIMITS.globalPerDay,
+    ),
+  };
+}
+
+export type CounsellorLimitReason = "visitor" | "global";
+
+export function counsellorLimitMessage(
+  reason: CounsellorLimitReason,
+  retryAfterSeconds: number,
+): string {
+  if (reason === "global") {
+    return "We've reached today's counsellor-request limit. Please try again a little later.";
+  }
+  const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+  return `You've requested a few counsellor calls already. Please try again in about ${minutes} ${minutes === 1 ? "minute" : "minutes"}.`;
+}
+
 export type LimitReason = "visitor" | "global_minute" | "global_day" | "global_tokens";
 
 export function limitMessage(reason: LimitReason, retryAfterSeconds: number): string {

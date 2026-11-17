@@ -465,18 +465,21 @@ function Admin() {
               </p>
               <Table
                 head={["Step", "Count", "Previous-step conversion"]}
-                rows={familyFunnel(t).map((step, index) => [
-                  [
-                    "Parent briefs generated",
-                    "Briefs shared",
-                    "Briefs opened",
-                    "Parent questions asked",
-                    "Counsellor requests",
-                    "Start application clicks",
-                  ][index]!,
-                  step.value,
-                  index === 0 ? "—" : formatRate(step.conversion),
-                ])}
+                rows={[
+                  ...familyFunnel(t).map((step, index) => [
+                    [
+                      "Parent briefs generated",
+                      "Briefs shared",
+                      "Briefs opened",
+                      "Parent questions asked",
+                      "Counsellor requests",
+                      "Start application clicks",
+                    ][index]!,
+                    step.value,
+                    index === 0 ? "—" : formatRate(step.conversion),
+                  ]),
+                  ["Counsellor requests not delivered to webhook", t.counsellor_undelivered, "—"],
+                ]}
               />
             </section>
 

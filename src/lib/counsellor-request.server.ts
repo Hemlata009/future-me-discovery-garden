@@ -1,9 +1,17 @@
 import { isSameOrigin, recordGrowthEvent } from "@/lib/growth.server";
 import { counsellorRequestSchema } from "@/lib/parent-experience";
+import {
+  counsellorLimitMessage,
+  readCounsellorLimits,
+  type CounsellorLimitReason,
+} from "@/lib/rate-limit-config";
 import { resolveVisitor } from "@/lib/visitor-session.server";
 
-function json(body: object, status = 200): Response {
-  return Response.json(body, { status, headers: { "content-type": "application/json" } });
+function json(body: object, status = 200, extraHeaders: Record<string, string> = {}): Response {
+  return Response.json(body, {
+    status,
+    headers: { "content-type": "application/json", ...extraHeaders },
+  });
 }
 
 type WebhookPayload = {
@@ -18,6 +26,11 @@ type WebhookPayload = {
   utm_medium: string | null;
   utm_campaign: string | null;
 };
+
+const REQUEST_SAVED_MESSAGE =
+  "Your counsellor call request is saved. A NIAT counsellor can contact you using the details you provided.";
+const DUPLICATE_MESSAGE =
+  "We've already received your counsellor call request for this project. A NIAT counsellor can contact you using the details you provided.";
 
 /** Delivers already-consented contact details to the configured private endpoint. */
 export async function deliverCounsellorWebhook(
@@ -78,9 +91,76 @@ async function createCounsellorRequest(request: Request, visitorHash: string): P
       .eq("id", input.parent_brief_id)
       .eq("generated_project_id", project.id)
       .maybeSingle();
-    if (!brief)
+    if (!brief) {
       return json({ ok: false, message: "The parent brief does not match this project." }, 400);
+    }
   }
+
+  const limits = readCounsellorLimits(process.env);
+  const { data: slot, error: slotError } = await supabaseAdmin.rpc(
+    "claim_counsellor_request_slot",
+    {
+      _visitor_hash: visitorHash,
+      _generated_project_id: project.id,
+      _phone: input.phone,
+      _visitor_limit: limits.visitorLimit,
+      _visitor_window_seconds: limits.visitorWindowSeconds,
+      _global_per_day: limits.globalPerDay,
+    },
+  );
+  if (slotError || !slot) {
+    console.error("Counsellor request limit check failed");
+    return json({ ok: false, message: "We couldn't check your request. Please try again." }, 503);
+  }
+  const claim = slot as {
+    allowed: boolean;
+    duplicate?: boolean;
+    reason?: CounsellorLimitReason;
+    retry_after_seconds?: number;
+    attempt_id?: string;
+    request_id?: string;
+  };
+
+  if (claim.duplicate && claim.request_id) {
+    return json({
+      ok: true,
+      duplicate: true,
+      request_id: claim.request_id,
+      message: DUPLICATE_MESSAGE,
+    });
+  }
+
+  if (!claim.allowed) {
+    const reason = claim.reason === "visitor" ? "visitor" : "global";
+    const retry = Math.max(1, claim.retry_after_seconds ?? 3600);
+    await recordGrowthEvent({
+      event: "counsellor_requested",
+      visitorHash,
+      projectId: project.id,
+      briefId: input.parent_brief_id ?? null,
+      interest: project.interest,
+      technology: project.technology,
+      language: input.language,
+      class_status: project.class_status,
+      failure_kind: reason === "visitor" ? "visitor_limit" : "global_limit",
+    });
+    return json(
+      {
+        ok: false,
+        code: "rate-limit",
+        message: counsellorLimitMessage(reason, retry),
+        retry_after_seconds: retry,
+      },
+      429,
+      { "retry-after": String(retry) },
+    );
+  }
+
+  // Only successfully saved requests consume a slot.
+  const releaseSlot = async () => {
+    if (!claim.attempt_id) return;
+    await supabaseAdmin.from("counsellor_request_attempts").delete().eq("id", claim.attempt_id);
+  };
 
   const { data: attribution } = await supabaseAdmin
     .from("visitor_attribution")
@@ -106,7 +186,8 @@ async function createCounsellorRequest(request: Request, visitorHash: string): P
     .select("id")
     .single();
   if (saveError || !saved) {
-    console.error("Counsellor request could not be saved", saveError?.message);
+    await releaseSlot();
+    console.error("Counsellor request could not be saved");
     return json({ ok: false, message: "We couldn't save your request. Please try again." }, 500);
   }
 
@@ -129,7 +210,18 @@ async function createCounsellorRequest(request: Request, visitorHash: string): P
         utm_campaign: attribution?.utm_campaign ?? null,
       })
     : false;
-  if (!delivered) {
+
+  if (delivered) {
+    const { error: deliveryError } = await supabaseAdmin
+      .from("counsellor_requests")
+      .update({ delivered: true, delivered_at: new Date().toISOString() })
+      .eq("id", saved.id);
+    if (deliveryError) {
+      console.error(
+        JSON.stringify({ msg: "counsellor_delivery_update_failed", request_id: saved.id }),
+      );
+    }
+  } else {
     console.error(
       JSON.stringify({
         msg: "counsellor_webhook_not_delivered",
@@ -151,10 +243,5 @@ async function createCounsellorRequest(request: Request, visitorHash: string): P
     failure_kind: delivered ? null : webhookUrl ? "webhook_failed" : "webhook_not_configured",
   });
 
-  return json({
-    ok: true,
-    request_id: saved.id,
-    message:
-      "Your counsellor call request is saved. A NIAT counsellor can contact you using the details you provided.",
-  });
+  return json({ ok: true, request_id: saved.id, message: REQUEST_SAVED_MESSAGE });
 }

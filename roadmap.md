@@ -49,3 +49,11 @@
 - [x] Add the shareable /parent route with grounded Q&A, consent form, referral sharing and noindex metadata.
 - [x] Support discovery campaign links and the pre-application guidance banner.
 - [x] Verify the fresh discovery-to-admin journey, tests, lint and build.
+
+## Counsellor request hardening (Nov 17)
+
+- [x] Add atomic visitor/site limits, duplicate protection, and slot release.
+- [x] Track webhook delivery and show undelivered requests in the admin family funnel.
+- [x] Document server-only counsellor settings and confirm environment ignore rules/template.
+- [ ] Remove `.env` from git tracking (blocked: the sandbox refuses untracking it).
+- [x] Add regression tests; run the full suite, changed-file lint, build, and live verification.

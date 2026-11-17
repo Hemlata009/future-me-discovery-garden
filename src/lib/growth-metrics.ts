@@ -32,6 +32,7 @@ export type GrowthTotals = {
   briefs_opened: number;
   parent_questions: number;
   counsellor_requests: number;
+  counsellor_undelivered: number;
   application_clicks: number;
 };
 

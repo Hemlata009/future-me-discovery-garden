@@ -130,6 +130,7 @@ const zero: GrowthTotals = {
   briefs_opened: 0,
   parent_questions: 0,
   counsellor_requests: 0,
+  counsellor_undelivered: 0,
   application_clicks: 0,
 };
 
