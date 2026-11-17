@@ -38,8 +38,11 @@ const zero: GrowthTotals = {
 };
 
 describe("dashboard formulas", () => {
-  it("completion rate = completions / starts", () => {
-    expect(deriveMetrics({ ...zero, starts: 10, completions: 4 }).completionRate).toBe(0.4);
+  it("completion rate = cohort completers / cohort starters", () => {
+    expect(
+      deriveMetrics({ ...zero, starts: 10, completions: 4 }, { started: 10, completed: 4 })
+        .completionRate,
+    ).toBe(0.4);
   });
   it("generation success rate = succeeded / (succeeded + failed)", () => {
     expect(deriveMetrics({ ...zero, gen_ok: 3, gen_fail: 1 }).generationSuccessRate).toBe(0.75);
@@ -91,5 +94,42 @@ describe("tracking input", () => {
     expect(referralUrl("https://x.test", "abc", "ABCDEFGHJKLM")).toBe(
       "https://x.test/project?id=abc&ref=ABCDEFGHJKLM",
     );
+  });
+});
+
+describe("discovery completion rate uses the start cohort", () => {
+  const at = (h: string, t: string) => ({ visitor_hash: h, created_at: t });
+  it("starts greater than completions: 1 of 3 starters completed", async () => {
+    const { matchStartCohort } = await import("@/lib/growth-metrics");
+    const c = matchStartCohort(
+      [at("a", "2026-11-10T10:00Z"), at("b", "2026-11-10T10:00Z"), at("c", "2026-11-10T10:00Z")],
+      [at("a", "2026-11-10T10:05Z")],
+    );
+    expect(c).toEqual({ started: 3, completed: 1 });
+    expect(deriveMetrics(zero, c).completionRate).toBeCloseTo(1 / 3);
+  });
+  it("zero starts: rate unavailable even with completions", async () => {
+    const { matchStartCohort } = await import("@/lib/growth-metrics");
+    const c = matchStartCohort([], [at("a", "2026-11-10T10:05Z")]);
+    expect(c).toEqual({ started: 0, completed: 0 });
+    expect(deriveMetrics({ ...zero, completions: 1 }, c).completionRate).toBeNull();
+  });
+  it("completions greater than starts never exceed 100%: 2 starts, 5 completions -> 1 of 2", async () => {
+    const { matchStartCohort } = await import("@/lib/growth-metrics");
+    const c = matchStartCohort(
+      [at("a", "2026-11-10T10:00Z"), at("b", "2026-11-10T10:00Z")],
+      [
+        at("a", "2026-11-10T10:05Z"),
+        at("b", "2026-11-10T09:00Z"), // completed before starting: not counted
+        at("x", "2026-11-10T10:05Z"),
+        at("y", "2026-11-10T10:05Z"),
+        at("z", "2026-11-10T10:05Z"),
+      ],
+    );
+    expect(c).toEqual({ started: 2, completed: 1 });
+    expect(deriveMetrics({ ...zero, starts: 2, completions: 5 }, c).completionRate).toBe(0.5);
+  });
+  it("no cohort data: rate unavailable instead of dividing raw counts", () => {
+    expect(deriveMetrics({ ...zero, starts: 2, completions: 5 }).completionRate).toBeNull();
   });
 });

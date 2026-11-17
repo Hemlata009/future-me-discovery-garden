@@ -136,7 +136,7 @@ function Admin() {
 
   const report = query.data?.access === "ok" ? query.data.report : null;
   const t = report?.totals;
-  const m = t ? deriveMetrics(t) : null;
+  const m = t ? deriveMetrics(t, report?.start_cohort) : null;
 
   return (
     <div className="admin-layout">
@@ -284,7 +284,7 @@ function Admin() {
                 Icon={CheckCircle2}
                 label="Discovery completion rate"
                 text={formatRate(m.completionRate)}
-                note={`${t.completions} completed`}
+                note={completionNote(t.segmented, report.start_cohort, t.completions)}
               />
               <Metric Icon={Sparkles} label="Successful generations" value={t.gen_ok} />
               <Metric
@@ -567,6 +567,18 @@ function Admin() {
 
 function rate(n: number, d: number) {
   return d ? n / d : null;
+}
+
+/** Explains the start-cohort rate and why it is unavailable when it is. */
+function completionNote(
+  segmented: boolean,
+  cohort: { started: number; completed: number } | undefined,
+  completions: number,
+): string {
+  if (segmented) return `${completions} completed · rate not shown for a cohort`;
+  if (!cohort) return `${completions} completed · rate unavailable right now`;
+  if (cohort.started === 0) return `${completions} completed · no recorded starts in this period`;
+  return `${cohort.completed} of ${cohort.started} visitors who started in this period completed by its end · completions without a recorded start aren't counted`;
 }
 
 function Metric({

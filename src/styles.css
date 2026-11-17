@@ -1884,15 +1884,19 @@ input[type="range"] {
     padding: 20px;
   }
   .admin-layout {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr): a plain 1fr column grows to its widest child's content. */
+    grid-template-columns: minmax(0, 1fr);
   }
   .admin-sidebar {
     border-right: 0;
     border-bottom: 1px solid var(--border);
     padding: 20px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    gap: 10px 16px;
+    min-width: 0;
   }
   .admin-sidebar nav {
     display: none;

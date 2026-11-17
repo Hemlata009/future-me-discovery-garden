@@ -36,6 +36,31 @@ export type GrowthTotals = {
   application_clicks: number;
 };
 
+/**
+ * Start cohort: distinct visitors whose first recorded discovery start falls in
+ * the selected period, and how many of them have a completion at or after that
+ * start, up to the end of the period. Absent when the cohort couldn't be read.
+ */
+export type StartCohort = { started: number; completed: number };
+
+type StartRow = { visitor_hash: string; created_at: string };
+
+/** Pure cohort matching: completions without an earlier start in the period never count. */
+export function matchStartCohort(starts: StartRow[], completions: StartRow[]): StartCohort {
+  const firstStart = new Map<string, number>();
+  for (const s of starts) {
+    const t = Date.parse(s.created_at);
+    const prev = firstStart.get(s.visitor_hash);
+    if (prev === undefined || t < prev) firstStart.set(s.visitor_hash, t);
+  }
+  const done = new Set<string>();
+  for (const c of completions) {
+    const start = firstStart.get(c.visitor_hash);
+    if (start !== undefined && Date.parse(c.created_at) >= start) done.add(c.visitor_hash);
+  }
+  return { started: firstStart.size, completed: done.size };
+}
+
 export type Named = { name: string | null; value: number };
 export type ReferralJourney = {
   referred_visitors: number;
@@ -68,6 +93,7 @@ export function referralJourneySteps(j: ReferralJourney) {
 
 export type GrowthReport = {
   referral_journey?: ReferralJourney;
+  start_cohort?: StartCohort;
   totals: GrowthTotals;
   shares_by_channel: Record<string, number>;
   failures_by_kind: Record<string, number>;
@@ -100,11 +126,13 @@ export function formatRate(value: number | null): string {
   return value === null ? "—" : `${(value * 100).toFixed(1)}%`;
 }
 
-export function deriveMetrics(t: GrowthTotals) {
+export function deriveMetrics(t: GrowthTotals, cohort?: StartCohort) {
   return {
-    // In a segment, every completer is in the cohort by definition, so a
-    // completion rate would always read 100%; it is withheld instead.
-    completionRate: t.segmented || t.starts === null ? null : rate(t.completions, t.starts),
+    // Start-cohort rate: of visitors who started in the period, the share who
+    // completed afterwards within it. Raw event counts are never divided, since
+    // completions can arrive without a recorded start. In an answer segment,
+    // every completer is in the cohort by definition, so the rate is withheld.
+    completionRate: t.segmented || !cohort ? null : rate(cohort.completed, cohort.started),
     // Pre-AI rejections are not generation failures.
     generationSuccessRate: rate(t.gen_ok, t.gen_ok + t.gen_fail),
     shareRate: rate(t.shared_projects, t.gen_ok),
