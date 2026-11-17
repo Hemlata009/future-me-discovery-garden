@@ -193,12 +193,7 @@ function GeneratedProjectView({
           />
         </div>
 
-        <ProjectDecisionCard
-          projectId={generated.id}
-          language={generated.language as "english" | "hindi" | "telugu"}
-        />
-
-        <div className="result-layout">
+        <div className="result-layout project-exploration-layout">
           <section>
             <p className="eyebrow">THE PROBLEM IT SOLVES</p>
             <h2>Worth fixing in the real world.</h2>
@@ -209,7 +204,12 @@ function GeneratedProjectView({
           </div>
         </div>
 
-        <section>
+        <ProjectDecisionCard
+          projectId={generated.id}
+          language={generated.language as "english" | "hindi" | "telugu"}
+        />
+
+        <section className="project-roadmap">
           <p className="eyebrow">MAKE IT HAPPEN, ONE STEP AT A TIME</p>
           <h2>Your build roadmap.</h2>
           <ol className="roadmap-list">

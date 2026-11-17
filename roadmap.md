@@ -79,3 +79,11 @@
 - [x] Tests, browser walk, lint, build; report pass/fail per point.
 - [x] Check colour contrast across all three project themes; fix failing text/controls.
 - [x] Admin view: referred visitors who start discovery and continue to an application click.
+
+## NIAT brand alignment (Nov 17)
+
+- [x] Inspect the official NIAT site and document verified colours, typography and assets.
+- [x] Audit the current design system and core student/family screens.
+- [x] Establish brand-aligned tokens and refine the shared shell and components.
+- [x] Refine the homepage, discovery, project, decision and parent experiences without behavior changes.
+- [x] Verify interactions, accessibility and layouts at phone and desktop widths; run tests, lint and build.

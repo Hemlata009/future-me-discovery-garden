@@ -41,7 +41,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <div className="header-actions">
             <Button asChild variant="premium" className="header-cta">
               <Link to="/discover">
-                Find my future <ArrowUpRight />
+                Start discovery <ArrowUpRight />
               </Link>
             </Button>
             <Button
@@ -57,16 +57,33 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </div>
         {open && (
           <nav className="mobile-nav" aria-label="Mobile navigation" key={pathname}>
-            <Link to="/" onClick={() => setOpen(false)}>
+            <Link
+              to="/"
+              activeOptions={{ exact: true }}
+              activeProps={{ className: "mobile-nav-active" }}
+              onClick={() => setOpen(false)}
+            >
               Discover
             </Link>
-            <Link to="/projects" onClick={() => setOpen(false)}>
+            <Link
+              to="/projects"
+              activeProps={{ className: "mobile-nav-active" }}
+              onClick={() => setOpen(false)}
+            >
               Explore projects
             </Link>
-            <Link to="/how-it-works" onClick={() => setOpen(false)}>
+            <Link
+              to="/how-it-works"
+              activeProps={{ className: "mobile-nav-active" }}
+              onClick={() => setOpen(false)}
+            >
               How it works
             </Link>
-            <Link to="/showcase" onClick={() => setOpen(false)}>
+            <Link
+              to="/showcase"
+              activeProps={{ className: "mobile-nav-active" }}
+              onClick={() => setOpen(false)}
+            >
               Student showcase
             </Link>
           </nav>
@@ -75,7 +92,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <footer className="site-footer page-width">
         <Brand />
-        <p>A little curiosity. A world of possibilities.</p>
+        <p>FutureMe Family · Explore first. Decide together.</p>
         <div>
           <Link to="/admin">
             Demo dashboard <ArrowUpRight size={14} />

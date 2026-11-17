@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Play, Sparkles, Zap } from "lucide-react";
-import heroImage from "@/assets/future-world.jpg";
+import { ArrowRight, Check, Sparkles } from "lucide-react";
+import heroImage from "@/assets/student-project-lab.jpg";
 import { Button } from "@/components/ui/button";
 import { SiteShell, SectionHeading } from "@/components/site-shell";
 import { ProjectCard } from "@/components/project-card";
@@ -11,8 +11,8 @@ import { pageHead, projects } from "@/lib/projects";
 export const Route = createFileRoute("/")({
   head: () =>
     pageHead(
-      "Your interests. Your future.",
-      "Discover what you could build with technology. Turn your curiosity into your first AI-powered project.",
+      "Before you choose your future, experience what you could build",
+      "Explore a technology idea shaped around your interests. Share it with your family, ask questions and discover your next step.",
     ),
   component: Index,
 });
@@ -21,61 +21,55 @@ function Index() {
   return (
     <SiteShell>
       <section className="hero">
-        <img
-          className="hero-art"
-          src={heroImage}
-          width={1536}
-          height={1024}
-          alt="An astronaut and a friendly robot exploring a vibrant world of possibilities"
-        />
-        <div className="page-width hero-inner">
+        <div className="page-width hero-layout">
           <div className="hero-copy">
             <div className="hero-pill">
-              <Sparkles size={13} /> YOUR NEXT CHAPTER STARTS HERE <ArrowRight size={12} />
+              <Sparkles size={13} /> FUTUREME FAMILY <ArrowRight size={12} />
             </div>
-            <h1>FutureMe AI</h1>
-            <p className="hero-headline">
-              Your interests.
+            <h1 className="hero-headline">
+              Before you choose your future,
+              <span>experience what you could build.</span>
+            </h1>
+            <p className="hero-subtitle">
+              Explore a technology idea shaped around your interests.
               <br />
-              Your future.
-              <br />
-              <span className="gradient-text">Your first AI project.</span>
+              Share it with your family, ask questions and discover your next step.
             </p>
             <p className="hero-promise">{homePromise}</p>
-            <p className="hero-subtitle">
-              Discover what you could build with technology.
-              <br />
-              Turn your curiosity into your first AI-powered project.
-            </p>
             <div className="hero-buttons">
               <Button asChild variant="premium">
                 <Link to="/discover">
-                  <Sparkles /> Discover My Future <ArrowRight />
+                  <Sparkles /> Start My 5-Minute Discovery <ArrowRight />
                 </Link>
               </Button>
               <Button asChild variant="soft">
-                <Link to="/projects">
-                  <Play size={15} /> Explore Projects
-                </Link>
+                <Link to="/how-it-works">See How It Works</Link>
               </Button>
             </div>
             <div className="hero-proof">
-              <div className="avatar-stack">
-                <span className="avatar">AK</span>
-                <span className="avatar">DS</span>
-                <span className="avatar">RP</span>
-                <span className="avatar">SM</span>
-              </div>
+              <span className="proof-check" aria-hidden="true">
+                <Check size={16} />
+              </span>
               <div>
-                For the curious. The creative. The future you.
-                <span className="proof-note">No experience needed. Just a spark of curiosity.</span>
+                Explore first. Decide together.
+                <span className="proof-note">No experience needed. No pressure to apply.</span>
               </div>
             </div>
           </div>
+          <div className="hero-visual">
+            <img
+              className="hero-art"
+              src={heroImage}
+              width={1536}
+              height={1024}
+              alt="Two students collaborating on a small robot and laptop in a technology project lab"
+            />
+            <div className="hero-visual-caption">
+              <span>HANDS-ON PROJECT EXPLORATION</span>
+              <strong>From curiosity to something you can try.</strong>
+            </div>
+          </div>
         </div>
-        <span className="hero-footnote">
-          <Zap size={12} className="text-primary" /> Big futures start with small ideas.
-        </span>
       </section>
       <NextSteps />
       <section className="page-width section-space featured-section">

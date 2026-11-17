@@ -3,8 +3,8 @@
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 @theme inline {
-  --font-sans: "DM Sans", "Noto Sans Devanagari", "Noto Sans Telugu", sans-serif;
-  --font-display: "Outfit", "Noto Sans Devanagari", "Noto Sans Telugu", sans-serif;
+  --font-sans: "Inter", "Noto Sans Devanagari", "Noto Sans Telugu", system-ui, sans-serif;
+  --font-display: "Satoshi", "Noto Sans Devanagari", "Noto Sans Telugu", system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -29,31 +29,31 @@
   --radius-lg: 8px;
 }
 :root {
-  --background: oklch(0.145 0.036 271);
-  --foreground: oklch(0.965 0.008 280);
-  --card: oklch(0.19 0.035 274);
-  --primary: oklch(0.69 0.2 294);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.235 0.043 276);
-  --muted-foreground: oklch(0.67 0.035 278);
-  --border: oklch(0.3 0.042 275);
-  /* Form control outlines: at least 3:1 against cards and the page. */
-  --input-border: oklch(0.56 0.05 276);
-  --mint: oklch(0.8 0.14 168);
-  --electric: oklch(0.7 0.17 250);
-  --destructive: oklch(0.72 0.18 25);
-  --gradient-primary: linear-gradient(110deg, oklch(0.56 0.24 295), oklch(0.58 0.23 267));
-  --gradient-text: linear-gradient(100deg, oklch(0.74 0.2 300), oklch(0.67 0.21 265));
-  --gradient-hero-shade:
-    linear-gradient(
-      90deg,
-      var(--background) 0%,
-      color-mix(in oklab, var(--background) 92%, transparent) 26%,
-      transparent 66%
-    ),
-    linear-gradient(0deg, var(--background), transparent 28%);
-  --shadow-primary: 0 5px 26px oklch(0.5 0.24 290 / 0.23);
-  --shadow-card: 0 14px 40px oklch(0.05 0.03 270 / 0.3);
+  /* Observed on niatindia.com; see docs/niat-brand-tokens.md for source values. */
+  --background: oklch(0.9851 0 89.88);
+  --foreground: oklch(0.2795 0.0368 260.03);
+  --card: oklch(1 0 89.88);
+  --primary: oklch(0.4437 0.1613 26.9);
+  --primary-hover: oklch(0.3958 0.1331 25.72);
+  --primary-foreground: oklch(1 0 89.88);
+  --secondary: oklch(0.9683 0.0069 247.9);
+  --muted-foreground: oklch(0.4455 0.0374 257.28);
+  --border: oklch(0.931 0 89.88);
+  /* FutureMe accessibility extension: clear control outlines on light surfaces. */
+  --input-border: oklch(0.554 0.046 257.4);
+  --brand-soft: oklch(0.9684 0.0098 9.53);
+  --warm-surface: oklch(0.9799 0.011 63.36);
+  --cool-surface: oklch(0.9683 0.0069 247.9);
+  --mint: oklch(0.6271 0.1699 149.21);
+  /* Accessible extension for small success text; #16A34A remains the icon/surface accent. */
+  --success-text: oklch(0.5323 0.1327 149.6);
+  --electric: oklch(0.5461 0.2152 262.88);
+  --destructive: oklch(0.5771 0.2152 27.33);
+  --gradient-primary: linear-gradient(110deg, var(--primary), var(--primary-hover));
+  --gradient-text: linear-gradient(100deg, var(--primary), var(--primary-hover));
+  --gradient-hero-shade: linear-gradient(90deg, var(--background), transparent);
+  --shadow-primary: 0 8px 22px color-mix(in oklab, var(--primary) 20%, transparent);
+  --shadow-card: 0 14px 36px color-mix(in oklab, var(--foreground) 9%, transparent);
 }
 * {
   border-color: var(--border);
@@ -2161,5 +2161,954 @@ input[type="range"] {
   main .text-link {
     display: inline-flex;
     align-items: center;
+  }
+}
+
+/* NIAT brand alignment: shared shell and homepage. */
+body {
+  font-size: 15px;
+  line-height: 1.55;
+}
+h1,
+h2,
+h3,
+h4,
+.brand {
+  font-weight: 600;
+}
+.site-header {
+  height: 76px;
+  background: var(--card);
+  border-bottom-color: var(--border);
+}
+.brand-mark {
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  transform: none;
+  box-shadow: none;
+}
+.brand-mark svg {
+  transform: none;
+}
+.desktop-nav {
+  gap: 28px;
+  font-size: 13px;
+  align-self: stretch;
+}
+.desktop-nav a {
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.desktop-nav a:hover,
+.desktop-nav .nav-active {
+  color: var(--primary);
+}
+.desktop-nav .nav-active {
+  border-bottom-color: var(--primary);
+}
+.header-cta {
+  height: 42px;
+  padding-inline: 18px;
+  font-size: 13px;
+}
+.button-premium {
+  background: var(--primary);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-primary);
+}
+.button-premium:hover {
+  background: var(--primary-hover);
+  filter: none;
+}
+:focus-visible {
+  outline: 2px solid var(--electric);
+  outline-offset: 3px;
+}
+.hero {
+  min-height: 0;
+  padding-block: 40px 48px;
+  overflow: visible;
+}
+.hero:after {
+  content: none;
+}
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  align-items: center;
+  gap: 52px;
+}
+.hero-copy {
+  max-width: 610px;
+}
+.hero-pill {
+  color: var(--primary);
+  background: var(--brand-soft);
+  border-color: color-mix(in oklab, var(--primary) 20%, var(--border));
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin-bottom: 22px;
+}
+.hero h1.hero-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+.hero h1.hero-headline span {
+  color: var(--primary);
+}
+.hero-subtitle {
+  max-width: 550px;
+  margin: 22px 0 18px;
+  color: var(--muted-foreground);
+  font-size: 16px;
+  line-height: 1.75;
+}
+.hero-promise {
+  margin: 0 0 24px;
+  padding-left: 13px;
+  border-left: 3px solid var(--primary);
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 600;
+}
+.hero-buttons {
+  gap: 12px;
+}
+.hero-buttons a {
+  min-height: 48px;
+  height: auto;
+  padding-inline: 20px;
+  font-size: 13px;
+}
+.hero-proof {
+  margin-top: 24px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 500;
+}
+.proof-check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--primary);
+}
+.proof-note {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 400;
+}
+.hero-visual {
+  position: relative;
+  min-width: 0;
+}
+.hero-art {
+  position: static;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.16;
+  object-fit: cover;
+  object-position: 58% center;
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+.hero-visual-caption {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--card) 94%, transparent);
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--foreground) 10%, transparent);
+  backdrop-filter: blur(10px);
+}
+.hero-visual-caption span {
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+.hero-visual-caption strong {
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 600;
+}
+.next-steps {
+  padding-block: 26px 12px;
+}
+.next-steps-list {
+  gap: 16px;
+}
+.next-steps-list li {
+  min-height: 92px;
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.next-steps-list .step-icon,
+.step-icon {
+  border-radius: 8px;
+  background: var(--brand-soft);
+  color: var(--primary);
+}
+.next-steps-list strong {
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+.next-steps-list p {
+  line-height: 1.55;
+}
+.section-space {
+  padding-block: 72px;
+}
+.section-heading {
+  margin-bottom: 32px;
+}
+.eyebrow {
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+h2 {
+  font-size: 34px;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+.section-description {
+  max-width: 650px;
+  font-size: 14px;
+}
+.project-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.project-card:hover {
+  border-color: color-mix(in oklab, var(--primary) 50%, var(--border));
+  box-shadow: var(--shadow-card);
+}
+.project-card-body {
+  padding: 22px;
+}
+.project-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+.project-description {
+  font-size: 13px;
+}
+.showcase-band {
+  background: var(--warm-surface);
+}
+.referral-section {
+  margin-block: 32px;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--brand-soft);
+}
+.site-footer {
+  padding-block: 32px;
+}
+.site-footer p {
+  font-size: 12px;
+}
+.mobile-nav {
+  gap: 0;
+  padding-block: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.mobile-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding-inline: 12px;
+  border-left: 3px solid transparent;
+  color: var(--muted-foreground);
+}
+.mobile-nav a:hover,
+.mobile-nav .mobile-nav-active {
+  border-left-color: var(--primary);
+  background: var(--brand-soft);
+  color: var(--primary);
+}
+@media (max-width: 1100px) {
+  .hero-layout {
+    gap: 34px;
+  }
+  .hero h1.hero-headline {
+    font-size: 46px;
+  }
+}
+@media (max-width: 760px) {
+  .site-header {
+    height: 72px;
+  }
+  .hero {
+    padding-block: 32px 24px;
+  }
+  .hero-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .hero h1.hero-headline {
+    font-size: 40px;
+    line-height: 1.12;
+  }
+  .hero-subtitle {
+    margin-top: 20px;
+    font-size: 15px;
+  }
+  .hero-promise {
+    font-size: 14px;
+  }
+  .hero-buttons {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .hero-buttons a {
+    width: 100%;
+    min-height: 48px;
+    font-size: 13px;
+  }
+  .hero-art {
+    height: auto;
+    aspect-ratio: 1.2;
+    object-position: 58% center;
+  }
+  .hero-visual-caption {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+  }
+  .section-space {
+    padding-block: 48px;
+  }
+  h2 {
+    font-size: 28px;
+  }
+  .referral-section {
+    width: calc(100% - 40px);
+    padding: 24px;
+  }
+  .site-footer p {
+    max-width: none;
+    margin-left: 0;
+  }
+}
+
+/* NIAT brand alignment: discovery and shared form controls. */
+.wizard-width {
+  max-width: 840px;
+  margin: 48px auto 80px;
+  padding: 30px 32px 26px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+.wizard-topline {
+  margin-bottom: 18px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+.wizard-topline > span:first-child {
+  color: var(--foreground);
+}
+.progress-track {
+  height: 6px;
+  gap: 6px;
+  overflow: visible;
+  background: transparent;
+}
+.progress-track span {
+  border-radius: 999px;
+  background: var(--secondary);
+  transition: background 0.25s ease;
+}
+.progress-track .progress-fill {
+  background: var(--primary);
+}
+.wizard-content {
+  padding-top: 36px;
+}
+.wizard-content h1 {
+  max-width: 650px;
+  margin-bottom: 12px;
+  color: var(--foreground);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+.wizard-content > p:not(.eyebrow) {
+  margin-bottom: 28px;
+  font-size: 14px;
+}
+.choice-grid {
+  gap: 14px;
+}
+.choice-button {
+  min-height: 148px;
+  padding: 20px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 3px 10px color-mix(in oklab, var(--foreground) 3%, transparent);
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.choice-button:hover {
+  border-color: color-mix(in oklab, var(--primary) 50%, var(--border));
+  background: var(--brand-soft);
+  transform: translateY(-2px);
+}
+.choice-button strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.choice-button img {
+  border-radius: 8px;
+}
+.choice-selected,
+.choice-selected:hover {
+  border-color: var(--primary);
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 1px var(--primary), 0 8px 20px color-mix(in oklab, var(--primary) 9%, transparent);
+}
+.choice-button .choice-check {
+  width: 20px;
+  height: 20px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.wizard-footer {
+  margin-top: 32px;
+  padding-top: 24px;
+}
+.wizard-footer > button {
+  min-height: 44px;
+  padding-inline: 18px;
+}
+.wizard-note {
+  max-width: 620px;
+  margin-inline: auto;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.form-field,
+.family-field input,
+.family-field select {
+  border-color: var(--input-border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--foreground);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-field:focus,
+.family-field input:focus,
+.family-field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent);
+}
+.form-field::placeholder,
+.family-field input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.85;
+}
+.gen-overlay {
+  background: color-mix(in oklab, var(--foreground) 45%, transparent);
+}
+.gen-card {
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.gen-progress span {
+  background: var(--primary);
+}
+.discovery-campaign-banner {
+  border-color: color-mix(in oklab, var(--primary) 25%, var(--border));
+  border-radius: 10px;
+  background: var(--brand-soft);
+}
+@media (max-width: 760px) {
+  .wizard-width {
+    width: calc(100% - 32px);
+    margin: 24px auto 48px;
+    padding: 22px 18px;
+    border-radius: 12px;
+  }
+  .wizard-content {
+    padding-top: 28px;
+  }
+  .wizard-content h1 {
+    font-size: 30px;
+  }
+  .choice-grid {
+    gap: 10px;
+  }
+  .choice-button {
+    min-height: 132px;
+    padding: 16px 10px;
+  }
+  .choice-button strong {
+    font-size: 13px;
+  }
+  .wizard-footer {
+    margin-top: 26px;
+  }
+}
+
+/* NIAT brand alignment: project exploration and decision cards. */
+.project-header {
+  gap: 36px;
+  margin-top: 24px;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+.project-header h1 {
+  margin: 18px 0 14px;
+  color: var(--foreground);
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+.project-header p {
+  font-size: 14px;
+}
+.project-cover {
+  width: 36%;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px color-mix(in oklab, var(--foreground) 12%, transparent);
+}
+.project-tools {
+  margin-top: 22px;
+}
+.project-tools > button,
+.project-tools > a {
+  min-height: 44px;
+}
+.answer-chips {
+  gap: 8px;
+  margin-block: 16px 4px;
+}
+.answer-chips li {
+  border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--foreground);
+  font-size: 12px;
+}
+.technology-tags span,
+.demo-badge {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  border-color: var(--border);
+  border-radius: 6px;
+  background: var(--cool-surface);
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 500;
+}
+.fit-callout {
+  border-left-color: var(--electric);
+  border-radius: 0 10px 10px 0;
+  background: color-mix(in oklab, var(--electric) 7%, var(--card));
+}
+.fit-callout strong {
+  color: var(--electric);
+}
+.result-layout {
+  gap: 48px;
+}
+.project-exploration-layout {
+  align-items: start;
+  padding-block: 54px;
+}
+.demo-panel {
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.demo-anchor .demo-panel {
+  border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+  box-shadow: 0 12px 32px color-mix(in oklab, var(--primary) 8%, transparent);
+}
+.demo-top h2 {
+  color: var(--foreground);
+  font-size: 22px;
+  font-weight: 600;
+}
+.demo-panel > p {
+  font-size: 13px;
+}
+.demo-instruction {
+  color: var(--foreground);
+  font-size: 14px;
+}
+.demo-output {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--cool-surface);
+}
+.demo-output svg {
+  color: var(--electric);
+}
+.maze-path {
+  background: color-mix(in oklab, var(--electric) 20%, var(--cool-surface));
+  color: var(--electric);
+}
+.project-roadmap {
+  padding-block: 54px 24px;
+}
+.roadmap-list {
+  overflow: hidden;
+  padding-inline: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+.roadmap-list li:last-child {
+  border-bottom: 0;
+}
+.roadmap-list li span:last-child {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.roadmap-list .step-icon {
+  border-radius: 8px;
+  background: var(--brand-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+.decision-section {
+  gap: 18px;
+}
+.niat-year-card {
+  background: var(--warm-surface);
+  box-shadow: none;
+}
+.niat-year-card > p:not(.eyebrow) {
+  font-size: 14px;
+}
+.family-panel {
+  border-color: var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+.decision-card {
+  padding: 30px;
+}
+.decision-card-heading h2 {
+  font-size: 30px;
+}
+.decision-card-heading > p:not(.eyebrow) {
+  font-size: 14px;
+}
+.next-step-cards {
+  gap: 14px;
+  margin-top: 26px;
+}
+.next-step-card {
+  gap: 12px;
+  padding: 22px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 3px 12px color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.next-step-card > svg {
+  width: 24px;
+  height: 24px;
+}
+.next-step-card h3 {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.next-step-card p {
+  font-size: 13px;
+}
+.next-step-recommended {
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+  background: var(--brand-soft);
+}
+.next-step-badge {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 11px;
+}
+.honesty-note {
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .project-header {
+    gap: 26px;
+    padding: 26px;
+  }
+  .project-header h1 {
+    font-size: 38px;
+  }
+}
+@media (max-width: 760px) {
+  .project-header {
+    margin-top: 18px;
+    padding: 20px;
+    border-radius: 12px;
+  }
+  .project-header h1 {
+    font-size: 34px;
+  }
+  .project-cover {
+    width: 100%;
+    border-radius: 10px;
+  }
+  .project-exploration-layout {
+    padding-block: 40px;
+  }
+  .project-roadmap {
+    padding-top: 40px;
+  }
+  .roadmap-list {
+    padding-inline: 18px;
+  }
+  .decision-card {
+    padding: 22px;
+  }
+  .decision-card-heading h2 {
+    font-size: 27px;
+  }
+}
+
+/* NIAT brand alignment: parent experience, dialogs and feedback. */
+.parent-brief-page {
+  max-width: 1080px;
+  padding-bottom: 72px;
+}
+.parent-brief-header {
+  max-width: 900px;
+  padding-block: 48px 30px;
+}
+.parent-brief-header .hero-pill {
+  margin-bottom: 20px;
+}
+.parent-brief-header h1 {
+  color: var(--foreground);
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+.parent-brief-header > p {
+  font-size: 15px;
+}
+.fact-sheet {
+  border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
+  border-radius: 12px;
+  background: var(--warm-surface);
+  box-shadow: none;
+}
+.fact-sheet .demo-top {
+  margin-bottom: 14px;
+}
+.fact-sheet .demo-top h2 {
+  font-size: 24px;
+}
+.fact-sheet > p,
+.parent-brief-grid .demo-panel > p:not(.eyebrow),
+.parent-question-box > p,
+.parent-answer p {
+  font-size: 14px;
+  line-height: 1.8;
+}
+.fact-sheet li {
+  font-size: 13px;
+}
+.fact-sheet li a,
+.fact-details summary {
+  color: var(--primary);
+  font-weight: 500;
+}
+.parent-brief-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.parent-brief-page .demo-panel {
+  padding: 24px;
+  box-shadow: none;
+}
+.parent-brief-page .demo-panel h2 {
+  font-size: 22px;
+  line-height: 1.3;
+}
+.parent-guidance-layout {
+  align-items: start;
+  gap: 20px;
+  padding-block: 20px 0;
+}
+.parent-guidance-layout .roadmap-list {
+  padding-inline: 16px;
+  background: var(--background);
+}
+.parent-answer {
+  border-left-color: var(--mint);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in oklab, var(--mint) 7%, var(--card));
+}
+.parent-answer strong {
+  color: var(--success-text);
+}
+.notice,
+.metric small,
+.tone-mint .project-category {
+  color: var(--success-text);
+}
+.qa-card {
+  border-radius: 10px;
+  background: var(--card);
+}
+.qa-fallback {
+  border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+  background: var(--brand-soft);
+}
+.qa-limit {
+  border-color: color-mix(in oklab, var(--mint) 35%, var(--border));
+  background: color-mix(in oklab, var(--mint) 6%, var(--card));
+}
+.parent-counsellor {
+  margin-top: 20px;
+  scroll-margin-top: 24px;
+}
+.parent-closing {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.share-link {
+  border-radius: 8px;
+  background: var(--cool-surface);
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.modal-backdrop {
+  background: color-mix(in oklab, var(--foreground) 50%, transparent);
+  backdrop-filter: blur(4px);
+}
+.modal {
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.modal h2 {
+  padding-right: 24px;
+  color: var(--foreground);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.modal p {
+  font-size: 14px;
+}
+.family-modal {
+  width: min(590px, 100%);
+}
+.family-field {
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+.family-field-label {
+  font-size: 14px;
+}
+.consent-field,
+.privacy-line {
+  font-size: 12px;
+  line-height: 1.75;
+}
+.form-success {
+  border-color: color-mix(in oklab, var(--mint) 45%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--mint) 7%, var(--card));
+}
+.form-error,
+.field-error {
+  color: var(--destructive);
+}
+.language-segments .segment {
+  border-radius: 8px;
+}
+.language-segments .segment-active {
+  border-color: var(--primary);
+  background: var(--brand-soft);
+  color: var(--primary);
+}
+.share-preview {
+  border-left-color: var(--primary);
+  border-radius: 0 8px 8px 0;
+  background: var(--brand-soft);
+  padding-block: 10px;
+  padding-right: 12px;
+}
+@media (max-width: 900px) {
+  .parent-brief-grid {
+    grid-template-columns: 1fr;
+  }
+  .parent-guidance-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .parent-brief-header {
+    padding-block: 34px 24px;
+  }
+  .parent-brief-header h1 {
+    font-size: 33px;
+    line-height: 1.3;
+  }
+  .parent-brief-page .demo-panel,
+  .fact-sheet {
+    padding: 20px;
+  }
+  .modal {
+    padding: 26px 22px;
+    border-radius: 12px;
+  }
+  .modal h2 {
+    font-size: 25px;
+  }
+  .modal-actions > button,
+  .modal-actions > a {
+    min-height: 46px;
   }
 }
