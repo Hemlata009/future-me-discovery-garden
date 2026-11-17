@@ -71,3 +71,9 @@
 - [x] Audit referred-project entry and add a referral-only discovery action if needed.
 - [x] Add regression tests; run the full suite, changed-file lint, build and browser verification.
 - [x] Re-audit all languages and project themes at desktop and phone widths, including each action's next step.
+
+## Acceptance checklist pass (Nov 17)
+
+- [ ] Audit 14 points at 375px/1280px, list gaps.
+- [ ] Fix homepage, discovery, generation states, personal chips/callout, demo CTA, four cards, parent brief, Q&A, counsellor, invite copy.
+- [ ] Tests, browser walk, lint, build; report pass/fail per point.
