@@ -318,7 +318,12 @@ function Admin() {
                 value={t.niat_outbound}
                 note={`${t.niat_outbound_visitors} unique visitors · ${t.ref_niat_outbound} from referrals`}
               />
-              <Metric Icon={Inbox} label="Inquiry submissions" text="Not collected yet" />
+              <Metric
+                Icon={MousePointer2}
+                label="Generated project views"
+                value={t.views}
+                note="Project view events, not unique visitors"
+              />
             </div>
 
             <div className="chart-grid">
