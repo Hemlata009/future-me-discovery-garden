@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { niatFacts } from "@/lib/niat-facts";
 import { getProjectReferral, recordShare } from "@/lib/sharing";
 import { track } from "@/lib/tracking";
 
@@ -140,14 +141,9 @@ export function ProjectActions({ title, projectId }: { title: string; projectId?
               <>
                 <span className="eyebrow">YOUR NEXT CHAPTER</span>
                 <h2 id="dialog-title">Keep your curiosity moving.</h2>
-                <p>
-                  Explore NIAT and discover opportunities to learn technology and build real-world
-                  projects.
-                </p>
-                <p>
-                  This preview doesn't collect or submit your interest. You can explore NIAT’s
-                  website directly.
-                </p>
+                <p>{niatFacts.find((fact) => fact.id === "upskilling-not-university")?.text}</p>
+                <p>{niatFacts.find((fact) => fact.id === "year-one-topics")?.text}</p>
+                <p>This preview doesn't collect or submit your interest here.</p>
                 <div className="modal-actions">
                   <Button asChild variant="premium">
                     <a
