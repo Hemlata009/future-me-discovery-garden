@@ -203,7 +203,7 @@ async function createCounsellorRequest(request: Request, visitorHash: string): P
         phone: input.phone,
         who: input.who,
         language: input.language,
-        project_title: typeof title === "string" ? title : "FutureMe AI project",
+        project_title: typeof title === "string" ? title : "FutureMe Family project",
         brief_link: briefLink,
         utm_source: attribution?.utm_source ?? null,
         utm_medium: attribution?.utm_medium ?? null,
