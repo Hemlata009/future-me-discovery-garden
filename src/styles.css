@@ -3112,3 +3112,44 @@ h2 {
     min-height: 46px;
   }
 }
+
+/* Parent-facing header and NIAT summary points */
+.parent-header-cta {
+  min-height: 44px;
+  padding-inline: 18px;
+  font-size: 13px;
+}
+.fact-sheet ul.niat-summary-points {
+  margin-top: 16px;
+  gap: 14px;
+}
+.fact-sheet .niat-summary-points li {
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.65;
+  padding-left: 20px;
+}
+.fact-sheet .niat-summary-points li:before {
+  top: 10px;
+  width: 7px;
+  height: 7px;
+}
+.parent-cta-short {
+  display: none;
+}
+@media (max-width: 480px) {
+  .parent-header-cta {
+    padding-inline: 14px;
+  }
+  .parent-cta-full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .parent-cta-short {
+    display: inline;
+  }
+}

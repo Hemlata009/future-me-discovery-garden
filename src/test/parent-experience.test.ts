@@ -251,3 +251,29 @@ describe("qualified referrals and family rates", () => {
     });
   });
 });
+
+describe("NIAT summary points", () => {
+  it("accepts 4–5 separate points for new briefs and rejects 3", async () => {
+    const { parentBriefContentSchema: schema } = await import("@/lib/parent-experience");
+    const points = [
+      "NIAT is an upskilling initiative by NxtWave.",
+      "It is not a university or degree-awarding body.",
+      "The B.Tech degree is awarded by the partner university.",
+      "Ask a NIAT counsellor about anything not listed here.",
+    ];
+    expect(schema.safeParse({ ...validBrief, what_niat_is_and_is_not: points }).success).toBe(true);
+    expect(
+      schema.safeParse({ ...validBrief, what_niat_is_and_is_not: points.slice(0, 3) }).success,
+    ).toBe(false);
+  });
+
+  it("still loads older briefs saved as one string and splits them into points", async () => {
+    const { parentBriefContentSchema: schema, niatSummaryPoints } =
+      await import("@/lib/parent-experience");
+    expect(schema.safeParse(validBrief).success).toBe(true);
+    expect(niatSummaryPoints(validBrief.what_niat_is_and_is_not)).toEqual([
+      "NIAT is an upskilling initiative by NxtWave.",
+      "The B.Tech degree is awarded by the partner university, not NIAT.",
+    ]);
+  });
+});

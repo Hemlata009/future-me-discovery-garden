@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { honestyNote } from "@/lib/family-copy";
 import { niatFacts } from "@/lib/niat-facts";
 import { niatApplicationUrl } from "@/lib/niat-links";
+import { niatSummaryPoints } from "@/lib/parent-experience";
 import type { ParentBrief } from "@/lib/parent-briefs.functions";
 import { referralCodeSchema, track } from "@/lib/tracking";
 
@@ -31,7 +32,7 @@ export function ParentBriefPageView({
 
   if (!brief) {
     return (
-      <SiteShell>
+      <SiteShell variant="parent-fallback">
         <div className="page-width page-intro">
           <p className="eyebrow">PARENT BRIEF</p>
           <h1>Brief not found.</h1>
@@ -54,7 +55,7 @@ export function ParentBriefPageView({
   const content = brief.content;
   const lang = brief.language === "hindi" ? "hi" : brief.language === "telugu" ? "te" : "en";
   return (
-    <SiteShell>
+    <SiteShell variant="parent">
       <div className="page-width parent-brief-page" lang={lang}>
         <header className="parent-brief-header">
           <span className="hero-pill">
@@ -72,7 +73,11 @@ export function ParentBriefPageView({
             <h2 id="niat-box-title">What NIAT is and is not</h2>
             <ShieldCheck className="text-mint" aria-hidden="true" />
           </div>
-          <p>{content.what_niat_is_and_is_not}</p>
+          <ul className="niat-summary-points">
+            {niatSummaryPoints(content.what_niat_is_and_is_not).map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
           <details className="fact-details">
             <summary>See the {niatFacts.length} verified facts</summary>
             <p>

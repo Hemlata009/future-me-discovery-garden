@@ -49,7 +49,7 @@ export const parentBriefModelSchema = z.object({
   what_your_child_explored: z.string(),
   project_summary: z.string(),
   why_this_fits: z.string(),
-  what_niat_is_and_is_not: z.string(),
+  what_niat_is_and_is_not: z.union([z.string(), z.array(z.string())]),
   questions_to_ask_a_counsellor: z.array(z.string()),
 });
 
@@ -58,7 +58,11 @@ export const parentBriefContentSchema = parentBriefModelSchema.extend({
   what_your_child_explored: guardedText(12, 1000),
   project_summary: guardedText(12, 1400),
   why_this_fits: guardedText(12, 1000),
-  what_niat_is_and_is_not: guardedText(24, 1600),
+  // New briefs return 4–5 short points; older saved briefs hold one string.
+  what_niat_is_and_is_not: z.union([
+    guardedText(24, 1600),
+    z.array(guardedText(8, 320)).min(4).max(5),
+  ]),
   questions_to_ask_a_counsellor: z.array(guardedText(4, 240)).min(3).max(5),
 });
 export type ParentBriefContent = z.infer<typeof parentBriefContentSchema>;
@@ -92,7 +96,12 @@ export const parentBriefOutputFormat: JsonSchemaOutputFormat = {
       what_your_child_explored: { type: "string", minLength: 12, maxLength: 1000 },
       project_summary: { type: "string", minLength: 12, maxLength: 1400 },
       why_this_fits: { type: "string", minLength: 12, maxLength: 1000 },
-      what_niat_is_and_is_not: { type: "string", minLength: 24, maxLength: 1600 },
+      what_niat_is_and_is_not: {
+        type: "array",
+        // Anthropic structured output rejects item-count limits; Zod enforces 4–5 points.
+        items: { type: "string", minLength: 8, maxLength: 320 },
+        minItems: 1,
+      },
       questions_to_ask_a_counsellor: {
         type: "array",
         items: { type: "string", minLength: 4, maxLength: 240 },
@@ -131,6 +140,7 @@ export function parentBriefSystemPrompt(language: ParentLanguage): string {
     "State clearly that the B.Tech degree is awarded by the partner university, not NIAT.",
     "NIAT is an upskilling initiative by NxtWave, not a university or degree-awarding body.",
     "If something is not supported by the supplied facts, say to ask a NIAT counsellor.",
+    "For what_niat_is_and_is_not, return four or five short, separate points, each one sentence, drawn only from the NIAT fact sheet.",
     "Return exactly the requested structured fields and three to five useful counsellor questions.",
   ].join("\n");
 }
@@ -160,6 +170,16 @@ export function parentQuestionUserPrompt(
   facts: NiatFact[] = niatFacts,
 ): string {
   return JSON.stringify({ parent_brief: brief, niat_facts: facts, parent_question: question });
+}
+
+/** Display points for the NIAT summary, splitting older single-string briefs into sentences. */
+export function niatSummaryPoints(value: string | string[]): string[] {
+  if (Array.isArray(value)) return value.map((point) => point.trim()).filter(Boolean);
+  const sentences = value
+    .split(/(?<=[.!?।])\s+/u)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+  return sentences.length ? sentences : [value.trim()];
 }
 
 export function parseParentBriefContent(value: unknown): ParentBriefContent {
