@@ -2,17 +2,24 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ArrowUpRight, Check, Copy, MessageCircleQuestion, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { parentBriefUrl } from "@/lib/sharing";
 import { ensureVisitor, track } from "@/lib/tracking";
 
-export function ParentBriefShare({ briefId, headline }: { briefId: string; headline: string }) {
+export function ParentBriefShare({
+  briefId,
+  headline,
+  referralCode,
+}: {
+  briefId: string;
+  headline: string;
+  referralCode?: string | null | undefined;
+}) {
   const [url, setUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   useEffect(() => {
-    const link = new URL("/parent-brief", window.location.origin);
-    link.searchParams.set("id", briefId);
-    setUrl(link.toString());
-  }, [briefId]);
+    setUrl(parentBriefUrl(window.location.origin, briefId, referralCode));
+  }, [briefId, referralCode]);
 
   function shared(channel: "copy" | "whatsapp") {
     void track({ event: "parent_brief_shared", brief_id: briefId, channel });
@@ -30,23 +37,26 @@ export function ParentBriefShare({ briefId, headline }: { briefId: string; headl
   }
   return (
     <div className="parent-share-tools">
-      <Button variant="soft" disabled={!url} onClick={() => void copy()}>
-        {copied ? <Check /> : <Copy />} {copied ? "Brief link copied" : "Copy brief link"}
-      </Button>
-      <Button variant="soft" asChild disabled={!url}>
-        <a
-          href={
-            url
-              ? `https://wa.me/?text=${encodeURIComponent(`${headline} — a FutureMe AI Parent Brief: ${url}`)}`
-              : undefined
-          }
-          target="_blank"
-          rel="noreferrer"
-          onClick={() => shared("whatsapp")}
-        >
-          <Share2 /> WhatsApp <ArrowUpRight />
-        </a>
-      </Button>
+      {url && <code className="share-link">{url}</code>}
+      <div className="parent-share-buttons">
+        <Button variant="soft" disabled={!url} onClick={() => void copy()}>
+          {copied ? <Check /> : <Copy />} {copied ? "Brief link copied" : "Copy brief link"}
+        </Button>
+        <Button variant="soft" asChild disabled={!url}>
+          <a
+            href={
+              url
+                ? `https://wa.me/?text=${encodeURIComponent(`${headline} — a FutureMe AI Parent Brief: ${url}`)}`
+                : undefined
+            }
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => shared("whatsapp")}
+          >
+            <Share2 /> WhatsApp <ArrowUpRight />
+          </a>
+        </Button>
+      </div>
       {copyFailed && <p role="alert">Copy this link: {url}</p>}
     </div>
   );

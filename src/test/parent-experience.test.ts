@@ -30,6 +30,7 @@ import {
   NIAT_SOURCE_URL,
 } from "@/lib/niat-facts";
 import { isQualifiedReferral } from "@/lib/referral-qualification";
+import { parentBriefUrl } from "@/lib/sharing";
 import { trackPayloadSchema } from "@/lib/tracking";
 
 const validBrief = {
@@ -80,6 +81,18 @@ describe("NIAT fact-sheet guard", () => {
 });
 
 describe("parent endpoint schemas", () => {
+  it("builds the public parent link with the existing project referral code", () => {
+    const url = new URL(
+      parentBriefUrl(
+        "https://futureme.example",
+        "2c9ff70e-6678-450d-8c46-26d8078ca361",
+        "dvcFLjPfXGD2",
+      ),
+    );
+    expect(url.pathname).toBe("/parent");
+    expect(url.searchParams.get("id")).toBe("2c9ff70e-6678-450d-8c46-26d8078ca361");
+    expect(url.searchParams.get("ref")).toBe("dvcFLjPfXGD2");
+  });
   it("requires a saved project id and a supported brief language", () => {
     expect(
       parentBriefRequestSchema.safeParse({

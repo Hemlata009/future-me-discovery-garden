@@ -42,3 +42,10 @@
 - [x] Add consented counsellor requests, optional webhook delivery and 180-day retention.
 - [x] Extend tracking, referral qualification and the live family dashboard.
 - [x] Complete housekeeping, regression tests and end-to-end verification.
+
+## Decision journey UI (Nov 17)
+
+- [x] Add the NIAT first-year card and four-action decision card to generated projects.
+- [x] Add the shareable /parent route with grounded Q&A, consent form, referral sharing and noindex metadata.
+- [x] Support discovery campaign links and the pre-application guidance banner.
+- [x] Verify the fresh discovery-to-admin journey, tests, lint and build.

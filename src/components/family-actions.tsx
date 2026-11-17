@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { BookOpen, Check, PhoneCall, Sparkles, X } from "lucide-react";
 
+import { ParentBriefShare } from "@/components/parent-brief-tools";
 import { Button } from "@/components/ui/button";
 import { counsellorRequestSchema, type ParentLanguage } from "@/lib/parent-experience";
+import { getProjectReferral } from "@/lib/sharing";
 import { ensureVisitor, track } from "@/lib/tracking";
 
-function FamilyDialog({
+export function FamilyDialog({
   title,
   onClose,
   children,
@@ -63,11 +65,11 @@ export function ParentBriefLauncher({
   projectId: string;
   initialLanguage: ParentLanguage;
 }) {
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [language, setLanguage] = useState<ParentLanguage>(initialLanguage);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [brief, setBrief] = useState<{ id: string; code: string | null } | null>(null);
 
   async function generate() {
     setPending(true);
@@ -87,7 +89,9 @@ export function ParentBriefLauncher({
       } | null;
       if (!response.ok || !data?.ok || !data.brief_id)
         throw new Error(data?.message || "The parent brief couldn't be created. Please try again.");
-      await navigate({ to: "/parent-brief", search: { id: data.brief_id } });
+      const referral = await getProjectReferral(projectId);
+      setBrief({ id: data.brief_id, code: referral.code });
+      setPending(false);
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -100,45 +104,74 @@ export function ParentBriefLauncher({
 
   return (
     <>
-      <Button variant="premium" onClick={() => setOpen(true)}>
-        <BookOpen /> Make a Parent Brief
+      <Button
+        variant="soft"
+        onClick={() => {
+          setBrief(null);
+          setOpen(true);
+        }}
+      >
+        <BookOpen /> Share with my parents
       </Button>
       {open && (
         <FamilyDialog
-          title="A clear brief for your family."
+          title={brief ? "Your Parent Brief is ready." : "A clear brief for your family."}
           onClose={() => !pending && setOpen(false)}
         >
-          <p>
-            Turn this project into a simple explanation, grounded only in your child's discovery and
-            verified NIAT facts.
-          </p>
-          <label className="family-field">
-            Brief language
-            <select
-              value={language}
-              disabled={pending}
-              onChange={(event) => setLanguage(event.target.value as ParentLanguage)}
-            >
-              {languageOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {error && (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
+          {brief ? (
+            <>
+              <p>Copy the brief link or send it directly on WhatsApp.</p>
+              <ParentBriefShare
+                briefId={brief.id}
+                headline="A FutureMe AI Parent Brief"
+                referralCode={brief.code}
+              />
+              <div className="modal-actions">
+                <Button asChild variant="premium">
+                  <Link to="/parent" search={{ id: brief.id, ref: brief.code ?? undefined }}>
+                    Open Parent Brief
+                  </Link>
+                </Button>
+                <Button variant="ghost" onClick={() => setBrief(null)}>
+                  Choose another language
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p>
+                Turn this project into a simple explanation, grounded only in your child's discovery
+                and verified NIAT facts.
+              </p>
+              <label className="family-field">
+                Brief language
+                <select
+                  value={language}
+                  disabled={pending}
+                  onChange={(event) => setLanguage(event.target.value as ParentLanguage)}
+                >
+                  {languageOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {error && (
+                <p className="form-error" role="alert">
+                  {error}
+                </p>
+              )}
+              <div className="modal-actions">
+                <Button variant="premium" disabled={pending} onClick={() => void generate()}>
+                  <Sparkles /> {pending ? "Writing the brief…" : "Create Parent Brief"}
+                </Button>
+              </div>
+              <p className="family-fine-print">
+                No outcome promises, invented figures, or admission guarantees.
+              </p>
+            </>
           )}
-          <div className="modal-actions">
-            <Button variant="premium" disabled={pending} onClick={() => void generate()}>
-              <Sparkles /> {pending ? "Writing the brief…" : "Create Parent Brief"}
-            </Button>
-          </div>
-          <p className="family-fine-print">
-            No outcome promises, invented figures, or admission guarantees.
-          </p>
         </FamilyDialog>
       )}
     </>
@@ -306,8 +339,9 @@ export function CounsellorDialog({
                 </span>
               </label>
               <p className="family-fine-print">
-                Your details are used to respond to this request, are not added to analytics, and
-                are deleted after 180 days.
+                We collect your name, mobile number, student/parent selection and language only to
+                respond to this request. Authorised counsellors and site administrators can access
+                them. They are not added to analytics and are deleted after 180 days.
               </p>
               {error && (
                 <p className="form-error" role="alert">
@@ -324,30 +358,5 @@ export function CounsellorDialog({
         </FamilyDialog>
       )}
     </>
-  );
-}
-
-export function FamilyPanel({
-  projectId,
-  language,
-}: {
-  projectId: string;
-  language: ParentLanguage;
-}) {
-  return (
-    <section className="family-panel">
-      <div>
-        <p className="eyebrow">EXPLORE BEFORE YOU APPLY</p>
-        <h2>Bring your family into the journey.</h2>
-        <p>
-          Share what you explored, ask grounded questions, and speak to a counsellor only when you
-          choose.
-        </p>
-      </div>
-      <div className="family-panel-actions">
-        <ParentBriefLauncher projectId={projectId} initialLanguage={language} />
-        <CounsellorDialog projectId={projectId} initialLanguage={language} />
-      </div>
-    </section>
   );
 }

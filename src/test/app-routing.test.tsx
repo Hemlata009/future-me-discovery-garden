@@ -14,4 +14,12 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it.each(["/parent?id=2c9ff70e-6678-450d-8c46-26d8078ca361", "/discover?utm_source=instagram"])(
+    "matches the public journey route %s",
+    (path) => {
+      const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+      expect(router.matchRoutes(path.split("?")[0]!).at(-1)?.routeId).not.toBe(rootRouteId);
+    },
+  );
 });

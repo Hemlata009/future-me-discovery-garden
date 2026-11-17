@@ -53,6 +53,15 @@ describe("entry-page visitor tracking", () => {
     });
     expect(trackPayloadSchema.safeParse(body).success).toBe(true);
   });
+  it("counts a direct /parent entry and retains its referral code", () => {
+    expect(entryPageFor("/parent")).toBe("parent");
+    const body = buildTrackBody(
+      { event: "landing_visit", entry_page: "parent" },
+      "?id=2c9ff70e-6678-450d-8c46-26d8078ca361&ref=dvcFLjPfXGD2",
+    );
+    expect(body.ref).toBe("dvcFLjPfXGD2");
+    expect(trackPayloadSchema.safeParse(body).success).toBe(true);
+  });
   it("2. a direct referral landing on /project keeps the ref on the entry visit", () => {
     expect(entryPageFor("/project")).toBe("project");
     const body = buildTrackBody(

@@ -112,7 +112,7 @@ async function createCounsellorRequest(request: Request, visitorHash: string): P
 
   const title = (project.generated_content as { title?: unknown }).title;
   const briefLink = input.parent_brief_id
-    ? `${new URL(request.url).origin}/parent-brief?id=${input.parent_brief_id}`
+    ? `${new URL(request.url).origin}/parent?id=${input.parent_brief_id}`
     : null;
   const webhookUrl = process.env["COUNSELLOR_WEBHOOK_URL"]?.trim();
   const delivered = webhookUrl

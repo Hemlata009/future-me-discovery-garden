@@ -15,11 +15,17 @@ import {
   Rocket,
   Sparkles,
 } from "lucide-react";
+import { z } from "zod";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { pageHead, projects } from "@/lib/projects";
 
 export const Route = createFileRoute("/discover")({
+  validateSearch: z.object({
+    utm_source: z.string().optional(),
+    utm_medium: z.string().optional(),
+    utm_campaign: z.string().optional(),
+  }),
   head: () =>
     pageHead(
       "Discover your future",
@@ -60,6 +66,8 @@ const loadingMessages = [
 
 export default function Discover() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const hasCampaign = Boolean(search.utm_source || search.utm_medium || search.utm_campaign);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(["", "", "", "", ""]);
   const [idea, setIdea] = useState("");
@@ -179,6 +187,11 @@ export default function Discover() {
   return (
     <SiteShell>
       <div className="page-width wizard-width">
+        {hasCampaign && (
+          <p className="discovery-campaign-banner">
+            Not sure yet? Try it in 5 minutes before you apply.
+          </p>
+        )}
         <div className="wizard-topline">
           <span>
             <Sparkles size={14} className="inline mr-2 text-primary" />

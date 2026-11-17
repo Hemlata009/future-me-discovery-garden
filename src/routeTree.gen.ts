@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ParentRouteImport } from './routes/parent'
 import { Route as ParentBriefRouteImport } from './routes/parent-brief'
 import { Route as ProjectRouteImport } from './routes/project'
 import { Route as ProjectsRouteImport } from './routes/projects'
@@ -50,6 +51,11 @@ const DiscoverRoute = DiscoverRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParentRoute = ParentRouteImport.update({
+  id: '/parent',
+  path: '/parent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParentBriefRoute = ParentBriefRouteImport.update({
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/parent': typeof ParentRoute
   '/parent-brief': typeof ParentBriefRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/parent': typeof ParentRoute
   '/parent-brief': typeof ParentBriefRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/discover': typeof DiscoverRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/parent': typeof ParentRoute
   '/parent-brief': typeof ParentBriefRoute
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/discover'
     | '/how-it-works'
+    | '/parent'
     | '/parent-brief'
     | '/project'
     | '/projects'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/discover'
     | '/how-it-works'
+    | '/parent'
     | '/parent-brief'
     | '/project'
     | '/projects'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/discover'
     | '/how-it-works'
+    | '/parent'
     | '/parent-brief'
     | '/project'
     | '/projects'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DiscoverRoute: typeof DiscoverRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  ParentRoute: typeof ParentRoute
   ParentBriefRoute: typeof ParentBriefRoute
   ProjectRoute: typeof ProjectRoute
   ProjectsRoute: typeof ProjectsRoute
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parent': {
+      id: '/parent'
+      path: '/parent'
+      fullPath: '/parent'
+      preLoaderRoute: typeof ParentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parent-brief': {
@@ -407,6 +427,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DiscoverRoute: DiscoverRoute,
   HowItWorksRoute: HowItWorksRoute,
+  ParentRoute: ParentRoute,
   ParentBriefRoute: ParentBriefRoute,
   ProjectRoute: ProjectRoute,
   ProjectsRoute: ProjectsRoute,

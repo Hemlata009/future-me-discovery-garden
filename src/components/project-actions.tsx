@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ensureVisitor, referralUrl, track } from "@/lib/tracking";
+import { getProjectReferral, recordShare } from "@/lib/sharing";
+import { track } from "@/lib/tracking";
 
 export function ProjectActions({ title, projectId }: { title: string; projectId?: string }) {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -23,22 +24,9 @@ export function ProjectActions({ title, projectId }: { title: string; projectId?
   useEffect(() => {
     if (!projectId) return;
     let cancelled = false;
-    void (async () => {
-      let code: string | null = null;
-      try {
-        await ensureVisitor();
-        const res = await fetch("/api/referral-link", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ project_id: projectId }),
-        });
-        const data = (await res.json().catch(() => null)) as { code?: string } | null;
-        code = data?.code ?? null;
-      } catch {
-        code = null;
-      }
-      if (!cancelled) setShareUrl(referralUrl(window.location.origin, projectId, code));
-    })();
+    void getProjectReferral(projectId).then(({ url }) => {
+      if (!cancelled) setShareUrl(url);
+    });
     return () => {
       cancelled = true;
     };
@@ -50,15 +38,12 @@ export function ProjectActions({ title, projectId }: { title: string; projectId?
   }
   const linkReady = shareUrl !== null;
   const link = shareUrl ?? (typeof window !== "undefined" ? window.location.href : "");
-  function recordShare(channel: "copy" | "whatsapp") {
-    if (projectId) void track({ event: "project_shared", project_id: projectId, channel });
-  }
   async function copy() {
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
       setCopyFailed(false);
-      recordShare("copy");
+      recordShare(projectId, "copy");
     } catch {
       setCopyFailed(true);
     }
@@ -135,7 +120,7 @@ export function ProjectActions({ title, projectId }: { title: string; projectId?
                     <Button variant="soft" asChild>
                       <a
                         href={`https://wa.me/?text=${encodeURIComponent(`${title} — my FutureMe AI project: ${link}`)}`}
-                        onClick={() => recordShare("whatsapp")}
+                        onClick={() => recordShare(projectId, "whatsapp")}
                         target="_blank"
                         rel="noreferrer"
                       >

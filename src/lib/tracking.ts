@@ -29,6 +29,7 @@ export const ENTRY_PAGES = [
   "projects",
   "how_it_works",
   "showcase",
+  "parent",
   "parent_brief",
   "other",
 ] as const;
@@ -45,6 +46,7 @@ export function entryPageFor(pathname: string): EntryPage | null {
     "/projects": "projects",
     "/how-it-works": "how_it_works",
     "/showcase": "showcase",
+    "/parent": "parent",
     "/parent-brief": "parent_brief",
   };
   return map[path] ?? "other";
