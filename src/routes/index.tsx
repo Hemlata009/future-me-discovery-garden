@@ -4,7 +4,8 @@ import heroImage from "@/assets/future-world.jpg";
 import { Button } from "@/components/ui/button";
 import { SiteShell, SectionHeading } from "@/components/site-shell";
 import { ProjectCard } from "@/components/project-card";
-import { HowItWorks, Showcase, Referral } from "@/components/landing-sections";
+import { HowItWorks, NextSteps, Showcase, Referral } from "@/components/landing-sections";
+import { homePromise } from "@/lib/journey-copy";
 import { pageHead, projects } from "@/lib/projects";
 
 export const Route = createFileRoute("/")({
@@ -40,6 +41,7 @@ function Index() {
               <br />
               <span className="gradient-text">Your first AI project.</span>
             </p>
+            <p className="hero-promise">{homePromise}</p>
             <p className="hero-subtitle">
               Discover what you could build with technology.
               <br />
@@ -75,6 +77,7 @@ function Index() {
           <Zap size={12} className="text-primary" /> Big futures start with small ideas.
         </span>
       </section>
+      <NextSteps />
       <section className="page-width section-space featured-section">
         <SectionHeading
           eyebrow="BUILT AROUND WHAT YOU LOVE"

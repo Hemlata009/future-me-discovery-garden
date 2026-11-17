@@ -37,7 +37,37 @@ export type GrowthTotals = {
 };
 
 export type Named = { name: string | null; value: number };
+export type ReferralJourney = {
+  referred_visitors: number;
+  started_discovery: number;
+  completed_discovery: number;
+  application_clicks: number;
+};
+
+/** Referred-visitor journey steps; each rate uses the referred-visitor count, "—" when zero. */
+export function referralJourneySteps(j: ReferralJourney) {
+  return [
+    { label: "Referred visitors", value: j.referred_visitors, rate: null as number | null },
+    {
+      label: "Started discovery",
+      value: j.started_discovery,
+      rate: rate(j.started_discovery, j.referred_visitors),
+    },
+    {
+      label: "Completed discovery",
+      value: j.completed_discovery,
+      rate: rate(j.completed_discovery, j.referred_visitors),
+    },
+    {
+      label: "Continued to application",
+      value: j.application_clicks,
+      rate: rate(j.application_clicks, j.referred_visitors),
+    },
+  ];
+}
+
 export type GrowthReport = {
+  referral_journey?: ReferralJourney;
   totals: GrowthTotals;
   shares_by_channel: Record<string, number>;
   failures_by_kind: Record<string, number>;

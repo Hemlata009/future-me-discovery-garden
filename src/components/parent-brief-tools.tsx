@@ -1,8 +1,17 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { ArrowUpRight, Check, Copy, MessageCircleQuestion, Share2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  Copy,
+  MessageCircleQuestion,
+  PhoneCall,
+  Share2,
+  ShieldCheck,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { parentShareMessage } from "@/lib/family-copy";
+import { isCounsellorFallback } from "@/lib/journey-copy";
 import type { ParentLanguage } from "@/lib/parent-experience";
 import { parentBriefUrl } from "@/lib/sharing";
 import { ensureVisitor, track } from "@/lib/tracking";
@@ -64,6 +73,16 @@ export function ParentBriefShare({
   );
 }
 
+function CallButton() {
+  return (
+    <Button asChild variant="soft">
+      <a href="#counsellor-request">
+        <PhoneCall /> Request a call
+      </a>
+    </Button>
+  );
+}
+
 export function ParentQuestionBox({ briefId }: { briefId: string }) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
@@ -117,40 +136,42 @@ export function ParentQuestionBox({ briefId }: { briefId: string }) {
         Answers use only this brief and the verified NIAT fact sheet. Anything outside them is
         referred to a counsellor.
       </p>
-      <form onSubmit={(event) => void ask(event)}>
-        <label className="family-field">
-          Your question
-          <textarea
-            aria-describedby={error ? "parent-question-error" : undefined}
-            className="form-field mt-2"
-            value={question}
-            maxLength={300}
-            minLength={2}
-            disabled={pending || remaining === 0}
-            onChange={(event) => setQuestion(event.target.value)}
-            placeholder="What would you like to understand?"
-            required
-          />
-        </label>
-        <div className="modal-actions">
-          <Button
-            variant="premium"
-            type="submit"
-            disabled={pending || remaining === 0 || question.trim().length < 2}
-          >
-            <MessageCircleQuestion /> {pending ? "Checking the facts…" : "Ask question"}
-          </Button>
+      {remaining === 0 ? (
+        <div className="qa-card qa-limit" role="status">
+          <strong>You've asked all three questions for this brief.</strong>
+          <p>A NIAT counsellor can answer anything else. There is no rush.</p>
+          <CallButton />
         </div>
-      </form>
+      ) : (
+        <form onSubmit={(event) => void ask(event)}>
+          <label className="family-field">
+            Your question
+            <textarea
+              aria-describedby={error ? "parent-question-error" : undefined}
+              className="form-field mt-2"
+              value={question}
+              maxLength={300}
+              minLength={2}
+              disabled={pending || remaining === 0}
+              onChange={(event) => setQuestion(event.target.value)}
+              placeholder="What would you like to understand?"
+              required
+            />
+          </label>
+          <div className="modal-actions">
+            <Button
+              variant="premium"
+              type="submit"
+              disabled={pending || remaining === 0 || question.trim().length < 2}
+            >
+              <MessageCircleQuestion /> {pending ? "Checking the facts…" : "Ask question"}
+            </Button>
+          </div>
+        </form>
+      )}
       {pending && (
         <p className="form-status" role="status">
           Checking the brief and the NIAT facts…
-        </p>
-      )}
-      {remaining === 0 && (
-        <p className="form-status">
-          You've used all three questions for this brief. A NIAT counsellor can answer the rest —
-          request a call below.
         </p>
       )}
       {error && remaining > 0 && (
@@ -158,12 +179,21 @@ export function ParentQuestionBox({ briefId }: { briefId: string }) {
           {error}
         </p>
       )}
-      {answer && (
-        <div className="parent-answer" aria-live="polite">
-          <strong>Answer</strong>
-          <p>{answer}</p>
-        </div>
-      )}
+      {answer &&
+        (isCounsellorFallback(answer) ? (
+          <div className="qa-card qa-fallback" aria-live="polite">
+            <strong>We can't answer that from the verified facts.</strong>
+            <p>Please ask a NIAT counsellor.</p>
+            <CallButton />
+          </div>
+        ) : (
+          <div className="parent-answer qa-card" aria-live="polite">
+            <strong>
+              <ShieldCheck size={13} aria-hidden="true" /> From verified NIAT facts
+            </strong>
+            <p>{answer}</p>
+          </div>
+        ))}
     </section>
   );
 }

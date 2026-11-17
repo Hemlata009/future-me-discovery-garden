@@ -234,6 +234,8 @@ export function CounsellorForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<CounsellorField, string>>>({});
   const [success, setSuccess] = useState<string | null>(null);
+  const [duplicate, setDuplicate] = useState(false);
+  const [limited, setLimited] = useState(false);
   const touched = useRef(false);
 
   function interacted() {
@@ -278,10 +280,13 @@ export function CounsellorForm({
       });
       const data = (await response.json().catch(() => null)) as {
         ok?: boolean;
+        duplicate?: boolean;
         message?: string;
       } | null;
+      setLimited(response.status === 429);
       if (!response.ok || !data?.ok)
         throw new Error(data?.message || "We couldn't save your request. Please try again.");
+      setDuplicate(Boolean(data.duplicate));
       setSuccess(data.message ?? "Your counsellor call request is saved.");
       setName("");
       setPhone("");
@@ -300,8 +305,8 @@ export function CounsellorForm({
       <div className="form-success" role="status">
         <Check className="text-mint" />
         <div>
-          <strong>Your request is saved.</strong>
-          <p>{success}</p>
+          <strong>{duplicate ? "We already have your request." : "Your request is saved."}</strong>
+          <p>{duplicate ? success : "A NIAT counsellor can contact you on the number you gave."}</p>
         </div>
         {onDone && (
           <Button variant="premium" onClick={onDone}>
@@ -414,11 +419,18 @@ export function CounsellorForm({
           {fieldErrors.consent}
         </p>
       )}
-      {error && (
-        <p className="form-error" role="alert">
-          {error}
-        </p>
-      )}
+      {error &&
+        (limited ? (
+          <div className="qa-card qa-limit" role="alert">
+            <strong>Thanks, that's enough requests for now.</strong>
+            <p>{error}</p>
+          </div>
+        ) : (
+          <div className="qa-card qa-fallback" role="alert">
+            <strong>Your request wasn't saved.</strong>
+            <p>{error} Your details are still in the form, so you can try again.</p>
+          </div>
+        ))}
       <div className="modal-actions">
         <Button variant="premium" size="lg" disabled={pending} type="submit">
           <PhoneCall /> {pending ? "Saving request…" : "Request a counsellor call"}

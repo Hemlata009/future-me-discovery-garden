@@ -1,10 +1,53 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Compass, Copy, Gift, Hammer, Send, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Compass,
+  Copy,
+  Gift,
+  Hammer,
+  Send,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { projects } from "@/lib/projects";
 import { ProjectCard } from "./project-card";
 import { SectionHeading } from "./site-shell";
+
+export function NextSteps() {
+  return (
+    <section className="page-width next-steps" aria-labelledby="next-steps-title">
+      <h2 id="next-steps-title" className="eyebrow">
+        WHAT HAPPENS NEXT
+      </h2>
+      <ol className="next-steps-list">
+        {[
+          { Icon: Compass, title: "Discover", text: "Answer five quick questions." },
+          { Icon: Sparkles, title: "Get your project", text: "AI builds one around you." },
+          {
+            Icon: Users,
+            title: "Decide with your family",
+            text: "Share a clear brief, no pressure.",
+          },
+        ].map(({ Icon, title, text }, index) => (
+          <li key={title}>
+            <span className="step-icon">
+              <Icon size={20} />
+            </span>
+            <div>
+              <strong>
+                {index + 1}. {title}
+              </strong>
+              <p>{text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 export function HowItWorks() {
   return (
@@ -39,7 +82,9 @@ export function HowItWorks() {
             <span className="step-icon">
               <Icon size={23} />
             </span>
-            <span className="step-number">{number}</span>
+            <span className="step-number" aria-hidden="true">
+              {number}
+            </span>
             <h3>{title}</h3>
             <p>{text}</p>
           </div>

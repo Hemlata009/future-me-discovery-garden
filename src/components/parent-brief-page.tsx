@@ -61,9 +61,9 @@ export function ParentBriefPageView({
             <BookOpen size={13} /> FUTUREME AI · PARENT BRIEF
           </span>
           <h1>{content.headline}</h1>
-          <p>
-            A family-friendly view of <strong>{brief.project_title}</strong>, written from the
-            student's discovery and verified NIAT facts.
+          <p className="prepared-from">
+            Prepared from <strong>{brief.project_title}</strong> and verified NIAT facts (verified{" "}
+            {niatFacts[0]?.verified_on}).
           </p>
         </header>
 
@@ -126,7 +126,11 @@ export function ParentBriefPageView({
           <ParentQuestionBox briefId={brief.id} />
         </div>
 
-        <section className="demo-panel parent-counsellor" aria-labelledby="counsellor-title">
+        <section
+          id="counsellor-request"
+          className="demo-panel parent-counsellor"
+          aria-labelledby="counsellor-title"
+        >
           <p className="eyebrow">WHEN YOU'RE READY</p>
           <h2 id="counsellor-title">Talk it through with a counsellor</h2>
           <CounsellorForm

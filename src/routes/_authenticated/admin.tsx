@@ -38,6 +38,7 @@ import { getGrowthReport, type ReportFilters } from "@/lib/growth-report.functio
 import {
   deriveMetrics,
   familyFunnel,
+  referralJourneySteps,
   formatRate,
   isEmptyReport,
   presetRange,
@@ -455,6 +456,27 @@ function Admin() {
                 Qualified referrals are distinct first-touch referred visitors who completed a
                 discovery. Link clicks alone do not qualify.
               </p>
+            </section>
+
+            <section className="chart-panel funnel">
+              <h2>Referred visitor journey.</h2>
+              <p>
+                Distinct visitors who opened someone else's referral link, then what they did
+                afterwards. Rates are a share of referred visitors; campaign filters apply, answer
+                filters do not.
+              </p>
+              {report.referral_journey ? (
+                <Table
+                  head={["Step", "Visitors", "Of referred visitors"]}
+                  rows={referralJourneySteps(report.referral_journey).map((step, index) => [
+                    step.label,
+                    step.value,
+                    index === 0 ? "—" : formatRate(step.rate),
+                  ])}
+                />
+              ) : (
+                <p className="mt-4">This view couldn't be loaded just now.</p>
+              )}
             </section>
 
             <section className="chart-panel funnel">

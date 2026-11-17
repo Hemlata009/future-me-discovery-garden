@@ -42,5 +42,21 @@ export async function runGrowthReport(
     console.error(JSON.stringify({ msg: "growth_report_failed", error: error?.message }));
     throw new Error("The report couldn't be loaded. Please try again.");
   }
-  return { access: "ok", report: report as unknown as GrowthReport };
+  const { data: journey, error: journeyError } = await supabaseAdmin.rpc(
+    "referral_journey_report",
+    compact({
+      _from: data.from,
+      _to: data.to,
+      _utm_source: data.utm_source || undefined,
+      _utm_medium: data.utm_medium || undefined,
+      _utm_campaign: data.utm_campaign || undefined,
+    }) as { _from: string; _to: string },
+  );
+  if (journeyError) {
+    console.error(JSON.stringify({ msg: "referral_journey_failed", error: journeyError.message }));
+  }
+  const full = report as unknown as GrowthReport;
+  if (!journeyError && journey)
+    full.referral_journey = journey as unknown as NonNullable<GrowthReport["referral_journey"]>;
+  return { access: "ok", report: full };
 }

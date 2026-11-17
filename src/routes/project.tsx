@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { referralCodeSchema, track } from "@/lib/tracking";
-import { ArrowLeft, RotateCcw, Sparkles } from "lucide-react";
+import { ArrowDown, ArrowLeft, RotateCcw, Sparkles } from "lucide-react";
+import { answerChips } from "@/lib/journey-copy";
 import { z } from "zod";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
@@ -140,7 +141,18 @@ function GeneratedProjectView({
               <Sparkles size={13} />
               YOUR DISCOVERY · AI-GENERATED PROJECT
             </span>
+            <ul className="answer-chips" aria-label="Your answers">
+              {answerChips(generated).map((chip) => (
+                <li key={chip.label}>
+                  <span>{chip.label}</span> {chip.value}
+                </li>
+              ))}
+            </ul>
             <h1>{content.title}</h1>
+            <div className="fit-callout">
+              <strong>Why this fits you</strong>
+              <p>{content.interest_connection}</p>
+            </div>
             <p>{content.tagline}</p>
             <div className="technology-tags">
               {content.technologies.map((tech) => (
@@ -156,6 +168,11 @@ function GeneratedProjectView({
               </p>
             )}
             <div className="project-tools">
+              <Button asChild variant="soft">
+                <a href="#try-demo">
+                  <ArrowDown /> Try the interactive demo
+                </a>
+              </Button>
               <ProjectActions title={content.title} projectId={generated.id} />
               {!search.ref && (
                 <Button asChild variant="soft">
@@ -183,14 +200,13 @@ function GeneratedProjectView({
 
         <div className="result-layout">
           <section>
-            <p className="eyebrow">WHY THIS ONE IS YOURS</p>
-            <h2>Built from your answers.</h2>
-            <p className="section-description">{content.interest_connection}</p>
-            <p className="eyebrow mt-6">THE PROBLEM IT SOLVES</p>
+            <p className="eyebrow">THE PROBLEM IT SOLVES</p>
             <h2>Worth fixing in the real world.</h2>
             <p className="section-description">{content.problem}</p>
           </section>
-          <ProjectDemo key={theme} theme={theme} />
+          <div id="try-demo" className="demo-anchor">
+            <ProjectDemo key={theme} theme={theme} />
+          </div>
         </div>
 
         <section>

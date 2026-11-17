@@ -745,6 +745,16 @@ export type Database = {
         }
         Returns: string
       }
+      referral_journey_report: {
+        Args: {
+          _from: string
+          _to: string
+          _utm_campaign?: string
+          _utm_medium?: string
+          _utm_source?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "student"

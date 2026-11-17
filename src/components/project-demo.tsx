@@ -12,9 +12,10 @@ export function ProjectDemo({ theme }: { theme: string }) {
   return (
     <div className="demo-panel">
       <div className="demo-top">
-        <h2>Give it a little try.</h2>
+        <h2>Try the interactive demo</h2>
         <span className="demo-badge">Interactive sample</span>
       </div>
+      <p className="demo-instruction">Tap to try it. It starts in its ready state below.</p>
       {theme === "farming" ? (
         <>
           <p>Plant-care simulator</p>

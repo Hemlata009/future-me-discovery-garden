@@ -20,6 +20,11 @@ import { z } from "zod";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { pageHead, projects } from "@/lib/projects";
+import {
+  generationErrorTitle,
+  generationErrorType,
+  type GenerationErrorType,
+} from "@/lib/journey-copy";
 
 export const Route = createFileRoute("/discover")({
   validateSearch: z.object({
@@ -76,6 +81,7 @@ export default function Discover() {
   const [pending, setPending] = useState(false);
   const [stage, setStage] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<GenerationErrorType>("unavailable");
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const started = useRef(false);
   const options =
@@ -144,9 +150,11 @@ export default function Discover() {
       const data = (await response.json().catch(() => null)) as {
         ok?: boolean;
         id?: string;
+        code?: string;
         message?: string;
       } | null;
       if (!response.ok || !data?.ok || !data.id) {
+        setErrorType(generationErrorType(data?.code));
         throw new Error(
           data?.message || "We couldn't generate your project just now. Please try again.",
         );
@@ -164,6 +172,8 @@ export default function Discover() {
         },
       });
     } catch (cause) {
+      if (!(cause instanceof Error) || cause.message.startsWith("Failed"))
+        setErrorType("unavailable");
       setError(
         cause instanceof Error
           ? cause.message
@@ -278,8 +288,8 @@ export default function Discover() {
           {error && (
             <div className="demo-panel mt-6" role="alert">
               <div className="demo-top">
-                <h2>That didn't work.</h2>
-                <span className="demo-badge">Try again</span>
+                <h2>{generationErrorTitle[errorType]}</h2>
+                <span className="demo-badge">Your answers are kept</span>
               </div>
               <p>{error}</p>
               <div className="modal-actions">
@@ -321,7 +331,7 @@ export default function Discover() {
             <div className="gen-progress">
               <span style={{ width: `${((stage + 1) / loadingMessages.length) * 100}%` }} />
             </div>
-            <p className="gen-hint">This usually takes a few seconds.</p>
+            <p className="gen-hint">This usually takes under a minute.</p>
           </div>
         </div>
       )}

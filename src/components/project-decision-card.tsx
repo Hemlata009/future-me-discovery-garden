@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { ArrowUpRight, BookOpen, Check, Copy, Send, Share2 } from "lucide-react";
+import { ArrowUpRight, BookOpen, Check, Copy, PhoneCall, Send, Share2, Users } from "lucide-react";
 
 import { CounsellorDialog, FamilyDialog, ParentBriefLauncher } from "@/components/family-actions";
 import { Button } from "@/components/ui/button";
 import { honestyNote, inviteMessage } from "@/lib/family-copy";
 import { niatFacts } from "@/lib/niat-facts";
+import { inviteValueCopy } from "@/lib/journey-copy";
 import { niatApplicationUrl } from "@/lib/niat-links";
 import type { ParentLanguage } from "@/lib/parent-experience";
 import { getProjectReferral, recordShare } from "@/lib/sharing";
@@ -52,7 +53,7 @@ function InviteFriend({ projectId, language }: { projectId: string; language: Pa
       </Button>
       {open && (
         <FamilyDialog title={message} onClose={() => setOpen(false)}>
-          <p>Share your project referral link with a friend on WhatsApp or copy it for them.</p>
+          <p>{inviteValueCopy}</p>
           {shareUrl && <code className="share-link">{shareUrl}</code>}
           <div className="modal-actions">
             <Button variant="premium" disabled={!shareUrl} onClick={() => void copy()}>
@@ -110,22 +111,30 @@ export function ProjectDecisionCard({
           <h2>Explore first. Decide together.</h2>
           <p>Choose what feels useful now—there is no pressure to apply.</p>
         </div>
-        <div className="decision-primary">
-          <ParentBriefLauncher projectId={projectId} initialLanguage={language} />
-          <p className="decision-helper">
-            Creates a one-page brief for your family in English, हिन्दी or తెలుగు.
-          </p>
-        </div>
-        <div className="decision-actions">
-          <div className="decision-action">
+        <ul className="next-step-cards">
+          <li className="next-step-card next-step-recommended">
+            <span className="next-step-badge">Recommended</span>
+            <BookOpen className="text-primary" aria-hidden="true" />
+            <h3>Share with my parents</h3>
+            <p>Creates a one-page brief in English, हिन्दी or తెలుగు. It does not contact NIAT.</p>
+            <ParentBriefLauncher projectId={projectId} initialLanguage={language} />
+          </li>
+          <li className="next-step-card">
+            <Users className="text-primary" aria-hidden="true" />
+            <h3>Invite a friend</h3>
+            <p>{inviteValueCopy}</p>
             <InviteFriend projectId={projectId} language={language} />
-            <p className="decision-helper">Copy or WhatsApp your link to a friend.</p>
-          </div>
-          <div className="decision-action">
+          </li>
+          <li className="next-step-card">
+            <PhoneCall className="text-primary" aria-hidden="true" />
+            <h3>Talk to a counsellor</h3>
+            <p>Request a call back. This is not an application.</p>
             <CounsellorDialog projectId={projectId} initialLanguage={language} />
-            <p className="decision-helper">Request a call back. This is not an application.</p>
-          </div>
-          <div className="decision-action">
+          </li>
+          <li className="next-step-card">
+            <ArrowUpRight className="text-primary" aria-hidden="true" />
+            <h3>Start my application</h3>
+            <p>Opens the NIAT apply page in a new tab. Nothing is submitted from here.</p>
             <Button asChild variant="soft">
               <a
                 href={niatApplicationUrl("decisionCard")}
@@ -143,9 +152,8 @@ export function ProjectDecisionCard({
                 Start my application <ArrowUpRight />
               </a>
             </Button>
-            <p className="decision-helper">Opens the external NIAT page in a new tab.</p>
-          </div>
-        </div>
+          </li>
+        </ul>
         <p className="honesty-note">{honestyNote[language]}</p>
       </div>
     </section>

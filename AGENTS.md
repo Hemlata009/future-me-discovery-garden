@@ -49,3 +49,4 @@ use the editor.
 - Team accounts are invitation-only (sign-up disabled); retention purges run from a scheduled /api/public/cron route.
 - Parent briefs and grounded Q&A use only the saved project and the browser-safe NIAT fact sheet; parent briefs are read by id through a server lookup, and counsellor contact details are never written to analytics.
 - Consented counsellor requests reuse visitor first-touch attribution and the existing event log, retain the database row when webhook delivery fails, and are purged after 180 days by the existing retention function.
+- Referral journey counts come from a separate service-only database function called by the admin report server code, so the main growth report stays unchanged.

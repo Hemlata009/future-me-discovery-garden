@@ -37,6 +37,8 @@
   --secondary: oklch(0.235 0.043 276);
   --muted-foreground: oklch(0.67 0.035 278);
   --border: oklch(0.3 0.042 275);
+  /* Form control outlines: at least 3:1 against cards and the page. */
+  --input-border: oklch(0.56 0.05 276);
   --mint: oklch(0.8 0.14 168);
   --electric: oklch(0.7 0.17 250);
   --destructive: oklch(0.72 0.18 25);
@@ -94,7 +96,7 @@ textarea {
 }
 ::selection {
   background: var(--primary);
-  color: var(--primary-foreground);
+  color: var(--background);
 }
 .page-width {
   width: min(1180px, calc(100% - 96px));
@@ -779,7 +781,7 @@ h2 {
   width: 100%;
   padding: 14px;
   min-height: 100px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   background: var(--card);
   color: var(--foreground);
@@ -1024,9 +1026,9 @@ input[type="range"] {
   display: block;
   width: 100%;
   margin-top: 7px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   background: var(--secondary);
   color: var(--foreground);
@@ -1971,5 +1973,193 @@ input[type="range"] {
     content: attr(data-label);
     color: var(--muted-foreground);
     text-align: left;
+  }
+}
+
+/* Acceptance checklist pass */
+.hero-promise {
+  color: var(--foreground);
+  font-weight: 600;
+  font-size: 17px;
+  margin-top: 14px;
+}
+.next-steps {
+  padding-block: 32px 8px;
+}
+.next-steps-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+.next-steps-list li {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+}
+.next-steps-list .step-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+}
+.next-steps-list p {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.answer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.answer-chips li {
+  border: 1px solid color-mix(in oklab, var(--primary) 40%, var(--border));
+  background: color-mix(in oklab, var(--primary) 10%, var(--card));
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--foreground);
+}
+.answer-chips li span {
+  color: var(--muted-foreground);
+}
+.fit-callout {
+  border-left: 3px solid var(--mint);
+  background: color-mix(in oklab, var(--mint) 8%, var(--card));
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  margin: 16px 0;
+}
+.fit-callout strong {
+  color: var(--mint);
+  font-size: 13px;
+}
+.fit-callout p {
+  color: var(--foreground) !important;
+  margin-top: 4px !important;
+  line-height: 1.7;
+}
+.demo-anchor {
+  scroll-margin-top: 90px;
+}
+.demo-instruction {
+  color: var(--foreground);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.next-step-cards {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+.next-step-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+}
+.next-step-card h3 {
+  font-size: 18px;
+}
+.next-step-card p {
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1.6;
+  flex: 1;
+}
+.next-step-card > button,
+.next-step-card > a {
+  width: 100%;
+  min-height: 48px;
+  height: auto;
+  white-space: normal;
+}
+.next-step-recommended {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, var(--card));
+}
+.next-step-badge {
+  align-self: flex-start;
+  background: var(--primary);
+  color: var(--background);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.prepared-from {
+  max-width: 68ch;
+}
+.parent-brief-page p,
+.parent-brief-page li {
+  line-height: 1.8;
+}
+.parent-brief-page .demo-panel p {
+  max-width: 70ch;
+}
+.qa-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qa-card p {
+  color: var(--muted-foreground);
+}
+.qa-fallback {
+  border-color: color-mix(in oklab, var(--primary) 50%, var(--border));
+  background: color-mix(in oklab, var(--primary) 8%, var(--card));
+}
+.qa-limit {
+  border-color: color-mix(in oklab, var(--mint) 50%, var(--border));
+  background: color-mix(in oklab, var(--mint) 6%, var(--card));
+}
+.qa-card > a {
+  align-self: flex-start;
+  min-height: 44px;
+}
+@media (max-width: 900px) {
+  .next-step-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .next-step-recommended {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 640px) {
+  .next-steps-list,
+  .next-step-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+input[type="checkbox"],
+input[type="range"] {
+  accent-color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  main button,
+  main .text-link,
+  main a[class*="inline-flex"],
+  main [role="radio"] {
+    min-height: 44px;
+  }
+  main .text-link {
+    display: inline-flex;
+    align-items: center;
   }
 }

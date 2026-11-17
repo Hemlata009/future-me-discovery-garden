@@ -74,6 +74,8 @@
 
 ## Acceptance checklist pass (Nov 17)
 
-- [ ] Audit 14 points at 375px/1280px, list gaps.
-- [ ] Fix homepage, discovery, generation states, personal chips/callout, demo CTA, four cards, parent brief, Q&A, counsellor, invite copy.
-- [ ] Tests, browser walk, lint, build; report pass/fail per point.
+- [x] Audit 14 points at 375px/1280px, list gaps.
+- [x] Fix homepage, discovery, generation states, personal chips/callout, demo CTA, four cards, parent brief, Q&A, counsellor, invite copy.
+- [x] Tests, browser walk, lint, build; report pass/fail per point.
+- [x] Check colour contrast across all three project themes; fix failing text/controls.
+- [x] Admin view: referred visitors who start discovery and continue to an application click.
