@@ -4,7 +4,7 @@ import { ArrowUpRight, BookOpen, Check, Copy, PhoneCall, Send, Share2, Users } f
 import { CounsellorDialog, FamilyDialog, ParentBriefLauncher } from "@/components/family-actions";
 import { Button } from "@/components/ui/button";
 import { honestyNote, inviteMessage } from "@/lib/family-copy";
-import { niatFacts } from "@/lib/niat-facts";
+import { NIAT_SOURCE_URL, niatFacts } from "@/lib/niat-facts";
 import { inviteValueCopy } from "@/lib/journey-copy";
 import { niatApplicationUrl } from "@/lib/niat-links";
 import type { ParentLanguage } from "@/lib/parent-experience";
@@ -103,6 +103,17 @@ export function ProjectDecisionCard({
         </div>
         {yearOne && <p>{yearOne.text}</p>}
         {degree && <p className="niat-degree-note">{degree.text}</p>}
+        <a
+          className="text-link"
+          href={NIAT_SOURCE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() =>
+            void track({ event: "cta_clicked", cta: "visit_niat", project_id: projectId })
+          }
+        >
+          Read more on the official NIAT website <ArrowUpRight size={14} />
+        </a>
       </div>
 
       <div className="family-panel decision-card">

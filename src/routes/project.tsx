@@ -168,19 +168,16 @@ function GeneratedProjectView({
               </p>
             )}
             <div className="project-tools">
-              <Button asChild variant="soft">
+              <Button asChild variant="premium">
                 <a href="#try-demo">
                   <ArrowDown /> Try the interactive demo
                 </a>
               </Button>
-              <ProjectActions title={content.title} projectId={generated.id} />
               {!search.ref && (
-                <Button asChild variant="soft">
-                  <Link to="/discover">
-                    <RotateCcw />
-                    Generate Another
-                  </Link>
-                </Button>
+                <Link to="/discover" className="text-link">
+                  <RotateCcw size={14} />
+                  Generate another project
+                </Link>
               )}
             </div>
           </div>
