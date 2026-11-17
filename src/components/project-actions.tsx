@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Check, Copy, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { niatFacts } from "@/lib/niat-facts";
+import { NIAT_APPLICATION } from "@/lib/niat-links";
 import { getProjectReferral, recordShare } from "@/lib/sharing";
 import { track } from "@/lib/tracking";
 
@@ -163,7 +164,7 @@ export function ProjectActions({ title, projectId }: { title: string; projectId?
                   </Button>
                   <Button asChild variant="soft">
                     <a
-                      href="https://apply.niatindia.com/"
+                      href={NIAT_APPLICATION.baseUrl}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() =>

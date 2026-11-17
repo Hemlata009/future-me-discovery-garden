@@ -63,3 +63,10 @@
 - [x] Honesty footer, dismissible entry banner, decision card hierarchy.
 - [x] Parent brief creation states, /parent layout, scripts, states and a11y.
 - [x] Admin funnel mobile overflow; verify journey, tests, lint, build.
+
+## Shared-link journey fixes (Nov 17)
+
+- [x] Add shared UTM-tagged NIAT application links on the project and parent pages.
+- [x] Localize friend-invite dialog and share messages in English, Hindi and Telugu.
+- [x] Audit referred-project entry and add a referral-only discovery action if needed.
+- [x] Add regression tests; run the full suite, changed-file lint, build and browser verification.

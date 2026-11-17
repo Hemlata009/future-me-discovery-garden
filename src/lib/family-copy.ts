@@ -10,6 +10,12 @@ export const honestyNote: Record<ParentLanguage, string> = {
     "విద్యార్థి రూపొందించిన ఒక కాన్సెప్ట్. ఇది అధికారిక NIAT పేజీ కాదు. అన్ని వివరాలను NIAT కౌన్సెలర్‌తో నిర్ధారించుకోండి.",
 };
 
+export const inviteMessage: Record<ParentLanguage, string> = {
+  english: "Explore tech with me - takes 5 minutes",
+  hindi: "मेरे साथ टेक एक्सप्लोर करो - सिर्फ़ 5 मिनट",
+  telugu: "నాతో కలిసి టెక్‌ని అన్వేషించు - కేవలం 5 నిమిషాలు",
+};
+
 const shareIntro: Record<ParentLanguage, string> = {
   english: "I explored what I could build in tech. Please read this one-page brief:",
   hindi: "मैंने देखा कि मैं टेक में क्या बना सकता/सकती हूँ। कृपया यह एक पेज का ब्रीफ़ पढ़ें:",

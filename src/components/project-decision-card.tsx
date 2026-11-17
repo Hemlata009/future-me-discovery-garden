@@ -3,15 +3,15 @@ import { ArrowUpRight, BookOpen, Check, Copy, Send, Share2 } from "lucide-react"
 
 import { CounsellorDialog, FamilyDialog, ParentBriefLauncher } from "@/components/family-actions";
 import { Button } from "@/components/ui/button";
-import { honestyNote } from "@/lib/family-copy";
+import { honestyNote, inviteMessage } from "@/lib/family-copy";
 import { niatFacts } from "@/lib/niat-facts";
+import { niatApplicationUrl } from "@/lib/niat-links";
 import type { ParentLanguage } from "@/lib/parent-experience";
 import { getProjectReferral, recordShare } from "@/lib/sharing";
 import { track } from "@/lib/tracking";
 
-const INVITE_MESSAGE = "Explore tech with me - takes 5 minutes";
-
-function InviteFriend({ projectId }: { projectId: string }) {
+function InviteFriend({ projectId, language }: { projectId: string; language: ParentLanguage }) {
+  const message = inviteMessage[language];
   const [open, setOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -30,7 +30,7 @@ function InviteFriend({ projectId }: { projectId: string }) {
   async function copy() {
     if (!shareUrl) return;
     try {
-      await navigator.clipboard.writeText(`${INVITE_MESSAGE} ${shareUrl}`);
+      await navigator.clipboard.writeText(`${message} ${shareUrl}`);
       setCopied(true);
       setCopyFailed(false);
       recordShare(projectId, "copy");
@@ -51,7 +51,7 @@ function InviteFriend({ projectId }: { projectId: string }) {
         <Send /> Invite a friend
       </Button>
       {open && (
-        <FamilyDialog title={INVITE_MESSAGE} onClose={() => setOpen(false)}>
+        <FamilyDialog title={message} onClose={() => setOpen(false)}>
           <p>Share your project referral link with a friend on WhatsApp or copy it for them.</p>
           {shareUrl && <code className="share-link">{shareUrl}</code>}
           <div className="modal-actions">
@@ -62,7 +62,7 @@ function InviteFriend({ projectId }: { projectId: string }) {
               <a
                 href={
                   shareUrl
-                    ? `https://wa.me/?text=${encodeURIComponent(`${INVITE_MESSAGE} ${shareUrl}`)}`
+                    ? `https://wa.me/?text=${encodeURIComponent(`${message} ${shareUrl}`)}`
                     : undefined
                 }
                 target="_blank"
@@ -118,7 +118,7 @@ export function ProjectDecisionCard({
         </div>
         <div className="decision-actions">
           <div className="decision-action">
-            <InviteFriend projectId={projectId} />
+            <InviteFriend projectId={projectId} language={language} />
             <p className="decision-helper">Copy or WhatsApp your link to a friend.</p>
           </div>
           <div className="decision-action">
@@ -128,7 +128,7 @@ export function ProjectDecisionCard({
           <div className="decision-action">
             <Button asChild variant="soft">
               <a
-                href="https://apply.niatindia.com/"
+                href={niatApplicationUrl("decisionCard")}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Start my application (opens the external NIAT page in a new tab)"

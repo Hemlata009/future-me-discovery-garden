@@ -8,6 +8,7 @@ import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { honestyNote } from "@/lib/family-copy";
 import { niatFacts } from "@/lib/niat-facts";
+import { niatApplicationUrl } from "@/lib/niat-links";
 import type { ParentBrief } from "@/lib/parent-briefs.functions";
 import { referralCodeSchema, track } from "@/lib/tracking";
 
@@ -147,7 +148,7 @@ export function ParentBriefPageView({
           <div>
             <Button asChild variant="soft">
               <a
-                href="https://apply.niatindia.com/"
+                href={niatApplicationUrl("parentPage")}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Start application (opens the external NIAT page in a new tab)"

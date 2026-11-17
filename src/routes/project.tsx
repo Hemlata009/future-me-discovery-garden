@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectDemo } from "@/components/project-demo";
 import { ProjectActions } from "@/components/project-actions";
 import { ProjectDecisionCard } from "@/components/project-decision-card";
+import { ReferredDiscoveryAction } from "@/components/referred-discovery-action";
 import { getProject, pageHead } from "@/lib/projects";
 import { getGeneratedProject, type GeneratedProject } from "@/lib/generated-projects.functions";
 import {
@@ -66,11 +67,17 @@ function ProjectPage() {
       await track({ event: "project_viewed", project_id: generated.id });
     })();
   }, [generated, search.ref]);
-  if (search.id) return <GeneratedProjectView generated={generated} />;
+  if (search.id) return <GeneratedProjectView generated={generated} search={search} />;
   return <SampleProjectView search={search} />;
 }
 
-function GeneratedProjectView({ generated }: { generated: GeneratedProject | null }) {
+function GeneratedProjectView({
+  generated,
+  search,
+}: {
+  generated: GeneratedProject | null;
+  search: ReturnType<typeof Route.useSearch>;
+}) {
   if (!generated) {
     return (
       <SiteShell>
@@ -139,13 +146,21 @@ function GeneratedProjectView({ generated }: { generated: GeneratedProject | nul
               </p>
             )}
             <div className="project-tools">
+              <ReferredDiscoveryAction
+                referralCode={search.ref}
+                utmSource={search.utm_source}
+                utmMedium={search.utm_medium}
+                utmCampaign={search.utm_campaign}
+              />
               <ProjectActions title={content.title} projectId={generated.id} />
-              <Button asChild variant="soft">
-                <Link to="/discover">
-                  <RotateCcw />
-                  Generate Another
-                </Link>
-              </Button>
+              {!search.ref && (
+                <Button asChild variant="soft">
+                  <Link to="/discover">
+                    <RotateCcw />
+                    Generate Another
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
           <img

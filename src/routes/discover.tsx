@@ -23,6 +23,7 @@ import { pageHead, projects } from "@/lib/projects";
 
 export const Route = createFileRoute("/discover")({
   validateSearch: z.object({
+    ref: z.string().optional(),
     utm_source: z.string().optional(),
     utm_medium: z.string().optional(),
     utm_campaign: z.string().optional(),
