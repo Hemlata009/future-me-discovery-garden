@@ -2,16 +2,18 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ArrowUpRight, Check, Copy, MessageCircleQuestion, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { parentShareMessage } from "@/lib/family-copy";
+import type { ParentLanguage } from "@/lib/parent-experience";
 import { parentBriefUrl } from "@/lib/sharing";
 import { ensureVisitor, track } from "@/lib/tracking";
 
 export function ParentBriefShare({
   briefId,
-  headline,
+  language,
   referralCode,
 }: {
   briefId: string;
-  headline: string;
+  language: ParentLanguage;
   referralCode?: string | null | undefined;
 }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -46,11 +48,11 @@ export function ParentBriefShare({
           <a
             href={
               url
-                ? `https://wa.me/?text=${encodeURIComponent(`${headline} — a FutureMe AI Parent Brief: ${url}`)}`
+                ? `https://wa.me/?text=${encodeURIComponent(parentShareMessage(language, url))}`
                 : undefined
             }
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             onClick={() => shared("whatsapp")}
           >
             <Share2 /> WhatsApp <ArrowUpRight />
@@ -119,6 +121,7 @@ export function ParentQuestionBox({ briefId }: { briefId: string }) {
         <label className="family-field">
           Your question
           <textarea
+            aria-describedby={error ? "parent-question-error" : undefined}
             className="form-field mt-2"
             value={question}
             maxLength={300}
@@ -139,8 +142,19 @@ export function ParentQuestionBox({ briefId }: { briefId: string }) {
           </Button>
         </div>
       </form>
-      {error && (
-        <p className="form-error" role="alert">
+      {pending && (
+        <p className="form-status" role="status">
+          Checking the brief and the NIAT facts…
+        </p>
+      )}
+      {remaining === 0 && (
+        <p className="form-status">
+          You've used all three questions for this brief. A NIAT counsellor can answer the rest —
+          request a call below.
+        </p>
+      )}
+      {error && remaining > 0 && (
+        <p id="parent-question-error" className="form-error" role="alert">
           {error}
         </p>
       )}

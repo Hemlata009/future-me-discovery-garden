@@ -57,3 +57,9 @@
 - [x] Document server-only counsellor settings and confirm environment ignore rules/template.
 - [ ] Remove `.env` from git tracking (blocked: the sandbox refuses untracking it).
 - [x] Add regression tests; run the full suite, changed-file lint, build, and live verification.
+
+## Explore-before-you-apply UI polish (Nov 17)
+
+- [x] Honesty footer, dismissible entry banner, decision card hierarchy.
+- [x] Parent brief creation states, /parent layout, scripts, states and a11y.
+- [x] Admin funnel mobile overflow; verify journey, tests, lint, build.

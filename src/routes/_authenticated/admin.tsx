@@ -618,7 +618,7 @@ function Distribution({
 function Table({ head, rows }: { head: string[]; rows: (string | number)[][] }) {
   return (
     <div className="overflow-x-auto mt-4">
-      <table className="w-full text-sm">
+      <table className="admin-table w-full text-sm">
         <thead>
           <tr>
             {head.map((h) => (
@@ -632,7 +632,7 @@ function Table({ head, rows }: { head: string[]; rows: (string | number)[][] }) 
           {rows.map((r, i) => (
             <tr key={i} className="border-t border-border">
               {r.map((c, j) => (
-                <td key={j} className="py-2 pr-4">
+                <td key={j} className="py-2 pr-4" data-label={head[j]}>
                   {typeof c === "number" ? c.toLocaleString("en-US") : c}
                 </td>
               ))}

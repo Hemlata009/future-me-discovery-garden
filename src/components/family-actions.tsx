@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Check, PhoneCall, Sparkles, X } from "lucide-react";
+import { BookOpen, Check, PhoneCall, RotateCcw, Sparkles, X } from "lucide-react";
 
 import { ParentBriefShare } from "@/components/parent-brief-tools";
 import { Button } from "@/components/ui/button";
+import { parentLanguageOptions, parentShareMessage } from "@/lib/family-copy";
 import { counsellorRequestSchema, type ParentLanguage } from "@/lib/parent-experience";
+import { parentBriefUrl } from "@/lib/sharing";
 import { getProjectReferral } from "@/lib/sharing";
 import { ensureVisitor, track } from "@/lib/tracking";
 
@@ -58,6 +60,36 @@ const languageOptions = [
   { value: "telugu", label: "తెలుగు · Telugu" },
 ] as const;
 
+function LanguageSegments({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: ParentLanguage;
+  onChange: (language: ParentLanguage) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="language-segments" role="radiogroup" aria-label="Brief language">
+      {parentLanguageOptions.map((option) => (
+        <Button
+          key={option.value}
+          type="button"
+          variant="ghost"
+          role="radio"
+          aria-checked={value === option.value}
+          lang={option.value === "hindi" ? "hi" : option.value === "telugu" ? "te" : "en"}
+          className={value === option.value ? "segment segment-active" : "segment"}
+          disabled={disabled}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
 export function ParentBriefLauncher({
   projectId,
   initialLanguage,
@@ -105,9 +137,10 @@ export function ParentBriefLauncher({
   return (
     <>
       <Button
-        variant="soft"
+        variant="premium"
         onClick={() => {
           setBrief(null);
+          setError(null);
           setOpen(true);
         }}
       >
@@ -120,12 +153,16 @@ export function ParentBriefLauncher({
         >
           {brief ? (
             <>
-              <p>Copy the brief link or send it directly on WhatsApp.</p>
-              <ParentBriefShare
-                briefId={brief.id}
-                headline="A FutureMe AI Parent Brief"
-                referralCode={brief.code}
-              />
+              <p>Your parents will receive this message:</p>
+              <p className="share-preview">
+                “
+                {parentShareMessage(
+                  language,
+                  parentBriefUrl(window.location.origin, brief.id, brief.code),
+                )}
+                ”
+              </p>
+              <ParentBriefShare briefId={brief.id} language={language} referralCode={brief.code} />
               <div className="modal-actions">
                 <Button asChild variant="premium">
                   <Link to="/parent" search={{ id: brief.id, ref: brief.code ?? undefined }}>
@@ -143,20 +180,13 @@ export function ParentBriefLauncher({
                 Turn this project into a simple explanation, grounded only in your child's discovery
                 and verified NIAT facts.
               </p>
-              <label className="family-field">
-                Brief language
-                <select
-                  value={language}
-                  disabled={pending}
-                  onChange={(event) => setLanguage(event.target.value as ParentLanguage)}
-                >
-                  {languageOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <p className="family-field-label">Brief language</p>
+              <LanguageSegments value={language} onChange={setLanguage} disabled={pending} />
+              {pending && (
+                <p className="form-status" role="status">
+                  Writing your brief… this usually takes a few seconds.
+                </p>
+              )}
               {error && (
                 <p className="form-error" role="alert">
                   {error}
@@ -164,7 +194,8 @@ export function ParentBriefLauncher({
               )}
               <div className="modal-actions">
                 <Button variant="premium" disabled={pending} onClick={() => void generate()}>
-                  <Sparkles /> {pending ? "Writing the brief…" : "Create Parent Brief"}
+                  {error ? <RotateCcw /> : <Sparkles />}{" "}
+                  {pending ? "Writing your brief…" : error ? "Try again" : "Create Parent Brief"}
                 </Button>
               </div>
               <p className="family-fine-print">
@@ -178,16 +209,22 @@ export function ParentBriefLauncher({
   );
 }
 
-export function CounsellorDialog({
+type CounsellorField = "contact_name" | "phone" | "consent";
+
+export function CounsellorForm({
   projectId,
   briefId,
   initialLanguage,
+  onFirstInteraction,
+  onDone,
 }: {
   projectId: string;
   briefId?: string;
   initialLanguage: ParentLanguage;
+  onFirstInteraction?: () => void;
+  onDone?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const uid = useId();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [who, setWho] = useState<"student" | "parent">("parent");
@@ -195,16 +232,14 @@ export function CounsellorDialog({
   const [consent, setConsent] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<CounsellorField, string>>>({});
   const [success, setSuccess] = useState<string | null>(null);
+  const touched = useRef(false);
 
-  function showForm() {
-    setOpen(true);
-    void track({
-      event: "cta_clicked",
-      cta: "talk_to_counsellor",
-      project_id: projectId,
-      ...(briefId ? { brief_id: briefId } : {}),
-    });
+  function interacted() {
+    if (touched.current) return;
+    touched.current = true;
+    onFirstInteraction?.();
   }
 
   async function submit(event: FormEvent) {
@@ -221,9 +256,17 @@ export function CounsellorDialog({
     };
     const valid = counsellorRequestSchema.safeParse(candidate);
     if (!valid.success) {
-      setError(valid.error.issues[0]?.message ?? "Please check the form.");
+      const next: Partial<Record<CounsellorField, string>> = {};
+      for (const issue of valid.error.issues) {
+        const key = issue.path[0];
+        if (key === "contact_name") next.contact_name ??= "Please enter your name (2–80 letters).";
+        else if (key === "phone" || key === "consent") next[key] ??= issue.message;
+      }
+      setFieldErrors(next);
+      if (!Object.keys(next).length) setError("Please check the form.");
       return;
     }
+    setFieldErrors({});
     setPending(true);
     try {
       await ensureVisitor();
@@ -252,109 +295,173 @@ export function CounsellorDialog({
     }
   }
 
+  if (success) {
+    return (
+      <div className="form-success" role="status">
+        <Check className="text-mint" />
+        <div>
+          <strong>Your request is saved.</strong>
+          <p>{success}</p>
+        </div>
+        {onDone && (
+          <Button variant="premium" onClick={onDone}>
+            Done
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  const ids = {
+    name: `${uid}-name`,
+    phone: `${uid}-phone`,
+    nameError: `${uid}-name-error`,
+    phoneError: `${uid}-phone-error`,
+    consentError: `${uid}-consent-error`,
+    privacy: `${uid}-privacy`,
+  };
+  return (
+    <form onSubmit={(event) => void submit(event)} onFocus={interacted} noValidate>
+      <p>
+        Ask for a call about NIAT, the partner university, or your child's next step. This is not an
+        application.
+      </p>
+      <div className="family-form-grid">
+        <div className="family-field">
+          <label htmlFor={ids.name}>Your name</label>
+          <input
+            id={ids.name}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            autoComplete="name"
+            maxLength={80}
+            required
+            aria-invalid={Boolean(fieldErrors.contact_name)}
+            aria-describedby={fieldErrors.contact_name ? ids.nameError : undefined}
+          />
+          {fieldErrors.contact_name && (
+            <p id={ids.nameError} className="field-error">
+              {fieldErrors.contact_name}
+            </p>
+          )}
+        </div>
+        <div className="family-field">
+          <label htmlFor={ids.phone}>Indian mobile number</label>
+          <input
+            id={ids.phone}
+            value={phone}
+            onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))}
+            autoComplete="tel"
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="10-digit mobile"
+            required
+            aria-invalid={Boolean(fieldErrors.phone)}
+            aria-describedby={fieldErrors.phone ? ids.phoneError : undefined}
+          />
+          {fieldErrors.phone && (
+            <p id={ids.phoneError} className="field-error">
+              {fieldErrors.phone}
+            </p>
+          )}
+        </div>
+        <label className="family-field">
+          I am a
+          <select
+            value={who}
+            onChange={(event) => setWho(event.target.value as "student" | "parent")}
+          >
+            <option value="parent">Parent or guardian</option>
+            <option value="student">Student</option>
+          </select>
+        </label>
+        <label className="family-field">
+          Preferred language
+          <select
+            value={language}
+            onChange={(event) => setLanguage(event.target.value as ParentLanguage)}
+          >
+            {languageOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <label className="consent-field">
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(event) => setConsent(event.target.checked)}
+          aria-invalid={Boolean(fieldErrors.consent)}
+          aria-describedby={
+            fieldErrors.consent ? `${ids.consentError} ${ids.privacy}` : ids.privacy
+          }
+        />
+        <span>
+          I consent to being contacted by a NIAT counsellor about this request. I understand this is
+          not an application or admission.
+        </span>
+      </label>
+      <p id={ids.privacy} className="privacy-line">
+        We collect your name, mobile number, student/parent choice and language only to call you
+        back about this request. Only authorised counsellors and site administrators see them; they
+        are never added to analytics and are deleted after 180 days.
+      </p>
+      {fieldErrors.consent && (
+        <p id={ids.consentError} className="field-error">
+          {fieldErrors.consent}
+        </p>
+      )}
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="modal-actions">
+        <Button variant="premium" size="lg" disabled={pending} type="submit">
+          <PhoneCall /> {pending ? "Saving request…" : "Request a counsellor call"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export function CounsellorDialog({
+  projectId,
+  briefId,
+  initialLanguage,
+}: {
+  projectId: string;
+  briefId?: string;
+  initialLanguage: ParentLanguage;
+}) {
+  const [open, setOpen] = useState(false);
+
+  function showForm() {
+    setOpen(true);
+    void track({
+      event: "cta_clicked",
+      cta: "talk_to_counsellor",
+      project_id: projectId,
+      ...(briefId ? { brief_id: briefId } : {}),
+    });
+  }
+
   return (
     <>
       <Button variant="soft" onClick={showForm}>
         <PhoneCall /> Talk to a counsellor
       </Button>
       {open && (
-        <FamilyDialog
-          title={success ? "Your request is saved." : "Talk it through with a counsellor."}
-          onClose={() => !pending && setOpen(false)}
-        >
-          {success ? (
-            <>
-              <Check className="text-mint" />
-              <p role="status">{success}</p>
-              <div className="modal-actions">
-                <Button variant="premium" onClick={() => setOpen(false)}>
-                  Done
-                </Button>
-              </div>
-            </>
-          ) : (
-            <form onSubmit={(event) => void submit(event)}>
-              <p>
-                Ask for a call about NIAT, the partner university, or your child's next step. This
-                is not an application.
-              </p>
-              <div className="family-form-grid">
-                <label className="family-field">
-                  Your name
-                  <input
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    autoComplete="name"
-                    maxLength={80}
-                    required
-                  />
-                </label>
-                <label className="family-field">
-                  Indian mobile number
-                  <input
-                    value={phone}
-                    onChange={(event) =>
-                      setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))
-                    }
-                    autoComplete="tel"
-                    inputMode="numeric"
-                    maxLength={10}
-                    placeholder="10-digit mobile"
-                    required
-                  />
-                </label>
-                <label className="family-field">
-                  I am a
-                  <select
-                    value={who}
-                    onChange={(event) => setWho(event.target.value as "student" | "parent")}
-                  >
-                    <option value="parent">Parent or guardian</option>
-                    <option value="student">Student</option>
-                  </select>
-                </label>
-                <label className="family-field">
-                  Preferred language
-                  <select
-                    value={language}
-                    onChange={(event) => setLanguage(event.target.value as ParentLanguage)}
-                  >
-                    {languageOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="consent-field">
-                <input
-                  type="checkbox"
-                  checked={consent}
-                  onChange={(event) => setConsent(event.target.checked)}
-                />
-                <span>
-                  I consent to being contacted by a NIAT counsellor about this request. I understand
-                  this is not an application or admission.
-                </span>
-              </label>
-              <p className="family-fine-print">
-                We collect your name, mobile number, student/parent selection and language only to
-                respond to this request. Authorised counsellors and site administrators can access
-                them. They are not added to analytics and are deleted after 180 days.
-              </p>
-              {error && (
-                <p className="form-error" role="alert">
-                  {error}
-                </p>
-              )}
-              <div className="modal-actions">
-                <Button variant="premium" disabled={pending || !consent} type="submit">
-                  <PhoneCall /> {pending ? "Saving request…" : "Request a counsellor call"}
-                </Button>
-              </div>
-            </form>
-          )}
+        <FamilyDialog title="Talk it through with a counsellor." onClose={() => setOpen(false)}>
+          <CounsellorForm
+            projectId={projectId}
+            {...(briefId ? { briefId } : {})}
+            initialLanguage={initialLanguage}
+            onDone={() => setOpen(false)}
+          />
         </FamilyDialog>
       )}
     </>

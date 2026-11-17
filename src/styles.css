@@ -3,8 +3,8 @@
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 @theme inline {
-  --font-sans: "DM Sans", sans-serif;
-  --font-display: "Outfit", sans-serif;
+  --font-sans: "DM Sans", "Noto Sans Devanagari", "Noto Sans Telugu", sans-serif;
+  --font-display: "Outfit", "Noto Sans Devanagari", "Noto Sans Telugu", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -1229,15 +1229,174 @@ input[type="range"] {
   width: 100%;
 }
 .discovery-campaign-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   border: 1px solid color-mix(in oklab, var(--primary) 30%, var(--border));
   border-radius: 6px;
   background: color-mix(in oklab, var(--primary) 8%, var(--card));
   color: var(--foreground);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.5;
   margin-bottom: 24px;
-  padding: 12px 16px;
+  padding: 6px 6px 6px 16px;
+}
+.discovery-campaign-banner p {
+  margin: 0;
+}
+.decision-primary {
+  margin-top: 24px;
+  max-width: 420px;
+}
+.decision-primary > button {
+  width: 100%;
+  min-height: 52px;
+}
+.decision-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+.decision-action {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.decision-action > a,
+.decision-action > button {
+  width: 100%;
+  min-height: 48px;
+}
+.decision-helper {
+  color: var(--muted-foreground);
+  font-size: 12px !important;
+  line-height: 1.5;
+  margin-top: 6px !important;
+}
+.honesty-note {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.7;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.parent-brief-page > .honesty-note {
+  margin: 32px 0 48px;
   text-align: center;
+}
+.share-preview {
+  border-left: 2px solid var(--primary);
+  padding-left: 12px;
+  color: var(--foreground) !important;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.language-segments {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+.language-segments .segment {
+  min-height: 46px;
+  border: 1px solid var(--border);
+  font-size: 15px;
+}
+.language-segments .segment-active {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 16%, transparent);
+  color: var(--foreground);
+}
+.family-field-label {
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 18px;
+}
+.form-status {
+  color: var(--muted-foreground) !important;
+  font-size: 13px !important;
+  margin-top: 12px !important;
+}
+.field-error {
+  color: var(--destructive);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.family-field input[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.family-field input,
+.family-field select {
+  min-height: 48px !important;
+  font-size: 16px;
+}
+.consent-field input {
+  width: 22px !important;
+  height: 22px !important;
+}
+.privacy-line {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.7;
+  margin-top: 10px;
+}
+.form-success {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.form-success p {
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+.fact-details summary {
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 13px;
+  margin-top: 12px;
+}
+.parent-counsellor {
+  margin-top: 24px;
+}
+.parent-closing {
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+.parent-closing > div > a {
+  min-height: 48px;
+}
+.parent-brief-page :focus-visible,
+.decision-card :focus-visible,
+.family-modal :focus-visible,
+.discovery-campaign-banner :focus-visible {
+  outline: 2px solid var(--electric);
+  outline-offset: 2px;
+}
+[lang="hi"],
+[lang="te"] {
+  line-height: 1.85;
+}
+[lang="hi"] h1,
+[lang="hi"] h2,
+[lang="te"] h1,
+[lang="te"] h2 {
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .decision-actions {
+    grid-template-columns: 1fr !important;
+  }
+  .decision-primary {
+    max-width: none;
+  }
 }
 .admin-layout {
   min-height: 900px;
@@ -1787,5 +1946,30 @@ input[type="range"] {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+.decision-actions > .decision-action {
+  padding: 0;
+  min-height: 0;
+}
+@media (max-width: 640px) {
+  .admin-table thead {
+    display: none;
+  }
+  .admin-table tr {
+    display: block;
+    padding: 8px 0;
+  }
+  .admin-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 4px 0 !important;
+    text-align: right;
+  }
+  .admin-table td::before {
+    content: attr(data-label);
+    color: var(--muted-foreground);
+    text-align: left;
   }
 }

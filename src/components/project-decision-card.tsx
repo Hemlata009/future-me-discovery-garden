@@ -3,6 +3,7 @@ import { ArrowUpRight, BookOpen, Check, Copy, Send, Share2 } from "lucide-react"
 
 import { CounsellorDialog, FamilyDialog, ParentBriefLauncher } from "@/components/family-actions";
 import { Button } from "@/components/ui/button";
+import { honestyNote } from "@/lib/family-copy";
 import { niatFacts } from "@/lib/niat-facts";
 import type { ParentLanguage } from "@/lib/parent-experience";
 import { getProjectReferral, recordShare } from "@/lib/sharing";
@@ -65,7 +66,7 @@ function InviteFriend({ projectId }: { projectId: string }) {
                     : undefined
                 }
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 onClick={() => recordShare(projectId, "whatsapp")}
               >
                 <Share2 /> WhatsApp <ArrowUpRight />
@@ -109,30 +110,43 @@ export function ProjectDecisionCard({
           <h2>Explore first. Decide together.</h2>
           <p>Choose what feels useful now—there is no pressure to apply.</p>
         </div>
-        <div className="decision-actions">
-          <InviteFriend projectId={projectId} />
+        <div className="decision-primary">
           <ParentBriefLauncher projectId={projectId} initialLanguage={language} />
-          <CounsellorDialog projectId={projectId} initialLanguage={language} />
-          <Button asChild variant="premium">
-            <a
-              href="https://apply.niatindia.com/"
-              target="_blank"
-              rel="noreferrer"
-              onClick={() =>
-                void track({
-                  event: "cta_clicked",
-                  cta: "start_application",
-                  project_id: projectId,
-                })
-              }
-            >
-              Start my application <ArrowUpRight />
-            </a>
-          </Button>
+          <p className="decision-helper">
+            Creates a one-page brief for your family in English, हिन्दी or తెలుగు.
+          </p>
         </div>
-        <p className="decision-external-note">
-          “Start my application” opens the external NIAT application page in a new tab.
-        </p>
+        <div className="decision-actions">
+          <div className="decision-action">
+            <InviteFriend projectId={projectId} />
+            <p className="decision-helper">Copy or WhatsApp your link to a friend.</p>
+          </div>
+          <div className="decision-action">
+            <CounsellorDialog projectId={projectId} initialLanguage={language} />
+            <p className="decision-helper">Request a call back. This is not an application.</p>
+          </div>
+          <div className="decision-action">
+            <Button asChild variant="soft">
+              <a
+                href="https://apply.niatindia.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Start my application (opens the external NIAT page in a new tab)"
+                onClick={() =>
+                  void track({
+                    event: "cta_clicked",
+                    cta: "start_application",
+                    project_id: projectId,
+                  })
+                }
+              >
+                Start my application <ArrowUpRight />
+              </a>
+            </Button>
+            <p className="decision-helper">Opens the external NIAT page in a new tab.</p>
+          </div>
+        </div>
+        <p className="honesty-note">{honestyNote[language]}</p>
       </div>
     </section>
   );

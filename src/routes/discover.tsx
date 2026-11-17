@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Bot,
+  X,
   Check,
   Code,
   Cpu,
@@ -74,6 +75,7 @@ export default function Discover() {
   const [pending, setPending] = useState(false);
   const [stage, setStage] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const started = useRef(false);
   const options =
     step === 0
@@ -187,10 +189,18 @@ export default function Discover() {
   return (
     <SiteShell>
       <div className="page-width wizard-width">
-        {hasCampaign && (
-          <p className="discovery-campaign-banner">
-            Not sure yet? Try it in 5 minutes before you apply.
-          </p>
+        {hasCampaign && !bannerDismissed && (
+          <div className="discovery-campaign-banner" role="note">
+            <p>Not sure yet? Try it in 5 minutes before you apply.</p>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Dismiss message"
+              onClick={() => setBannerDismissed(true)}
+            >
+              <X />
+            </Button>
+          </div>
         )}
         <div className="wizard-topline">
           <span>
