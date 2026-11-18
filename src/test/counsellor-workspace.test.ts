@@ -167,3 +167,30 @@ describe("counsellor access and update validation", () => {
     expect(updateLeadSchema.safeParse({ id: lead.id, status: "follow_up" }).success).toBe(true);
   });
 });
+
+describe("team member emails for admins", () => {
+  it("still returns the team when one email lookup fails", async () => {
+    const { readAssignees } = await import("@/lib/counsellor-workspace.server");
+    const rows = [
+      { user_id: "a", role: "admin" },
+      { user_id: "b", role: "counsellor" },
+    ];
+    const db = {
+      from: () => ({
+        select: () => ({ in: () => ({ range: async () => ({ data: rows, error: null }) }) }),
+      }),
+      auth: {
+        admin: {
+          getUserById: async (id: string) => {
+            if (id === "b") throw new Error("network");
+            return { data: { user: { email: "admin@example.com" } } };
+          },
+        },
+      },
+    };
+    await expect(readAssignees(db as never)).resolves.toEqual([
+      { user_id: "a", role: "admin", email: "admin@example.com" },
+      { user_id: "b", role: "counsellor", email: null },
+    ]);
+  });
+});

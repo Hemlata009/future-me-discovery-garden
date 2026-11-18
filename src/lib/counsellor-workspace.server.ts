@@ -209,7 +209,7 @@ async function relatedData(db: Db, sources: LeadSource[], range?: { from: string
 }
 
 /** Admin-only: team members with their sign-in emails, read with the service client. */
-async function readAssignees(db: Db): Promise<Assignee[]> {
+export async function readAssignees(db: Db): Promise<Assignee[]> {
   const rows = await readPages<Assignee>((from, to) =>
     db
       .from("user_roles")
@@ -219,8 +219,13 @@ async function readAssignees(db: Db): Promise<Assignee[]> {
   );
   const emails = new Map<string, string | null>();
   for (const userId of new Set(rows.map((row) => row.user_id))) {
-    const { data } = await db.auth.admin.getUserById(userId);
-    emails.set(userId, data.user?.email ?? null);
+    // A failed lookup only hides that person's email; it never blocks the workspace.
+    try {
+      const { data } = await db.auth.admin.getUserById(userId);
+      emails.set(userId, data.user?.email ?? null);
+    } catch {
+      emails.set(userId, null);
+    }
   }
   return rows.map((row) => ({ ...row, email: emails.get(row.user_id) ?? null }));
 }
