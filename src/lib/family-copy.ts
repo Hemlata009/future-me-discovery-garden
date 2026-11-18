@@ -6,8 +6,7 @@ export const honestyNote: Record<ParentLanguage, string> = {
     "A student-built concept. Not an official NIAT page. Confirm all details with a NIAT counsellor.",
   hindi:
     "छात्र द्वारा बनाया गया एक कॉन्सेप्ट। यह NIAT का आधिकारिक पेज नहीं है। सभी जानकारी की पुष्टि NIAT काउंसलर से करें।",
-  telugu:
-    "విద్యార్థి రూపొందించిన ఒక కాన్సెప్ట్. ఇది అధికారిక NIAT పేజీ కాదు. అన్ని వివరాలను NIAT కౌన్సెలర్‌తో నిర్ధారించుకోండి.",
+  telugu: "విద్యార్థి రూపొందించిన ఒక కాన్సెప్ట్. ఇది అధికారిక NIAT పేజీ కాదు. అన్ని వివరాలను NIAT కౌన్సెలర్‌తో నిర్ధారించుకోండి.",
 };
 
 export const inviteMessage: Record<ParentLanguage, string> = {
