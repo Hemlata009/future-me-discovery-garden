@@ -15,6 +15,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEntryOnce } from "@/lib/tracking";
 import { startEngagementHeartbeat } from "@/lib/engagement";
+import { missingCloudSettings } from "@/lib/cloud-config";
+import { CloudSetupScreen } from "@/components/cloud-setup-screen";
 
 function NotFoundComponent() {
   return (
@@ -44,6 +46,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  const missing = missingCloudSettings(error);
+  if (missing) return <CloudSetupScreen missing={missing} />;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
