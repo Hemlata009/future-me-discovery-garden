@@ -133,8 +133,10 @@ export function SiteShell({
       <main>{children}</main>
       <footer className="site-footer page-width">
         <p className="engagement-privacy-note">
-          Privacy: we measure meaningful actions and active time only while this tab is visible and
-          recently used. We never record keystroke contents, form values or pointer coordinates.
+          Privacy: we measure the pages you visit, meaningful actions and active time only while
+          this tab is visible and recently used. Before you create an account this stays anonymous;
+          it is linked to you only if you sign up and agree. We never record keystroke contents,
+          form values or pointer coordinates.
         </p>
         <Brand />
         <p>

@@ -4,6 +4,7 @@ import { ArrowUpRight, CheckCircle2, CircleAlert, Copy, Eye, RefreshCw, X } from
 import { useEffect, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
+import { BAND_LABELS } from "@/lib/behaviour-score";
 import {
   CALL_OUTCOMES,
   OUTCOME_LABELS,
@@ -46,6 +47,15 @@ const EVENT_LABELS: Record<string, string> = {
   parent_question_asked: "Parent question submitted",
   counsellor_requested: "Counsellor request submitted",
   cta_clicked: "Decision link clicked",
+  "activity:page_view": "Viewed a page",
+  "activity:signup": "Created a free account",
+  "activity:login": "Logged in",
+  "activity:logout": "Logged out",
+  "activity:return_visit": "Came back",
+  "activity:signup_prompt_shown": "Saw the free-account prompt",
+  "activity:invite_created": "Shared an invite link",
+  "activity:invite_visit": "Invite link opened",
+  "activity:invite_signup": "Invited friend created an account",
 };
 const CTA_LABELS: Record<string, string> = {
   start_application: "Official NIAT application link",
@@ -286,14 +296,16 @@ export function LeadDetail({
                 <Fact label="Academic status" value={lead.class_status} />
               </dl>
               <div className="lead-links">
-                <a
-                  className="text-link"
-                  href={`/project?id=${lead.generated_project_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open project <ArrowUpRight size={14} />
-                </a>
+                {lead.generated_project_id && (
+                  <a
+                    className="text-link"
+                    href={`/project?id=${lead.generated_project_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open project <ArrowUpRight size={14} />
+                  </a>
+                )}
                 {lead.parent_brief_id && (
                   <a
                     className="text-link"
@@ -305,6 +317,68 @@ export function LeadDetail({
                   </a>
                 )}
               </div>
+            </section>
+            <section className="lead-detail-section behaviour-section">
+              <div className="behaviour-head">
+                <span className={`score-big score-${lead.score_band}`}>{lead.score}</span>
+                <div>
+                  <h3>Behaviour score · {BAND_LABELS[lead.score_band]}</h3>
+                  <p className="privacy-note">
+                    What this student actually did. Not an admission prediction.
+                  </p>
+                </div>
+              </div>
+              <ul className="score-parts">
+                {lead.score_parts.map((part) => (
+                  <li key={part.key}>
+                    <span>{part.label}</span>
+                    <span className="score-bar" aria-hidden="true">
+                      <i style={{ width: `${(part.points / part.max) * 100}%` }} />
+                    </span>
+                    <strong>
+                      {part.points}/{part.max}
+                    </strong>
+                    <small>{part.detail}</small>
+                  </li>
+                ))}
+              </ul>
+              <dl className="behaviour-facts">
+                <Fact
+                  label="Account"
+                  value={
+                    lead.lead_source === "student_signup"
+                      ? `Free sign-up${lead.behaviour.signed_up_at ? ` · ${dateTime(lead.behaviour.signed_up_at)}` : ""}`
+                      : "Callback request (no account)"
+                  }
+                />
+                <Fact
+                  label="Logins / logouts"
+                  value={`${lead.behaviour.logins} / ${lead.behaviour.logouts}`}
+                />
+                <Fact label="Last login" value={dateTime(lead.behaviour.last_login)} />
+                <Fact label="Return visits" value={String(lead.behaviour.return_visits)} />
+                <Fact
+                  label="Pages explored"
+                  value={`${lead.behaviour.pages_explored} pages · ${lead.behaviour.page_views} views`}
+                />
+                <Fact
+                  label="Invites"
+                  value={`${lead.behaviour.parent_visits} parent · ${lead.behaviour.friend_visits} friend visits · ${lead.behaviour.invite_signups} joined`}
+                />
+              </dl>
+              {lead.behaviour.top_pages.length > 0 && (
+                <ul className="top-pages">
+                  {lead.behaviour.top_pages.map((page) => (
+                    <li key={page.path}>
+                      <code>{page.path}</code>
+                      <span>
+                        {page.views} view{page.views === 1 ? "" : "s"} ·{" "}
+                        {formatDuration(page.seconds)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
             <section className="lead-detail-section">
               <h3>Engagement: {lead.engagement_tier}</h3>
@@ -372,6 +446,8 @@ export function LeadDetail({
                           {EVENT_LABELS[event.event_name] ?? event.event_name}
                           {event.cta ? ` · ${CTA_LABELS[event.cta] ?? event.cta}` : ""}
                           {event.channel ? ` · ${event.channel}` : ""}
+                          {event.path ? ` · ${event.path}` : ""}
+                          {event.seconds ? ` · ${formatDuration(event.seconds)}` : ""}
                         </strong>
                         <p>
                           {event.event_name === "referral_visit"

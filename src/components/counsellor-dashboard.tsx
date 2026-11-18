@@ -234,6 +234,7 @@ export function CounsellorDashboard() {
                 growth={growth}
                 growthState={growthState}
                 goTo={goTo}
+                onOpen={setSelectedLead}
               />
             )}
             {section === "pipeline" && (

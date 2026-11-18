@@ -56,6 +56,7 @@ import {
   type CounsellorWorkspaceResult,
   type LeadView,
 } from "@/lib/counsellor-metrics";
+import { BAND_LABELS } from "@/lib/behaviour-score";
 import { formatRate, type GrowthReport } from "@/lib/growth-metrics";
 
 type Workspace = Extract<CounsellorWorkspaceResult, { access: "ok" }>;
@@ -137,6 +138,17 @@ function Bars({ items, total }: { items: { name: string; value: number }[]; tota
   );
 }
 
+export function ScorePill({ lead }: { lead: LeadView }) {
+  return (
+    <span
+      className={`score-pill score-${lead.score_band}`}
+      title={`${BAND_LABELS[lead.score_band]} · behaviour score, not an admission prediction`}
+    >
+      {lead.score}
+    </span>
+  );
+}
+
 function PriorityPill({ lead }: { lead: LeadView }) {
   const priority = leadPriority(lead);
   return (
@@ -170,7 +182,9 @@ export function OverviewSection({
   growth,
   growthState,
   goTo,
+  onOpen,
 }: {
+  onOpen: OpenLead;
   data: Workspace;
   kpis: Kpis;
   growth: GrowthReport | null;
@@ -187,7 +201,12 @@ export function OverviewSection({
           value={kpis.identified}
           note="Consented requests"
         />
-        <Kpi icon={Inbox} label="New leads" value={kpis.by_status.new} note="Status: new" />
+        <Kpi
+          icon={Inbox}
+          label="Free sign-ups"
+          value={kpis.signups}
+          note={`${kpis.by_status.new} leads still new`}
+        />
         <Kpi
           icon={PhoneOff}
           label="Not yet contacted"
@@ -244,6 +263,7 @@ export function OverviewSection({
       </div>
 
       <CrmCharts leads={data.leads} kpis={kpis} />
+      <TopStudents leads={data.leads} kpis={kpis} onOpen={onOpen} />
 
       <div className="counsellor-chart-grid">
         <Panel title="Engagement" subtitle="Observable behaviour in the selected period">
@@ -490,6 +510,8 @@ export function LeadsSection({
       if (queue === "undelivered" && lead.delivered) return false;
       if (queue === "app_click" && lead.application_clicks === 0) return false;
       if (queue === "priority_now" && leadPriority(lead).level !== "now") return false;
+      if (queue === "signups" && lead.lead_source !== "student_signup") return false;
+      if (queue === "very_active" && lead.score_band !== "very_active") return false;
       if (status && lead.status !== status) return false;
       if (tier && lead.engagement_tier !== tier) return false;
       if (assignee === "unassigned" && lead.assigned_to) return false;
@@ -558,6 +580,8 @@ export function LeadsSection({
         <Select label="Queue" value={queue} onChange={resetPage(setQueue)}>
           <option value="all">All leads</option>
           <option value="priority_now">Follow up now</option>
+          <option value="signups">Free sign-ups</option>
+          <option value="very_active">Very active (score 70+)</option>
           <option value="not_contacted">Not yet contacted</option>
           <option value="due">Follow-up due today</option>
           <option value="overdue">Overdue</option>
@@ -616,6 +640,7 @@ export function LeadsSection({
           <option value="parent">Parent/guardian request</option>
         </Select>
         <Select label="Sort by" value={sort} onChange={(value) => setSort(value as LeadSort)}>
+          <option value="score">Highest behaviour score</option>
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="most_engaged">Most engaged</option>
@@ -633,6 +658,7 @@ export function LeadsSection({
             <tr>
               {[
                 "Lead",
+                "Score",
                 "Mobile",
                 "Role",
                 "Priority",
@@ -667,8 +693,14 @@ export function LeadsSection({
                     <code>{lead.id.slice(0, 8)}</code> · {lead.project_title}
                   </small>
                 </td>
+                <td>
+                  <ScorePill lead={lead} />
+                </td>
                 <td>{lead.phone_masked}</td>
-                <td>{lead.who === "parent" ? "Parent" : "Student"}</td>
+                <td>
+                  {lead.who === "parent" ? "Parent" : "Student"}
+                  {lead.lead_source === "student_signup" && <small>Free sign-up</small>}
+                </td>
                 <td>
                   <PriorityPill lead={lead} />
                 </td>
@@ -1219,6 +1251,71 @@ function CrmCharts({ leads, kpis }: { leads: LeadView[]; kpis: Kpis }) {
             color: ["var(--gd-navy)", "var(--gd-mint)", "var(--gd-indigo)"][index]!,
           }))}
         />
+      </Panel>
+    </div>
+  );
+}
+
+/* ------------------------------ Behaviour score ------------------------------ */
+
+function TopStudents({ leads, kpis, onOpen }: { leads: LeadView[]; kpis: Kpis; onOpen: OpenLead }) {
+  const top = sortLeads(leads, "score").slice(0, 6);
+  const bands = (["very_active", "active", "getting_started"] as const).map((band) => ({
+    name: BAND_LABELS[band],
+    value: leads.filter((lead) => lead.score_band === band).length,
+    fill:
+      band === "very_active"
+        ? "var(--gd-mint)"
+        : band === "active"
+          ? "var(--gd-teal)"
+          : "var(--gd-navy)",
+  }));
+  return (
+    <div className="crm-chart-grid">
+      <Panel
+        title="Most engaged students"
+        subtitle="Behaviour score: time, return visits, exploration, family, friends, intent. Not an admission prediction."
+      >
+        <ul className="top-students">
+          {top.map((lead) => (
+            <li key={lead.id}>
+              <button type="button" onClick={() => onOpen(lead.id)}>
+                <ScorePill lead={lead} />
+                <span>
+                  <strong>{lead.contact_name}</strong>
+                  <small>
+                    {lead.behaviour.logins + lead.behaviour.return_visits} visits ·{" "}
+                    {formatDuration(Math.max(lead.active_seconds, lead.behaviour.page_seconds))} ·{" "}
+                    {lead.behaviour.parent_visits + lead.behaviour.friend_visits} invite visits
+                  </small>
+                </span>
+                <span className="top-bar" aria-hidden="true">
+                  <i style={{ width: `${lead.score}%` }} />
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Panel>
+      <Panel
+        title="Score distribution"
+        subtitle={`Average ${kpis.avg_score ?? "—"} · 70+ very active, 40–69 active`}
+      >
+        <div className="crm-chart" role="img" aria-label="Leads by behaviour score band">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={bands} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+              <CartesianGrid stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="name" {...chartAxis} />
+              <YAxis allowDecimals={false} {...chartAxis} />
+              <Tooltip {...chartTooltip} cursor={{ fill: "var(--secondary)" }} />
+              <Bar dataKey="value" name="Students" radius={[6, 6, 0, 0]} barSize={44}>
+                {bands.map((band) => (
+                  <Cell key={band.name} fill={band.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </Panel>
     </div>
   );

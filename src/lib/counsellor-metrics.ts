@@ -1,3 +1,12 @@
+import {
+  behaviourScore,
+  summariseActivity,
+  type ActivityRow,
+  type BehaviourSummary,
+  type ScoreBand,
+  type ScorePart,
+} from "@/lib/behaviour-score";
+
 // Browser-safe, deterministic lead metrics. These are engagement indicators,
 // never predictions of admission probability or student quality.
 
@@ -18,8 +27,12 @@ export type LeadSource = {
   contact_name: string;
   phone: string;
   visitor_hash: string | null;
-  generated_project_id: string;
+  /** Null for a student who signed up before generating a project. */
+  generated_project_id: string | null;
   parent_brief_id: string | null;
+  /** "callback_request" (counsellor form) or "student_signup" (free account). */
+  lead_source: string;
+  student_user_id: string | null;
   language: string;
   who: string;
   interest: string;
@@ -70,6 +83,10 @@ export type NamedMetric = { name: string; value: number };
 
 export type LeadView = Omit<LeadSource, "phone"> & {
   phone_masked: string;
+  behaviour: BehaviourSummary;
+  score: number;
+  score_band: ScoreBand;
+  score_parts: ScorePart[];
   active_seconds: number;
   meaningful_actions: number;
   family_signals: FamilyEvidence[];
@@ -113,6 +130,8 @@ export type CounsellorLeadResult =
         channel: string | null;
         created_at: string;
         source: string;
+        path?: string | null;
+        seconds?: number | null;
       }[];
     };
 
@@ -173,7 +192,22 @@ export function leadEvents(
   return events.filter(
     (event) =>
       (lead.visitor_hash !== null && event.visitor_hash === lead.visitor_hash) ||
-      event.generated_project_id === lead.generated_project_id,
+      (lead.generated_project_id !== null &&
+        event.generated_project_id === lead.generated_project_id),
+  );
+}
+
+/** Behaviour rows that belong to a lead: their account or their browser. */
+export function leadActivity(
+  lead: Pick<LeadSource, "visitor_hash" | "student_user_id">,
+  rows: (ActivityRow & { user_id: string | null; visitor_hash: string | null })[],
+) {
+  return rows.filter(
+    (row) =>
+      (lead.student_user_id !== null && row.user_id === lead.student_user_id) ||
+      (lead.visitor_hash !== null &&
+        row.user_id === null &&
+        row.visitor_hash === lead.visitor_hash),
   );
 }
 
@@ -232,6 +266,8 @@ export function buildLeadView(
   heartbeats: Heartbeat[],
   referralOwners: ReferralOwner[],
   rangeEnd: string,
+  activity: (ActivityRow & { user_id: string | null; visitor_hash: string | null })[] = [],
+  now = new Date(),
 ): LeadView {
   const related = leadEvents(lead, events);
   const relatedBeats = heartbeats.filter(
@@ -266,15 +302,40 @@ export function buildLeadView(
     .sort()
     .at(-1)!;
   const tier = engagementTier(meaningful.length, decisions.size, lastActivity, rangeEnd);
+  const mine = leadActivity(lead, activity);
+  const behaviour = summariseActivity(mine);
+  const activeSeconds = relatedBeats.reduce((sum, beat) => sum + beat.active_seconds, 0);
+  const family = familyEvidence(lead, related);
+  const latestActivity = [lastActivity, ...mine.map((row) => row.created_at)].sort().at(-1)!;
+  const scored = behaviourScore(
+    {
+      active_seconds: activeSeconds,
+      behaviour,
+      has_project:
+        lead.generated_project_id !== null ||
+        related.some((event) => event.event_name === "generation_succeeded"),
+      used_demo: related.some((event) => event.event_name === "demo_interacted"),
+      brief_generated: family.some((signal) => signal.key === "parent_brief_generated"),
+      brief_shared: family.some((signal) => signal.key === "parent_brief_shared"),
+      parent_question: family.some((signal) => signal.key === "parent_question_asked"),
+      application_clicked: applicationClicks(related).length > 0,
+      last_activity: latestActivity,
+    },
+    now,
+  );
   const { phone, ...withoutPhone } = lead;
   return {
     ...withoutPhone,
     phone_masked: maskPhone(phone),
-    active_seconds: relatedBeats.reduce((sum, beat) => sum + beat.active_seconds, 0),
+    behaviour,
+    score: scored.score,
+    score_band: scored.band,
+    score_parts: scored.parts,
+    active_seconds: activeSeconds,
     meaningful_actions: meaningful.length,
-    family_signals: familyEvidence(lead, related),
+    family_signals: family,
     referral_count: referralCount,
-    last_activity: lastActivity,
+    last_activity: latestActivity,
     engagement_tier: tier.tier,
     tier_reasons: tier.reasons,
     application_clicks: applicationClicks(related).length,
@@ -315,7 +376,9 @@ export function buildCounsellorReport(
 ) {
   const leadIds = new Set(leads.map((lead) => lead.id));
   const visitors = new Set(leads.map((lead) => lead.visitor_hash).filter(Boolean));
-  const projects = new Set(leads.map((lead) => lead.generated_project_id));
+  const projects = new Set(
+    leads.map((lead) => lead.generated_project_id).filter((id): id is string => id !== null),
+  );
   const relatedEvents = events.filter(
     (event) =>
       (visitors.has(event.visitor_hash) && event.visitor_hash !== null) ||

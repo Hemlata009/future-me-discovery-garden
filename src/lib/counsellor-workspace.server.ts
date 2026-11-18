@@ -11,6 +11,7 @@ import {
   type CounsellorRole,
   type CounsellorViewer,
   type CounsellorWorkspaceResult,
+  leadActivity,
   type Heartbeat,
   type LeadEvent,
   type LeadSource,
@@ -18,6 +19,7 @@ import {
   type ReferralOwner,
 } from "@/lib/counsellor-metrics";
 import type { updateLeadSchema } from "@/lib/counsellor-workspace.functions";
+import type { ActivityRow } from "@/lib/behaviour-score";
 import type { z } from "zod";
 
 type Db = SupabaseClient<Database>;
@@ -96,7 +98,14 @@ async function readRequests(
 
 async function leadSources(db: Db, requests: RequestRow[]): Promise<LeadSource[]> {
   const projects: ProjectRow[] = [];
-  for (const ids of chunks([...new Set(requests.map((row) => row.generated_project_id))])) {
+  const projectIds = [
+    ...new Set(
+      requests
+        .map((row) => row.generated_project_id as string | null)
+        .filter((id): id is string => !!id),
+    ),
+  ];
+  for (const ids of chunks(projectIds)) {
     projects.push(
       ...(await readPages<ProjectRow>((from, to) =>
         db
@@ -109,22 +118,29 @@ async function leadSources(db: Db, requests: RequestRow[]): Promise<LeadSource[]
   }
   const projectMap = new Map(projects.map((project) => [project.id, project]));
   return requests.map((request) => {
-    const project = projectMap.get(request.generated_project_id);
-    if (!project) throw new Error("A lead's project could not be read.");
-    const content = project.generated_content as { title?: unknown };
+    const extra = request as RequestRow & { lead_source?: string; student_user_id?: string | null };
+    const projectId = (request.generated_project_id as string | null) ?? null;
+    const project = projectId ? projectMap.get(projectId) : undefined;
+    const content = (project?.generated_content ?? {}) as { title?: unknown };
     return {
       id: request.id,
       contact_name: request.contact_name,
       phone: request.phone,
       visitor_hash: request.visitor_hash ?? null,
-      generated_project_id: request.generated_project_id,
+      generated_project_id: project ? projectId : null,
       parent_brief_id: request.parent_brief_id,
+      lead_source: extra.lead_source ?? "callback_request",
+      student_user_id: extra.student_user_id ?? null,
       language: request.language,
       who: request.who,
-      interest: project.interest,
-      technology: project.technology,
-      class_status: project.class_status,
-      project_title: typeof content.title === "string" ? content.title : "FutureMe Family project",
+      interest: project?.interest ?? "—",
+      technology: project?.technology ?? "—",
+      class_status: project?.class_status ?? "—",
+      project_title: !project
+        ? "No project yet"
+        : typeof content.title === "string"
+          ? content.title
+          : "FutureMe Family project",
       referral_code: request.referral_code,
       utm_source: request.utm_source,
       utm_medium: request.utm_medium,
@@ -148,7 +164,11 @@ async function relatedData(db: Db, sources: LeadSource[], range?: { from: string
       sources.map((lead) => lead.visitor_hash).filter((value): value is string => value !== null),
     ),
   ];
-  const projects = [...new Set(sources.map((lead) => lead.generated_project_id))];
+  const projects = [
+    ...new Set(
+      sources.map((lead) => lead.generated_project_id).filter((id): id is string => id !== null),
+    ),
+  ];
   const events: LeadEvent[] = [];
   const groups = chunks(
     [
@@ -205,7 +225,48 @@ async function relatedData(db: Db, sources: LeadSource[], range?: { from: string
       )),
     );
   }
-  return { events: uniqueEvents, heartbeats, referralOwners };
+  const activity = await readActivity(db, sources, range);
+  return { events: uniqueEvents, heartbeats, referralOwners, activity };
+}
+
+type ActivityRecord = ActivityRow & { user_id: string | null; visitor_hash: string | null };
+
+/** Behaviour log for these leads (by account or browser). Empty until the table exists. */
+async function readActivity(
+  db: Db,
+  sources: LeadSource[],
+  range?: { from: string; to: string },
+): Promise<ActivityRecord[]> {
+  const untyped = db as unknown as SupabaseClient;
+  const users = [...new Set(sources.map((s) => s.student_user_id).filter((v): v is string => !!v))];
+  const visitors = [...new Set(sources.map((s) => s.visitor_hash).filter((v): v is string => !!v))];
+  const rows: ActivityRecord[] = [];
+  const groups = [
+    ...chunks(users).map((ids) => ["user_id", ids] as const),
+    ...chunks(visitors).map((ids) => ["visitor_hash", ids] as const),
+  ];
+  for (const [column, ids] of groups) {
+    for (let from = 0; ; from += 1000) {
+      let query = untyped
+        .from("student_activity")
+        .select("id, user_id, visitor_hash, kind, path, seconds, detail, created_at")
+        .in(column, ids as string[]);
+      if (range)
+        query = query
+          .gte("created_at", `${range.from}T00:00:00.000Z`)
+          .lt("created_at", `${nextDay(range.to)}T00:00:00.000Z`);
+      const { data, error } = await query.order("created_at").range(from, from + 999);
+      if (error) {
+        if (error.code === "PGRST205" || error.code === "42P01") return [];
+        throw new Error(error.message);
+      }
+      rows.push(...((data ?? []) as unknown as (ActivityRecord & { id: string })[]));
+      if (!data || data.length < 1000) break;
+    }
+  }
+  return [
+    ...new Map(rows.map((row) => [(row as ActivityRecord & { id: string }).id, row])).values(),
+  ];
 }
 
 /** Admin-only: team members with their sign-in emails, read with the service client. */
@@ -247,7 +308,14 @@ export async function runCounsellorWorkspace(
     const sources = await leadSources(supabaseAdmin, requests);
     const related = await relatedData(supabaseAdmin, sources, range);
     const leads = sources.map((lead) =>
-      buildLeadView(lead, related.events, related.heartbeats, related.referralOwners, range.to),
+      buildLeadView(
+        lead,
+        related.events,
+        related.heartbeats,
+        related.referralOwners,
+        range.to,
+        related.activity,
+      ),
     );
     const assignees = role === "admin" ? await readAssignees(supabaseAdmin) : [];
     return {
@@ -284,13 +352,25 @@ export async function runCounsellorLead(context: Context, id: string): Promise<L
     related.heartbeats,
     related.referralOwners,
     today,
+    related.activity,
   );
   const assignees = role === "admin" ? await readAssignees(supabaseAdmin) : [];
+  const activityTimeline = leadActivity(lead, related.activity).map((row) => ({
+    id: `activity-${(row as ActivityRecord & { id?: string }).id ?? row.created_at}`,
+    event_name: `activity:${row.kind}`,
+    cta: null,
+    channel: row.detail,
+    created_at: row.created_at,
+    source: row.user_id ? "Signed-in student" : "Before sign-up",
+    path: row.path,
+    seconds: row.seconds,
+  }));
   const timeline = related.events
     .filter(
       (event) =>
         event.visitor_hash === lead.visitor_hash ||
-        event.generated_project_id === lead.generated_project_id,
+        (lead.generated_project_id !== null &&
+          event.generated_project_id === lead.generated_project_id),
     )
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .map((event) => ({
@@ -303,7 +383,9 @@ export async function runCounsellorLead(context: Context, id: string): Promise<L
         event.visitor_hash === lead.visitor_hash
           ? "Identified visitor"
           : "Related project activity",
-    }));
+    }))
+    .concat(activityTimeline)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
   return { access: "ok" as const, role, lead, timeline, assignees };
 }
 

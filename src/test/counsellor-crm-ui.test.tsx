@@ -1,3 +1,4 @@
+import { summariseActivity } from "@/lib/behaviour-score";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -52,6 +53,12 @@ function lead(id: string, overrides: Partial<LeadView> = {}): LeadView {
     tier_reasons: [],
     application_clicks: 0,
     decision_steps: [],
+    lead_source: "callback_request",
+    student_user_id: null,
+    behaviour: summariseActivity([]),
+    score: 0,
+    score_band: "getting_started",
+    score_parts: [],
     ...overrides,
   };
 }

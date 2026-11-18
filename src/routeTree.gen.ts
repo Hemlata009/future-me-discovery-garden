@@ -19,6 +19,7 @@ import { Route as ParentBriefRouteImport } from './routes/parent-brief'
 import { Route as ProjectRouteImport } from './routes/project'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCounsellorRouteImport } from './routes/_authenticated/counsellor'
 import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
@@ -26,9 +27,11 @@ import { Route as ApiApplicationProfileRouteImport } from './routes/api/applicat
 import { Route as ApiCounsellorRequestRouteImport } from './routes/api/counsellor-request'
 import { Route as ApiEngagementRouteImport } from './routes/api/engagement'
 import { Route as ApiGenerateProjectRouteImport } from './routes/api/generate-project'
+import { Route as ApiInviteVisitRouteImport } from './routes/api/invite-visit'
 import { Route as ApiParentBriefRouteImport } from './routes/api/parent-brief'
 import { Route as ApiParentQuestionRouteImport } from './routes/api/parent-question'
 import { Route as ApiReferralLinkRouteImport } from './routes/api/referral-link'
+import { Route as ApiStudentSignupRouteImport } from './routes/api/student-signup'
 import { Route as ApiTrackRouteImport } from './routes/api/track'
 import { Route as ApiVisitorRouteImport } from './routes/api/visitor'
 import { Route as ApiPublicCronPurgeGrowthDataRouteImport } from './routes/api/public/cron/purge-growth-data'
@@ -82,6 +85,11 @@ const ShowcaseRoute = ShowcaseRouteImport.update({
   path: '/showcase',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -117,6 +125,11 @@ const ApiGenerateProjectRoute = ApiGenerateProjectRouteImport.update({
   path: '/api/generate-project',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInviteVisitRoute = ApiInviteVisitRouteImport.update({
+  id: '/api/invite-visit',
+  path: '/api/invite-visit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiParentBriefRoute = ApiParentBriefRouteImport.update({
   id: '/api/parent-brief',
   path: '/api/parent-brief',
@@ -130,6 +143,11 @@ const ApiParentQuestionRoute = ApiParentQuestionRouteImport.update({
 const ApiReferralLinkRoute = ApiReferralLinkRouteImport.update({
   id: '/api/referral-link',
   path: '/api/referral-link',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStudentSignupRoute = ApiStudentSignupRouteImport.update({
+  id: '/api/student-signup',
+  path: '/api/student-signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTrackRoute = ApiTrackRouteImport.update({
@@ -159,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/signup': typeof SignupRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/counsellor': typeof AuthenticatedCounsellorRoute
   '/me': typeof AuthenticatedMeRoute
@@ -166,9 +185,11 @@ export interface FileRoutesByFullPath {
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/invite-visit': typeof ApiInviteVisitRoute
   '/api/parent-brief': typeof ApiParentBriefRoute
   '/api/parent-question': typeof ApiParentQuestionRoute
   '/api/referral-link': typeof ApiReferralLinkRoute
+  '/api/student-signup': typeof ApiStudentSignupRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
   '/api/public/cron/purge-growth-data': typeof ApiPublicCronPurgeGrowthDataRoute
@@ -183,6 +204,7 @@ export interface FileRoutesByTo {
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/signup': typeof SignupRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/counsellor': typeof AuthenticatedCounsellorRoute
   '/me': typeof AuthenticatedMeRoute
@@ -190,9 +212,11 @@ export interface FileRoutesByTo {
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/invite-visit': typeof ApiInviteVisitRoute
   '/api/parent-brief': typeof ApiParentBriefRoute
   '/api/parent-question': typeof ApiParentQuestionRoute
   '/api/referral-link': typeof ApiReferralLinkRoute
+  '/api/student-signup': typeof ApiStudentSignupRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
   '/api/public/cron/purge-growth-data': typeof ApiPublicCronPurgeGrowthDataRoute
@@ -209,6 +233,7 @@ export interface FileRoutesById {
   '/project': typeof ProjectRoute
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
+  '/signup': typeof SignupRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/counsellor': typeof AuthenticatedCounsellorRoute
   '/_authenticated/me': typeof AuthenticatedMeRoute
@@ -216,9 +241,11 @@ export interface FileRoutesById {
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
+  '/api/invite-visit': typeof ApiInviteVisitRoute
   '/api/parent-brief': typeof ApiParentBriefRoute
   '/api/parent-question': typeof ApiParentQuestionRoute
   '/api/referral-link': typeof ApiReferralLinkRoute
+  '/api/student-signup': typeof ApiStudentSignupRoute
   '/api/track': typeof ApiTrackRoute
   '/api/visitor': typeof ApiVisitorRoute
   '/api/public/cron/purge-growth-data': typeof ApiPublicCronPurgeGrowthDataRoute
@@ -235,6 +262,7 @@ export interface FileRouteTypes {
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/signup'
     | '/admin'
     | '/counsellor'
     | '/me'
@@ -242,9 +270,11 @@ export interface FileRouteTypes {
     | '/api/counsellor-request'
     | '/api/engagement'
     | '/api/generate-project'
+    | '/api/invite-visit'
     | '/api/parent-brief'
     | '/api/parent-question'
     | '/api/referral-link'
+    | '/api/student-signup'
     | '/api/track'
     | '/api/visitor'
     | '/api/public/cron/purge-growth-data'
@@ -259,6 +289,7 @@ export interface FileRouteTypes {
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/signup'
     | '/admin'
     | '/counsellor'
     | '/me'
@@ -266,9 +297,11 @@ export interface FileRouteTypes {
     | '/api/counsellor-request'
     | '/api/engagement'
     | '/api/generate-project'
+    | '/api/invite-visit'
     | '/api/parent-brief'
     | '/api/parent-question'
     | '/api/referral-link'
+    | '/api/student-signup'
     | '/api/track'
     | '/api/visitor'
     | '/api/public/cron/purge-growth-data'
@@ -284,6 +317,7 @@ export interface FileRouteTypes {
     | '/project'
     | '/projects'
     | '/showcase'
+    | '/signup'
     | '/_authenticated/admin'
     | '/_authenticated/counsellor'
     | '/_authenticated/me'
@@ -291,9 +325,11 @@ export interface FileRouteTypes {
     | '/api/counsellor-request'
     | '/api/engagement'
     | '/api/generate-project'
+    | '/api/invite-visit'
     | '/api/parent-brief'
     | '/api/parent-question'
     | '/api/referral-link'
+    | '/api/student-signup'
     | '/api/track'
     | '/api/visitor'
     | '/api/public/cron/purge-growth-data'
@@ -310,13 +346,16 @@ export interface RootRouteChildren {
   ProjectRoute: typeof ProjectRoute
   ProjectsRoute: typeof ProjectsRoute
   ShowcaseRoute: typeof ShowcaseRoute
+  SignupRoute: typeof SignupRoute
   ApiApplicationProfileRoute: typeof ApiApplicationProfileRoute
   ApiCounsellorRequestRoute: typeof ApiCounsellorRequestRoute
   ApiEngagementRoute: typeof ApiEngagementRoute
   ApiGenerateProjectRoute: typeof ApiGenerateProjectRoute
+  ApiInviteVisitRoute: typeof ApiInviteVisitRoute
   ApiParentBriefRoute: typeof ApiParentBriefRoute
   ApiParentQuestionRoute: typeof ApiParentQuestionRoute
   ApiReferralLinkRoute: typeof ApiReferralLinkRoute
+  ApiStudentSignupRoute: typeof ApiStudentSignupRoute
   ApiTrackRoute: typeof ApiTrackRoute
   ApiVisitorRoute: typeof ApiVisitorRoute
   ApiPublicCronPurgeGrowthDataRoute: typeof ApiPublicCronPurgeGrowthDataRoute
@@ -394,6 +433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShowcaseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -443,6 +489,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerateProjectRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/invite-visit': {
+      id: '/api/invite-visit'
+      path: '/api/invite-visit'
+      fullPath: '/api/invite-visit'
+      preLoaderRoute: typeof ApiInviteVisitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/parent-brief': {
       id: '/api/parent-brief'
       path: '/api/parent-brief'
@@ -462,6 +515,13 @@ declare module '@tanstack/react-router' {
       path: '/api/referral-link'
       fullPath: '/api/referral-link'
       preLoaderRoute: typeof ApiReferralLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/student-signup': {
+      id: '/api/student-signup'
+      path: '/api/student-signup'
+      fullPath: '/api/student-signup'
+      preLoaderRoute: typeof ApiStudentSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/track': {
@@ -514,13 +574,16 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectRoute: ProjectRoute,
   ProjectsRoute: ProjectsRoute,
   ShowcaseRoute: ShowcaseRoute,
+  SignupRoute: SignupRoute,
   ApiApplicationProfileRoute: ApiApplicationProfileRoute,
   ApiCounsellorRequestRoute: ApiCounsellorRequestRoute,
   ApiEngagementRoute: ApiEngagementRoute,
   ApiGenerateProjectRoute: ApiGenerateProjectRoute,
+  ApiInviteVisitRoute: ApiInviteVisitRoute,
   ApiParentBriefRoute: ApiParentBriefRoute,
   ApiParentQuestionRoute: ApiParentQuestionRoute,
   ApiReferralLinkRoute: ApiReferralLinkRoute,
+  ApiStudentSignupRoute: ApiStudentSignupRoute,
   ApiTrackRoute: ApiTrackRoute,
   ApiVisitorRoute: ApiVisitorRoute,
   ApiPublicCronPurgeGrowthDataRoute: ApiPublicCronPurgeGrowthDataRoute,

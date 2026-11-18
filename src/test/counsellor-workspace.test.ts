@@ -14,6 +14,8 @@ import { authorizeCounsellor } from "@/lib/counsellor-workspace.server";
 const visitor = "a".repeat(64);
 const project = "b6bd5c92-0b67-4ebb-ae27-592e9338fd9c";
 const lead: LeadSource = {
+  lead_source: "callback_request",
+  student_user_id: null,
   id: "25c3efb2-1653-4d2e-b73f-e73f909352b9",
   contact_name: "Test Student",
   phone: "+919876543210",
@@ -218,5 +220,56 @@ describe("lead referral visits (regression: visit stored without its link code)"
       generated_project_id: PROJECT,
     });
     expect(buildLeadView(lead, [visit], [], owners, "2026-11-11").referral_count).toBe(0);
+  });
+});
+
+describe("student sign-up leads and behaviour (regression)", () => {
+  const signup = {
+    ...lead,
+    generated_project_id: null,
+    visitor_hash: "f".repeat(64),
+    lead_source: "student_signup",
+    student_user_id: "11111111-1111-4111-8111-111111111111",
+  };
+
+  it("never attaches other visitors' project-less events to a lead without a project", () => {
+    const stranger = event("s1", "discovery_started", "2026-11-10T09:00:00.000Z", {
+      visitor_hash: "9".repeat(64),
+      generated_project_id: null,
+    });
+    const view = buildLeadView(signup, [stranger], [], [], "2026-11-11");
+    expect(view.meaningful_actions).toBe(0);
+    expect(view.family_signals).toEqual([]);
+  });
+
+  it("scores a signed-up student's own logins, pages and invites, not someone else's", () => {
+    const at = "2026-11-11T09:00:00.000Z";
+    const mine = {
+      user_id: signup.student_user_id,
+      visitor_hash: null,
+      path: null,
+      seconds: null,
+      detail: null,
+      created_at: at,
+    };
+    const activity = [
+      { ...mine, kind: "login" as const },
+      { ...mine, kind: "login" as const },
+      { ...mine, kind: "page_view" as const, path: "/discover", seconds: 600 },
+      { ...mine, kind: "invite_visit" as const, detail: "parent" },
+      { ...mine, user_id: "22222222-2222-4222-8222-222222222222", kind: "login" as const },
+    ];
+    const view = buildLeadView(
+      signup,
+      [],
+      [],
+      [],
+      "2026-11-11",
+      activity,
+      new Date("2026-11-12T00:00:00Z"),
+    );
+    expect(view.behaviour).toMatchObject({ logins: 2, page_views: 1, parent_visits: 1 });
+    expect(view.score).toBeGreaterThan(0);
+    expect(view.score_parts.find((part) => part.key === "returns")!.points).toBe(6);
   });
 });

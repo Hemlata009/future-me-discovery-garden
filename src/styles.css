@@ -5343,3 +5343,233 @@ details.metric-definitions ul {
 .team-header .header-inner {
   height: 76px;
 }
+
+/* ===== Behaviour score, sign-up and invites ===== */
+.score-pill,
+.score-big {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.score-pill {
+  min-width: 34px;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+.score-big {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+.score-very_active {
+  background: color-mix(in oklab, var(--gd-mint) 18%, var(--card));
+  color: var(--success-text);
+}
+.score-active {
+  background: color-mix(in oklab, var(--gd-teal) 16%, var(--card));
+  color: var(--gd-navy);
+}
+.score-getting_started {
+  background: var(--secondary);
+  color: var(--muted-foreground);
+}
+.behaviour-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.behaviour-head h3 {
+  margin: 0;
+}
+.score-parts {
+  display: grid;
+  gap: 8px;
+}
+.score-parts li {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(0, 1.4fr) 48px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.score-parts small {
+  grid-column: 1 / -1;
+  margin-top: -4px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.score-parts strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.score-bar,
+.top-bar {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--secondary);
+}
+.score-bar i,
+.top-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gd-navy), var(--gd-teal));
+}
+.behaviour-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.behaviour-facts dt {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.top-pages {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 12px;
+}
+.top-pages li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--warm-surface);
+}
+.top-pages span {
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+.top-students {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.top-students button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 90px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+}
+.top-students button:hover,
+.top-students button:focus-visible {
+  border-color: var(--gd-teal);
+}
+.top-students strong {
+  display: block;
+  font-size: 13px;
+}
+.top-students small {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.signup-prompt h2 {
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+.signup-prompt > p {
+  margin-top: 6px;
+  color: var(--muted-foreground);
+}
+.signup-prompt-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+.signup-prompt-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.signup-prompt-list svg {
+  flex: none;
+  color: var(--success-text);
+}
+.signup-card {
+  width: min(500px, 100%);
+}
+.signup-saved {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--gd-mint) 12%, var(--card));
+  color: var(--foreground);
+  font-size: 12px;
+}
+.signup-saved svg {
+  flex: none;
+  color: var(--success-text);
+}
+.signup-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.signup-row .family-field {
+  margin-top: 16px;
+}
+.invite-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.invite-row {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.invite-row code {
+  overflow: hidden;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--warm-surface);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 760px) {
+  .invite-grid,
+  .signup-row,
+  .behaviour-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .top-students button {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .top-bar {
+    display: none;
+  }
+}

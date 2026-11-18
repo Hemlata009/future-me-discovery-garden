@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { BarChart3, Compass, LogOut, Sparkles, UserRound, Users } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -7,6 +8,7 @@ import { Brand } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ROLE_LABELS, type AppRole } from "@/lib/roles";
+import { recordStudentActivity } from "@/lib/student-activity.functions";
 import { useIdentity } from "@/lib/use-identity";
 
 const NAV: Record<AppRole, { to: string; label: string; icon: typeof Users }[]> = {
@@ -29,9 +31,17 @@ export function TeamShell({ children }: { children: ReactNode }) {
   const identity = useIdentity();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const recordActivity = useServerFn(recordStudentActivity);
   const role = identity.data?.role ?? null;
 
   async function signOut() {
+    if (role === "student")
+      await recordActivity({ data: { events: [{ kind: "logout" }] } }).catch(() => undefined);
+    try {
+      sessionStorage.removeItem("fm_student_session");
+    } catch {
+      // ignore
+    }
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();

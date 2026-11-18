@@ -45,6 +45,15 @@ export type StudentHome =
         boolean
       >;
       active_seconds: number;
+      account: {
+        full_name: string | null;
+        invite_code: string | null;
+        logins: number;
+        last_login: string | null;
+        parent_visits: number;
+        friend_visits: number;
+        invite_signups: number;
+      };
     };
 
 const MISSING = new Set(["PGRST205", "42P01"]);
@@ -69,10 +78,38 @@ export async function runStudentHome(context: Context): Promise<StudentHome> {
   const db = supabaseAdmin as unknown as SupabaseClient;
   const account = await db
     .from("student_accounts")
-    .select("visitor_hash")
+    .select("*")
     .eq("user_id", context.userId)
     .maybeSingle();
   if (account.error && MISSING.has(account.error.code)) return { access: "not_ready" };
+  const accountRow = (account.data ?? {}) as {
+    full_name?: string | null;
+    invite_code?: string | null;
+  };
+  const activity = await db
+    .from("student_activity")
+    .select("kind, detail, created_at")
+    .eq("user_id", context.userId)
+    .limit(5000);
+  const acts = (activity.error ? [] : (activity.data ?? [])) as {
+    kind: string;
+    detail: string | null;
+    created_at: string;
+  }[];
+  const accountSummary = {
+    full_name: accountRow.full_name ?? null,
+    invite_code: accountRow.invite_code ?? null,
+    logins: acts.filter((a) => a.kind === "login").length,
+    last_login:
+      acts
+        .filter((a) => a.kind === "login")
+        .map((a) => a.created_at)
+        .sort()
+        .at(-1) ?? null,
+    parent_visits: acts.filter((a) => a.kind === "invite_visit" && a.detail === "parent").length,
+    friend_visits: acts.filter((a) => a.kind === "invite_visit" && a.detail === "friend").length,
+    invite_signups: acts.filter((a) => a.kind === "invite_signup").length,
+  };
   if (account.error) throw new Error("Your FutureMe page couldn't be loaded.");
 
   let hash: string | null = account.data?.visitor_hash ?? null;
@@ -103,6 +140,7 @@ export async function runStudentHome(context: Context): Promise<StudentHome> {
       application: false,
     },
     active_seconds: 0,
+    account: accountSummary,
   };
   if (!hash) return empty;
 
@@ -204,6 +242,7 @@ export async function runStudentHome(context: Context): Promise<StudentHome> {
       counsellor: names.has("counsellor_requested") || (requests.data ?? []).length > 0,
       application: names.has("cta:start_application"),
     },
+    account: accountSummary,
     active_seconds: ((beats.data ?? []) as { active_seconds: number }[]).reduce(
       (sum, b) => sum + b.active_seconds,
       0,

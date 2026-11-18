@@ -92,6 +92,15 @@ const home: Extract<StudentHome, { access: "ok" }> = {
     application: false,
   },
   active_seconds: 1260,
+  account: {
+    full_name: "Riya Sharma",
+    invite_code: "RIYAABC123",
+    logins: 3,
+    last_login: "2026-11-17T10:00:00Z",
+    parent_visits: 1,
+    friend_visits: 2,
+    invite_signups: 1,
+  },
 };
 
 describe("My FutureMe page", () => {
@@ -105,6 +114,20 @@ describe("My FutureMe page", () => {
     expect(screen.getByText(/Pre-application details only/)).toBeInTheDocument();
   });
 
+  it("offers personal invite links for parents and friends and shows who opened them", () => {
+    const onInvite = vi.fn();
+    render(<StudentHomeView data={home} email="student@futureme.in" onInvite={onInvite} />);
+    expect(screen.getByText("Invite your family & friends")).toBeInTheDocument();
+    const whatsapp = screen.getAllByRole("link", { name: /WhatsApp/ });
+    expect(whatsapp[0]!.getAttribute("href")).toContain(encodeURIComponent("invite=RIYAABC123"));
+    expect(whatsapp[0]!.getAttribute("href")).toContain(encodeURIComponent("for=parent"));
+    whatsapp[0]!.click();
+    expect(onInvite).toHaveBeenCalledWith("parent");
+    expect(
+      screen.getByText("1 parent visit · 2 friend visits · 1 friend joined"),
+    ).toBeInTheDocument();
+  });
+
   it("invites a student with no activity to start", () => {
     render(<StudentHomeView data={{ ...home, linked: false, projects: [] }} email={null} />);
     expect(screen.getByText("Your journey starts here")).toBeInTheDocument();
@@ -113,5 +136,23 @@ describe("My FutureMe page", () => {
   it("explains a non-student account", () => {
     render(<StudentHomeView data={{ access: "denied" }} email={null} />);
     expect(screen.getByText("This page is for students")).toBeInTheDocument();
+  });
+});
+
+describe("My FutureMe empty states", () => {
+  it("never shows the projects area to a student without projects, even without an invite code", () => {
+    render(
+      <StudentHomeView
+        data={{
+          ...home,
+          linked: false,
+          projects: [],
+          account: { ...home.account, invite_code: null },
+        }}
+        email={null}
+      />,
+    );
+    expect(screen.getByText("Your journey starts here")).toBeInTheDocument();
+    expect(screen.queryByText("My projects")).not.toBeInTheDocument();
   });
 });

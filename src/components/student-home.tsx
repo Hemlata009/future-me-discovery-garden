@@ -6,12 +6,16 @@ import {
   Circle,
   ClipboardList,
   Clock3,
+  Copy,
+  Share2,
+  UsersRound,
   Compass,
   PhoneCall,
   Sparkles,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { inviteLink } from "@/lib/student-signup";
 import { courseOptions, qualificationOptions } from "@/lib/application-profile";
 import { formatDuration } from "@/lib/counsellor-metrics";
 import type { StudentHome } from "@/lib/student-home.server";
@@ -45,7 +49,15 @@ const label = (options: readonly { value: string; label: string }[], value: stri
 const cap = (value: string) =>
   value.length <= 3 ? value.toUpperCase() : value[0]!.toUpperCase() + value.slice(1);
 
-export function StudentHomeView({ data, email }: { data: StudentHome; email: string | null }) {
+export function StudentHomeView({
+  data,
+  email,
+  onInvite,
+}: {
+  data: StudentHome;
+  email: string | null;
+  onInvite?: (kind: "parent" | "friend") => void;
+}) {
   if (data.access === "denied") {
     return (
       <div className="gd-empty">
@@ -89,7 +101,13 @@ export function StudentHomeView({ data, email }: { data: StudentHome; email: str
             <Link to="/discover">Start my discovery</Link>
           </Button>
         </div>
-      ) : (
+      ) : null}
+      {(!data.linked || data.projects.length === 0) && data.account.invite_code && (
+        <div className="mt-5">
+          <InviteCard account={data.account} onInvite={onInvite} />
+        </div>
+      )}
+      {data.linked && data.projects.length > 0 && (
         <div className="gd-body mt-5">
           <section className="gd-kpis" aria-label="My summary">
             <Stat icon={Sparkles} label="Projects" value={String(data.projects.length)} />
@@ -115,6 +133,8 @@ export function StudentHomeView({ data, email }: { data: StudentHome; email: str
               ))}
             </ol>
           </section>
+
+          {data.account.invite_code && <InviteCard account={data.account} onInvite={onInvite} />}
 
           <div className="gd-grid-2">
             <section className="gd-card">
@@ -240,5 +260,80 @@ function Stat({
       </div>
       <strong>{value}</strong>
     </article>
+  );
+}
+
+function InviteCard({
+  account,
+  onInvite,
+}: {
+  account: Ok["account"];
+  onInvite?: ((kind: "parent" | "friend") => void) | undefined;
+}) {
+  const origin =
+    typeof window === "undefined"
+      ? "https://future-me-discovery-garden.lovable.app"
+      : window.location.origin;
+  const rows = [
+    {
+      kind: "parent" as const,
+      title: "Invite your parents",
+      text: `I explored a tech project on FutureMe Family. Have a look with me:`,
+    },
+    {
+      kind: "friend" as const,
+      title: "Invite a friend",
+      text: `Find a tech project that fits you in 5 minutes on FutureMe Family:`,
+    },
+  ];
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  return (
+    <section className="gd-card">
+      <div className="gd-card-head">
+        <h2>
+          <UsersRound size={16} /> Invite your family & friends
+        </h2>
+      </div>
+      <div className="invite-grid">
+        {rows.map((row) => {
+          const link = inviteLink(origin, account.invite_code!, row.kind);
+          return (
+            <div key={row.kind} className="invite-row">
+              <strong>{row.title}</strong>
+              <code>{link}</code>
+              <div className="invite-actions">
+                <Button
+                  variant="soft"
+                  size="sm"
+                  onClick={() => {
+                    void navigator.clipboard
+                      ?.writeText(`${row.text} ${link}`)
+                      .catch(() => undefined);
+                    onInvite?.(row.kind);
+                  }}
+                >
+                  <Copy size={14} /> Copy link
+                </Button>
+                <Button asChild variant="soft" size="sm">
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(`${row.text} ${link}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => onInvite?.(row.kind)}
+                  >
+                    <Share2 size={14} /> WhatsApp
+                  </a>
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="gd-foot">
+        {plural(account.parent_visits, "parent visit")} ·{" "}
+        {plural(account.friend_visits, "friend visit")} · {account.invite_signups} friend
+        {account.invite_signups === 1 ? "" : "s"} joined
+      </p>
+    </section>
   );
 }

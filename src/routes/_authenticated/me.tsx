@@ -6,6 +6,7 @@ import { StudentHomeView } from "@/components/student-home";
 import { TeamShell } from "@/components/team-shell";
 import { useIdentity } from "@/lib/use-identity";
 import { Button } from "@/components/ui/button";
+import { recordStudentActivity } from "@/lib/student-activity.functions";
 import { getStudentHome } from "@/lib/student-home.functions";
 import { pageHead } from "@/lib/projects";
 
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/me")({
 function MyFutureMe() {
   const fetchHome = useServerFn(getStudentHome);
   const identity = useIdentity();
+  const record = useServerFn(recordStudentActivity);
   const query = useQuery({ queryKey: ["student-home"], queryFn: () => fetchHome(), retry: false });
   return (
     <TeamShell>
@@ -38,7 +40,17 @@ function MyFutureMe() {
           </Button>
         </div>
       )}
-      {query.data && <StudentHomeView data={query.data} email={identity.data?.email ?? null} />}
+      {query.data && (
+        <StudentHomeView
+          data={query.data}
+          email={identity.data?.email ?? null}
+          onInvite={(kind) =>
+            void record({ data: { events: [{ kind: "invite_created", detail: kind }] } }).catch(
+              () => undefined,
+            )
+          }
+        />
+      )}
     </TeamShell>
   );
 }

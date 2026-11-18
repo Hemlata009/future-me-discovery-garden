@@ -1,3 +1,4 @@
+import { summariseActivity } from "@/lib/behaviour-score";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -57,6 +58,12 @@ function lead(overrides: Partial<LeadView> = {}): LeadView {
     tier_reasons: [],
     application_clicks: 0,
     decision_steps: [],
+    lead_source: "callback_request",
+    student_user_id: null,
+    behaviour: summariseActivity([]),
+    score: 0,
+    score_band: "getting_started",
+    score_parts: [],
     ...overrides,
   };
 }

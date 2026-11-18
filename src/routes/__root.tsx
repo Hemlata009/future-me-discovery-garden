@@ -17,6 +17,7 @@ import { trackEntryOnce } from "@/lib/tracking";
 import { startEngagementHeartbeat } from "@/lib/engagement";
 import { missingCloudSettings } from "@/lib/cloud-config";
 import { CloudSetupScreen } from "@/components/cloud-setup-screen";
+import { JourneyTracker } from "@/components/journey-tracker";
 
 function NotFoundComponent() {
   return (
@@ -162,6 +163,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <JourneyTracker />
     </QueryClientProvider>
   );
 }

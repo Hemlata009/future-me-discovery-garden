@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, type FormEvent } from "react";
 import { GraduationCap, LockKeyhole, Users } from "lucide-react";
 import { z } from "zod";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { pageHead } from "@/lib/projects";
 import { destinationFor, primaryRole } from "@/lib/roles";
+import { recordStudentActivity } from "@/lib/student-activity.functions";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({ redirect: z.string().optional() }),
@@ -30,12 +32,13 @@ function AuthPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const recordActivity = useServerFn(recordStudentActivity);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function goHome(userId: string) {
+  async function goHome(userId: string, fresh = false) {
     const role = await roleOf(userId);
     if (!role) {
       await supabase.auth.signOut();
@@ -45,6 +48,15 @@ function AuthPage() {
       return false;
     }
     queryClient.removeQueries({ queryKey: ["identity"] });
+    if (role === "student" && fresh) {
+      await recordActivity({ data: { events: [{ kind: "login" }] } }).catch(() => undefined);
+      try {
+        // The login already counts as this session's visit.
+        sessionStorage.setItem("fm_student_session", "1");
+      } catch {
+        // ignore
+      }
+    }
     navigate({ to: destinationFor(role, search.redirect), replace: true });
     return true;
   }
@@ -74,7 +86,7 @@ function AuthPage() {
       setError("That email and password didn't match an account.");
       return;
     }
-    const ok = await goHome(data.user.id);
+    const ok = await goHome(data.user.id, true);
     if (!ok) setPending(false);
   }
 
@@ -128,10 +140,15 @@ function AuthPage() {
             </Button>
           </form>
           <p className="auth-foot">
-            New here? You don't need an account to explore.{" "}
+            New student?{" "}
+            <Link to="/signup" className="text-link">
+              Create a free account
+            </Link>{" "}
+            or{" "}
             <Link to="/discover" className="text-link">
-              Start a discovery
+              explore without one
             </Link>
+            .
           </p>
         </div>
       </section>

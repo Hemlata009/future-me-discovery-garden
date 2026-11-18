@@ -307,6 +307,7 @@ export function journeyFunnel(totals: GrowthTotals): FunnelStage[] {
 }
 
 export type LeadSort =
+  | "score"
   | "newest"
   | "oldest"
   | "most_engaged"
@@ -323,6 +324,7 @@ export function sortLeads(leads: LeadView[], sort: LeadSort): LeadView[] {
   const copy = [...leads];
   const time = (value: string | null) => (value ? Date.parse(value) : Number.POSITIVE_INFINITY);
   const compare: Record<LeadSort, (a: LeadView, b: LeadView) => number> = {
+    score: (a, b) => b.score - a.score,
     newest: (a, b) => b.created_at.localeCompare(a.created_at),
     oldest: (a, b) => a.created_at.localeCompare(b.created_at),
     most_engaged: (a, b) =>
@@ -351,6 +353,8 @@ export function csvCell(value: unknown): string {
 export function leadsToCsv(leads: LeadView[], labelFor: (userId: string | null) => string): string {
   const header = [
     "Lead ID",
+    "Behaviour score",
+    "Lead source",
     "Contact name",
     "Masked mobile",
     "Contact role",
@@ -375,6 +379,8 @@ export function leadsToCsv(leads: LeadView[], labelFor: (userId: string | null) 
   ];
   const rows = leads.map((lead) => [
     lead.id,
+    lead.score,
+    lead.lead_source === "student_signup" ? "Free sign-up" : "Callback request",
     lead.contact_name,
     lead.phone_masked,
     lead.who,
@@ -468,6 +474,11 @@ export function crmKpis(leads: LeadView[], now = new Date()) {
     family: count((lead) => lead.family_signals.length > 0),
     parent_callbacks: count((lead) => lead.who === "parent"),
     referral_leads: count((lead) => Boolean(lead.referral_code)),
+    signups: count((lead) => lead.lead_source === "student_signup"),
+    avg_score: leads.length
+      ? Math.round(leads.reduce((sum, lead) => sum + lead.score, 0) / leads.length)
+      : null,
+    very_active: count((lead) => lead.score_band === "very_active"),
     referral_visits: leads.reduce((sum, lead) => sum + lead.referral_count, 0),
     leads_generating_referrals: count((lead) => lead.referral_count > 0),
   };
