@@ -95,3 +95,8 @@
 - [x] Add three server-bound Anthropic tools with validated tool-result continuation.
 - [x] Return non-sensitive tools_used evidence and add dispatcher/loop regression tests.
 - [x] Run the full tests, changed-file lint, build and commit only this scoped change.
+
+## Published connection recovery (Nov 18)
+
+- [x] Diagnose the published homepage failure and restore its public Cloud URL without tracking `.env` or exposing private credentials.
+- [ ] Verify secure secret configuration, publish the corrected configuration and check the live pages.
