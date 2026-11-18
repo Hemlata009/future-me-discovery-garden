@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, BookOpen, Check, Copy, PhoneCall, Send, Share2, Users } from "lucide-react";
 
+import { ApplicationProfileDialog } from "@/components/application-profile";
 import { CounsellorDialog, FamilyDialog, ParentBriefLauncher } from "@/components/family-actions";
 import { Button } from "@/components/ui/button";
 import { honestyNote, inviteMessage } from "@/lib/family-copy";
@@ -84,9 +85,11 @@ function InviteFriend({ projectId, language }: { projectId: string; language: Pa
 export function ProjectDecisionCard({
   projectId,
   language,
+  classStatus,
 }: {
   projectId: string;
   language: ParentLanguage;
+  classStatus?: string | undefined;
 }) {
   const yearOne = niatFacts.find((fact) => fact.id === "year-one-topics");
   const degree = niatFacts.find((fact) => fact.id === "partner-university-degree");
@@ -150,7 +153,7 @@ export function ProjectDecisionCard({
             <h3>Continue to the NIAT application</h3>
             <p>
               Opens the official NIAT application page in a new tab. Nothing is submitted
-              automatically.
+              automatically. You can also save your details here to copy across yourself.
             </p>
             <Button asChild variant="premium">
               <a
@@ -169,6 +172,7 @@ export function ProjectDecisionCard({
                 Continue to application <ArrowUpRight />
               </a>
             </Button>
+            <ApplicationProfileDialog projectId={projectId} classStatus={classStatus} />
           </li>
           <li className="next-step-card">
             <Users className="text-primary" aria-hidden="true" />

@@ -3742,3 +3742,33 @@ h2 {
     padding: 30px 20px;
   }
 }
+
+/* Saved pre-application details: review list */
+.profile-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--secondary);
+  font-size: 13px;
+}
+.profile-summary div {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: 10px;
+}
+.profile-summary dt {
+  color: var(--muted-foreground);
+}
+.profile-summary dd {
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .profile-summary div {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

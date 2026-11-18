@@ -77,6 +77,14 @@ To remove access: `delete from public.user_roles where role = 'admin' and user_i
 
 Authorised admins and assigned counsellors use `/counsellor` for consented lead follow-up, engagement evidence and real lead analytics. See [the counsellor provisioning, security and metric guide](docs/counsellor-workspace.md) for the one-time SQL, exact definitions and retention implications. No accounts or roles are created automatically.
 
+## Saved pre-application details
+
+Students can save their own name, mobile, email, city/state, qualification and intended
+course behind explicit consent, then review, copy or download them before filling in
+the official NIAT portal by hand. It is not an application and nothing is sent to NIAT.
+It needs one additive table created through Lovable: see
+[docs/pre-application-profile.md](docs/pre-application-profile.md).
+
 ## Growth dashboard formulas
 
 All numbers are live database aggregates over UTC dates; a rate with a zero denominator shows "—".

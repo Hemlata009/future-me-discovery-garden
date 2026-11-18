@@ -21,6 +21,7 @@ import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCounsellorRouteImport } from './routes/_authenticated/counsellor'
+import { Route as ApiApplicationProfileRouteImport } from './routes/api/application-profile'
 import { Route as ApiCounsellorRequestRouteImport } from './routes/api/counsellor-request'
 import { Route as ApiEngagementRouteImport } from './routes/api/engagement'
 import { Route as ApiGenerateProjectRouteImport } from './routes/api/generate-project'
@@ -90,6 +91,11 @@ const AuthenticatedCounsellorRoute = AuthenticatedCounsellorRouteImport.update({
   path: '/counsellor',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiApplicationProfileRoute = ApiApplicationProfileRouteImport.update({
+  id: '/api/application-profile',
+  path: '/api/application-profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCounsellorRequestRoute = ApiCounsellorRequestRouteImport.update({
   id: '/api/counsellor-request',
   path: '/api/counsellor-request',
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/showcase': typeof ShowcaseRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/counsellor': typeof AuthenticatedCounsellorRoute
+  '/api/application-profile': typeof ApiApplicationProfileRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/showcase': typeof ShowcaseRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/counsellor': typeof AuthenticatedCounsellorRoute
+  '/api/application-profile': typeof ApiApplicationProfileRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/showcase': typeof ShowcaseRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/counsellor': typeof AuthenticatedCounsellorRoute
+  '/api/application-profile': typeof ApiApplicationProfileRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
     | '/showcase'
     | '/admin'
     | '/counsellor'
+    | '/api/application-profile'
     | '/api/counsellor-request'
     | '/api/engagement'
     | '/api/generate-project'
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/showcase'
     | '/admin'
     | '/counsellor'
+    | '/api/application-profile'
     | '/api/counsellor-request'
     | '/api/engagement'
     | '/api/generate-project'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/showcase'
     | '/_authenticated/admin'
     | '/_authenticated/counsellor'
+    | '/api/application-profile'
     | '/api/counsellor-request'
     | '/api/engagement'
     | '/api/generate-project'
@@ -286,6 +298,7 @@ export interface RootRouteChildren {
   ProjectRoute: typeof ProjectRoute
   ProjectsRoute: typeof ProjectsRoute
   ShowcaseRoute: typeof ShowcaseRoute
+  ApiApplicationProfileRoute: typeof ApiApplicationProfileRoute
   ApiCounsellorRequestRoute: typeof ApiCounsellorRequestRoute
   ApiEngagementRoute: typeof ApiEngagementRoute
   ApiGenerateProjectRoute: typeof ApiGenerateProjectRoute
@@ -383,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCounsellorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/application-profile': {
+      id: '/api/application-profile'
+      path: '/api/application-profile'
+      fullPath: '/api/application-profile'
+      preLoaderRoute: typeof ApiApplicationProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/counsellor-request': {
       id: '/api/counsellor-request'
       path: '/api/counsellor-request'
@@ -473,6 +493,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectRoute: ProjectRoute,
   ProjectsRoute: ProjectsRoute,
   ShowcaseRoute: ShowcaseRoute,
+  ApiApplicationProfileRoute: ApiApplicationProfileRoute,
   ApiCounsellorRequestRoute: ApiCounsellorRequestRoute,
   ApiEngagementRoute: ApiEngagementRoute,
   ApiGenerateProjectRoute: ApiGenerateProjectRoute,

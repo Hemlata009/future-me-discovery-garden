@@ -204,6 +204,7 @@ function GeneratedProjectView({
         <ProjectDecisionCard
           projectId={generated.id}
           language={generated.language as "english" | "hindi" | "telugu"}
+          classStatus={generated.class_status}
         />
 
         <section className="project-roadmap">
