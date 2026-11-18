@@ -143,6 +143,7 @@ const JOURNEY_EVENTS = [
   "parent_brief_opened",
   "parent_question_asked",
   "landing_visit",
+  "counsellor_requested",
 ];
 
 /**
