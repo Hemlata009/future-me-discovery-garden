@@ -57,7 +57,7 @@ function AuthPage() {
             Team accounts are by invitation only.
           </p>
           <form className="mt-6 grid gap-3" onSubmit={submit}>
-            <label className="grid gap-1 text-sm">
+            <label className="family-field">
               Email
               <input
                 type="email"
@@ -67,7 +67,7 @@ function AuthPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
-            <label className="grid gap-1 text-sm">
+            <label className="family-field">
               Password
               <input
                 type="password"
