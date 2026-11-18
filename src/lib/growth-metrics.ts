@@ -1,3 +1,5 @@
+import type { JourneyDetail } from "@/lib/growth-journey";
+
 // Browser-safe: turns the database's raw counts into dashboard metrics.
 // Every rate is null (shown as "—") when its denominator is zero, never a guess.
 
@@ -93,6 +95,8 @@ export function referralJourneySteps(j: ReferralJourney) {
 
 export type GrowthReport = {
   referral_journey?: ReferralJourney;
+  /** Unique-vs-event journey figures; absent for answer-filtered cohorts or on read failure. */
+  journey_detail?: JourneyDetail;
   start_cohort?: StartCohort;
   totals: GrowthTotals;
   shares_by_channel: Record<string, number>;
@@ -139,22 +143,6 @@ export function deriveMetrics(t: GrowthTotals, cohort?: StartCohort) {
     niatOutboundRate: rate(t.niat_outbound_visitors, t.visitors),
     qualifiedReferralRate: rate(t.qualified_referrals, t.ref_visitors),
   };
-}
-
-/** Live family-funnel counts and each step's conversion from the preceding step. */
-export function familyFunnel(t: GrowthTotals) {
-  const values = [
-    t.briefs_generated,
-    t.briefs_shared,
-    t.briefs_opened,
-    t.parent_questions,
-    t.counsellor_requests,
-    t.application_clicks,
-  ];
-  return values.map((value, index) => ({
-    value,
-    conversion: index === 0 ? null : rate(value, values[index - 1]!),
-  }));
 }
 
 export function isEmptyReport(t: GrowthTotals): boolean {

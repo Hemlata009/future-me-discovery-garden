@@ -199,7 +199,7 @@ async function relatedData(db: Db, sources: LeadSource[], range?: { from: string
       ...(await readPages<ReferralOwner>((from, to) =>
         db
           .from("referral_links")
-          .select("code, owner_visitor_hash")
+          .select("code, owner_visitor_hash, generated_project_id")
           .in("owner_visitor_hash", hashes)
           .range(from, to),
       )),

@@ -194,3 +194,29 @@ describe("team member emails for admins", () => {
     ]);
   });
 });
+
+describe("lead referral visits (regression: visit stored without its link code)", () => {
+  const PROJECT = "22222222-2222-4222-8222-222222222222";
+  const owners = [
+    { code: "OWNLINK00001", owner_visitor_hash: visitor, generated_project_id: PROJECT },
+    { code: "OTHERLINK001", owner_visitor_hash: "d".repeat(64), generated_project_id: PROJECT },
+  ];
+
+  it("credits a referral visit with no stored code through the linked project", () => {
+    const visit = event("r1", "referral_visit", "2026-11-11T10:00:00.000Z", {
+      visitor_hash: "e".repeat(64),
+      referral_code: null,
+      generated_project_id: PROJECT,
+    });
+    expect(buildLeadView(lead, [visit], [], owners, "2026-11-11").referral_count).toBe(1);
+  });
+
+  it("does not credit a visit that came through someone else's known link", () => {
+    const visit = event("r2", "referral_visit", "2026-11-11T10:00:00.000Z", {
+      visitor_hash: "e".repeat(64),
+      referral_code: "OTHERLINK001",
+      generated_project_id: PROJECT,
+    });
+    expect(buildLeadView(lead, [visit], [], owners, "2026-11-11").referral_count).toBe(0);
+  });
+});

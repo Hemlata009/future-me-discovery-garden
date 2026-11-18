@@ -14,7 +14,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-import { familyFunnel, type GrowthTotals } from "@/lib/growth-metrics";
+import { buildJourneyDetail, ratio } from "@/lib/growth-journey";
 import {
   counsellorRequestSchema,
   parentAnswerSchema,
@@ -228,27 +228,27 @@ describe("qualified referrals and family rates", () => {
       isQualifiedReferral({ ...referral, firstTouchReferralCode: null, completedDiscoveries: 1 }),
     ).toBe(false);
   });
-  it("uses a dash-ready null conversion when a family-funnel denominator is zero", () => {
-    const totals = {
-      briefs_generated: 0,
-      briefs_shared: 0,
-      briefs_opened: 0,
-      parent_questions: 0,
-      counsellor_requests: 0,
-      application_clicks: 0,
-    } as GrowthTotals;
-    expect(familyFunnel(totals).map((step) => step.conversion)).toEqual([
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-    ]);
-    expect(familyFunnel({ ...totals, briefs_generated: 2, briefs_shared: 1 })[1]).toEqual({
-      value: 1,
-      conversion: 0.5,
-    });
+  it("rates family signals against briefs generated, with a dash-ready null for zero", () => {
+    expect(ratio(0, 0).value).toBeNull();
+    const at = "2026-11-15T10:00:00Z";
+    const base = {
+      visitor_hash: "v",
+      generated_project_id: null,
+      cta: null,
+      referral_code: null,
+      failure_kind: null,
+      utm_source: null,
+      created_at: at,
+    };
+    const { family } = buildJourneyDetail(
+      [
+        { ...base, event_name: "parent_brief_generated", parent_brief_id: "b1" },
+        { ...base, event_name: "parent_brief_generated", parent_brief_id: "b2" },
+        { ...base, event_name: "parent_brief_shared", parent_brief_id: "b1" },
+      ],
+      [],
+    );
+    expect(ratio(family.cohort_shared, family.cohort_briefs).value).toBe(0.5);
   });
 });
 

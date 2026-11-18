@@ -950,6 +950,7 @@ export function CampaignsSection({
                   <td>
                     {row.campaign}
                     {row.highlighted && <small>Track B warm-lead test</small>}
+                    {row.test && <small>QA / test traffic, not campaign results</small>}
                   </td>
                   <td>{row.visitors ?? "—"}</td>
                   <td>{row.generations ?? "—"}</td>

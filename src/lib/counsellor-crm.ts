@@ -2,6 +2,7 @@
 // see. Priorities and queues come from observable operational facts, never
 // from predictions of admission, conversion or student quality.
 import type { CounsellorAssignee, LeadStatus, LeadView } from "@/lib/counsellor-metrics";
+import { isTestTraffic } from "@/lib/growth-journey";
 import { rate, type GrowthReport, type GrowthTotals } from "@/lib/growth-metrics";
 
 export const WARM_LEAD_CAMPAIGN = "futureme_family_warmlead_test";
@@ -151,6 +152,8 @@ export type CampaignRow = {
   /** Leads with an application-link click ÷ leads from this source. */
   click_rate: number | null;
   highlighted: boolean;
+  /** Tagged with a QA/test source; kept visible but never treated as real campaign results. */
+  test: boolean;
 };
 
 export function campaignPerformance(
@@ -175,7 +178,8 @@ export function campaignPerformance(
         family: 0,
         application_click_leads: 0,
         click_rate: null,
-        highlighted: campaign === WARM_LEAD_CAMPAIGN,
+        highlighted: campaign === WARM_LEAD_CAMPAIGN && !isTestTraffic(source),
+        test: isTestTraffic(source),
       };
       rows.set(key, existing);
     }
@@ -199,6 +203,7 @@ export function campaignPerformance(
     .map((item) => ({ ...item, click_rate: rate(item.application_click_leads, item.leads) }))
     .sort(
       (a, b) =>
+        Number(a.test) - Number(b.test) ||
         Number(b.highlighted) - Number(a.highlighted) ||
         b.leads - a.leads ||
         (b.visitors ?? 0) - (a.visitors ?? 0),

@@ -179,6 +179,24 @@ describe("attribution", () => {
     expect(rows[1]).toMatchObject({ source: "(none)", leads: 1, visitors: 0 });
   });
 
+  it("never highlights QA/test traffic as the real warm-lead campaign", () => {
+    const rows = campaignPerformance(
+      [lead({ utm_source: "qa", utm_campaign: WARM_LEAD_CAMPAIGN })],
+      [
+        {
+          source: "qa",
+          medium: "(none)",
+          campaign: WARM_LEAD_CAMPAIGN,
+          visitors: 4,
+          generations: 1,
+          shares: 0,
+          niat_outbound: 0,
+        },
+      ],
+    );
+    expect(rows[0]).toMatchObject({ source: "qa", test: true, highlighted: false, visitors: 4 });
+  });
+
   it("leaves traffic columns unavailable for counsellors without the growth report", () => {
     expect(campaignPerformance([lead()])[0]?.visitors).toBeNull();
   });

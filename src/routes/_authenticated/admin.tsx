@@ -35,13 +35,14 @@ import { Brand } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/projects";
 import { getGrowthReport, type ReportFilters } from "@/lib/growth-report.functions";
+import { describeRate, isTestTraffic, ratio } from "@/lib/growth-journey";
 import {
   deriveMetrics,
-  familyFunnel,
   referralJourneySteps,
   formatRate,
   isEmptyReport,
   presetRange,
+  type GrowthReport,
   type Named,
 } from "@/lib/growth-metrics";
 
@@ -137,6 +138,10 @@ function Admin() {
   const report = query.data?.access === "ok" ? query.data.report : null;
   const t = report?.totals;
   const m = t ? deriveMetrics(t, report?.start_cohort) : null;
+  const d = report?.journey_detail;
+  const realCampaigns = report?.campaigns.filter((c) => !isTestTraffic(c.source)) ?? [];
+  const testCampaigns = report?.campaigns.filter((c) => isTestTraffic(c.source)) ?? [];
+  const testSources = [...new Set(testCampaigns.map((c) => c.source))].join(", ");
 
   return (
     <div className="admin-layout">
@@ -268,6 +273,14 @@ function Admin() {
                 matching discovery. Overall funnel numbers appear when answer filters are cleared.
               </p>
             )}
+            {d && d.test_traffic_visitors > 0 && (
+              <p className="notice text-sm mb-4" role="note">
+                Includes {d.test_traffic_visitors.toLocaleString("en-US")} unique test-traffic
+                visitor{d.test_traffic_visitors === 1 ? "" : "s"} (source {testSources || "qa/test"}
+                ). Test rows are listed separately and kept out of campaign performance; pick a real
+                Source in the filter to exclude them from every number.
+              </p>
+            )}
             <div className="metrics-grid">
               <Metric
                 Icon={Eye}
@@ -286,12 +299,21 @@ function Admin() {
                 text={formatRate(m.completionRate)}
                 note={completionNote(t.segmented, report.start_cohort, t.completions)}
               />
-              <Metric Icon={Sparkles} label="Successful generations" value={t.gen_ok} />
+              <Metric
+                Icon={Sparkles}
+                label="Successful generations"
+                value={t.gen_ok}
+                note={
+                  d
+                    ? `Events · ${d.funnel.generated_projects} unique projects`
+                    : "Generation events"
+                }
+              />
               <Metric
                 Icon={Activity}
                 label="Generation success rate"
                 text={formatRate(m.generationSuccessRate)}
-                note={`${t.gen_fail} failed after reaching the AI · ${t.gen_rejected} turned away before it`}
+                note={`${t.gen_ok} successes ÷ ${t.gen_ok + t.gen_fail} generation events that reached the AI · ${t.gen_rejected} turned away before it`}
               />
               <Metric
                 Icon={Share2}
@@ -302,8 +324,15 @@ function Admin() {
               <Metric
                 Icon={Share2}
                 label="Projects with at least one share action"
-                value={t.shared_projects}
-                note={`${formatRate(m.shareRate)} of successful generations`}
+                value={d ? d.funnel.shared_projects : t.shared_projects}
+                note={
+                  d
+                    ? describeRate(
+                        ratio(d.funnel.shared_projects, d.funnel.generated_projects),
+                        "unique projects generated in this period",
+                      )
+                    : "Unique shared projects (any generation date)"
+                }
               />
               <Metric
                 Icon={Users}
@@ -311,12 +340,23 @@ function Admin() {
                 value={t.ref_visits}
                 note={`${t.ref_visitors} unique referral visitors`}
               />
-              <Metric Icon={MousePointer2} label="NIAT pop-up opens" value={t.niat_modal_opens} />
               <Metric
                 Icon={MousePointer2}
-                label="NIAT outbound clicks"
+                label="Application-link clicks (start_application)"
+                value={t.application_clicks}
+                note={`Events${d ? ` · ${d.niat.application_visitors} unique visitors` : ""} · not submitted applications`}
+              />
+              <Metric
+                Icon={MousePointer2}
+                label="NIAT website clicks (visit_niat)"
                 value={t.niat_outbound}
-                note={`${t.niat_outbound_visitors} unique visitors · ${t.ref_niat_outbound} from referrals`}
+                note={`Events · ${t.niat_outbound_visitors} unique visitors · ${t.ref_niat_outbound} from referrals`}
+              />
+              <Metric
+                Icon={MousePointer2}
+                label="NIAT info pop-up opens (explore_niat)"
+                value={t.niat_modal_opens}
+                note="Events on this site; no outbound visit"
               />
               <Metric
                 Icon={MousePointer2}
@@ -402,35 +442,77 @@ function Admin() {
                 <Activity size={17} className="inline mr-2 text-primary" />
                 From discovery to possibility.
               </h2>
-              <p>
-                {t.segmented
-                  ? "Cohort funnel · share of visitors in this cohort"
-                  : "Overall funnel · share of unique visitors"}
-              </p>
-              {[
-                { name: "Visitors", value: t.visitors },
-                ...(t.starts === null ? [] : [{ name: "Discoveries started", value: t.starts }]),
-                { name: "Discoveries completed", value: t.completions },
-                { name: "Projects generated", value: t.gen_ok },
-                { name: "Projects with a share action", value: t.shared_projects },
-                { name: "Visitors who clicked out to NIAT", value: t.niat_outbound_visitors },
-              ].map((item) => {
-                const percent = Math.min(
-                  100,
-                  Math.round((rate(item.value, t.visitors) ?? 0) * 100),
-                );
-                return (
-                  <div className="funnel-row" key={item.name}>
-                    <span>{item.name}</span>
-                    <div className="funnel-bar">
-                      {Array.from({ length: 100 }, (_, i) => (
-                        <span key={i} className={i < percent ? "funnel-segment" : ""} />
-                      ))}
-                    </div>
-                    <strong>{item.value.toLocaleString("en-US")}</strong>
-                  </div>
-                );
-              })}
+              {d ? (
+                <>
+                  <p>
+                    Each row states its unit. Rates name their numerator and denominator and are not
+                    chained, because these groups don't all nest inside each other.
+                  </p>
+                  <Table
+                    head={["Step", "Count", "Unit", "Rate (numerator ÷ denominator)"]}
+                    rows={[
+                      ["Visitors", t.visitors, "unique visitors", "—"],
+                      [
+                        "Started discovery",
+                        d.funnel.starters,
+                        "unique visitors",
+                        describeRate(ratio(d.funnel.starters, t.visitors), "unique visitors"),
+                      ],
+                      [
+                        "Completed discovery",
+                        d.funnel.completers,
+                        "unique visitors",
+                        describeRate(ratio(d.funnel.completers, t.visitors), "unique visitors"),
+                      ],
+                      ["Projects generated", d.funnel.generated_projects, "unique projects", "—"],
+                      ["Successful generation events", d.funnel.generation_events, "events", "—"],
+                      [
+                        "Projects with a share action",
+                        d.funnel.shared_projects,
+                        "unique projects",
+                        describeRate(
+                          ratio(d.funnel.shared_projects, d.funnel.generated_projects),
+                          "unique projects generated",
+                        ),
+                      ],
+                      [
+                        "Clicked the application link",
+                        d.niat.application_visitors,
+                        "unique visitors",
+                        describeRate(
+                          ratio(d.niat.application_visitors, t.visitors),
+                          "unique visitors",
+                        ),
+                      ],
+                    ]}
+                  />
+                  <p className="mt-4">
+                    Completion among people who started in this period:{" "}
+                    {completionNote(t.segmented, report.start_cohort, t.completions)}. An
+                    application-link click is not a submitted application.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    {t.segmented
+                      ? "Cohort view: unique-visitor steps aren't available with answer filters."
+                      : "The unique-visitor breakdown couldn't be loaded."}{" "}
+                    Units are shown for each row.
+                  </p>
+                  <Table
+                    head={["Step", "Count", "Unit"]}
+                    rows={[
+                      ["Visitors", t.visitors, "unique visitors"],
+                      ...(t.starts === null ? [] : [["Discoveries started", t.starts, "events"]]),
+                      ["Discoveries completed", t.completions, "events"],
+                      ["Successful generations", t.gen_ok, "events"],
+                      ["Projects with a share action", t.shared_projects, "unique projects"],
+                      ["Application-link clicks", t.application_clicks, "events"],
+                    ]}
+                  />
+                </>
+              )}
             </section>
 
             <section className="chart-panel">
@@ -458,106 +540,197 @@ function Admin() {
                 ]}
               />
               <p className="mt-4">
-                Qualified referrals are distinct first-touch referred visitors who completed a
-                discovery. Link clicks alone do not qualify.
+                Visits are referral_visit events; visitors are unique. Qualification rate ={" "}
+                {describeRate(
+                  ratio(t.qualified_referrals, t.ref_visitors),
+                  "unique referral visitors",
+                )}
+                . Qualified referrals are first-touch referred visitors who completed a discovery;
+                link clicks alone do not qualify.
               </p>
             </section>
 
             <section className="chart-panel funnel">
               <h2>Referred visitor journey.</h2>
               <p>
-                Distinct visitors who opened someone else's referral link, then what they did
-                afterwards. Rates are a share of referred visitors; campaign filters apply, answer
-                filters do not.
+                Unique visitors who opened someone else's referral link, then what they did
+                afterwards. Their earlier first touch, if any, stays their attribution. Each rate =
+                visitors at that step ÷ referred visitors. Campaign filters apply; answer filters do
+                not.
               </p>
               {report.referral_journey ? (
                 <Table
-                  head={["Step", "Visitors", "Of referred visitors"]}
+                  head={["Step", "Unique visitors", "Rate (÷ referred visitors)"]}
                   rows={referralJourneySteps(report.referral_journey).map((step, index) => [
                     step.label,
                     step.value,
-                    index === 0 ? "—" : formatRate(step.rate),
+                    index === 0
+                      ? "—"
+                      : describeRate(
+                          ratio(step.value, report.referral_journey!.referred_visitors),
+                          "referred visitors",
+                        ),
                   ])}
                 />
               ) : (
                 <p className="mt-4">This view couldn't be loaded just now.</p>
               )}
+              {d && d.referral.matched_by_project > 0 && (
+                <p className="mt-4 text-xs text-muted-foreground">
+                  {d.referral.matched_by_project} referred visitor
+                  {d.referral.matched_by_project === 1 ? " was" : "s were"} matched through the
+                  linked project, because the visit was stored without its link code (the visitor
+                  had an earlier first touch). See docs/growth-reporting.md.
+                </p>
+              )}
             </section>
 
             <section className="chart-panel funnel">
-              <h2>Family funnel.</h2>
+              <h2>Family engagement.</h2>
+              {d ? (
+                <>
+                  <p>
+                    Brief cohort: Parent Briefs generated in this period and what has happened to
+                    those same briefs. Each rate = briefs with that signal ÷ briefs generated.
+                  </p>
+                  <Table
+                    head={["Signal", "Unique briefs", "Rate (÷ briefs generated in period)"]}
+                    rows={[
+                      ["Generated in this period", d.family.cohort_briefs, "—"],
+                      [
+                        "Shared at least once",
+                        d.family.cohort_shared,
+                        describeRate(
+                          ratio(d.family.cohort_shared, d.family.cohort_briefs),
+                          "briefs generated",
+                        ),
+                      ],
+                      [
+                        "Opened at least once (opener not verified as a parent)",
+                        d.family.cohort_opened,
+                        describeRate(
+                          ratio(d.family.cohort_opened, d.family.cohort_briefs),
+                          "briefs generated",
+                        ),
+                      ],
+                      [
+                        "At least one parent question",
+                        d.family.cohort_questioned,
+                        describeRate(
+                          ratio(d.family.cohort_questioned, d.family.cohort_briefs),
+                          "briefs generated",
+                        ),
+                      ],
+                    ]}
+                  />
+                </>
+              ) : (
+                <p>The brief cohort can't be calculated for this view.</p>
+              )}
+              <h3 className="mt-6 font-medium">All engagement in this period</h3>
               <p>
-                Live brief, question, counsellor-request and application-click activity. Rates use
-                the preceding step; a zero denominator shows “—”.
+                Separate counts, not steps of one funnel: a brief can be opened without a recorded
+                share, and activity can relate to briefs generated earlier.
               </p>
               <Table
-                head={["Step", "Count", "Previous-step conversion"]}
+                head={["Activity", "Count", "Unit"]}
                 rows={[
-                  ...familyFunnel(t).map((step, index) => [
-                    [
-                      "Parent briefs generated",
-                      "Briefs shared",
-                      "Briefs opened",
-                      "Parent questions asked",
-                      "Counsellor requests",
-                      "Start application clicks",
-                    ][index]!,
-                    step.value,
-                    index === 0 ? "—" : formatRate(step.conversion),
-                  ]),
-                  ["Counsellor requests not delivered to webhook", t.counsellor_undelivered, "—"],
+                  [
+                    "Parent Brief share actions",
+                    d ? d.family.share_events : t.briefs_shared,
+                    d ? "events (delivery not proven)" : "unique briefs",
+                  ],
+                  [
+                    "Parent Briefs opened",
+                    d ? d.family.briefs_opened_any : t.briefs_opened,
+                    "unique briefs (any generation date)",
+                  ],
+                  ["Parent questions asked", t.parent_questions, "events"],
+                  ["Counsellor requests", t.counsellor_requests, "consented requests"],
+                  [
+                    "Counsellor requests not delivered to webhook",
+                    t.counsellor_undelivered,
+                    "requests",
+                  ],
+                  ["Application-link clicks", t.application_clicks, "events (not applications)"],
+                ]}
+              />
+            </section>
+
+            <section className="chart-panel">
+              <h2>NIAT links.</h2>
+              <p>Three different actions. None of them is a submitted or completed application.</p>
+              <Table
+                head={["Action", "What it means", "Events", "Unique visitors"]}
+                rows={[
+                  [
+                    "start_application",
+                    "Clicked through to the official NIAT application page",
+                    t.application_clicks,
+                    d ? d.niat.application_visitors : "—",
+                  ],
+                  [
+                    "visit_niat",
+                    "Clicked through to the official NIAT website",
+                    t.niat_outbound,
+                    t.niat_outbound_visitors,
+                  ],
+                  [
+                    "explore_niat",
+                    "Opened the NIAT information pop-up on this site",
+                    t.niat_modal_opens,
+                    d ? d.niat.info_visitors : "—",
+                  ],
                 ]}
               />
             </section>
 
             <section className="chart-panel">
               <h2>Conversion by acquisition source.</h2>
-              <p>First touch: referral link, campaign tags, or direct</p>
+              <p>
+                First touch: referral link, campaign tags, or direct. Visitors are unique visitors;
+                generations are events.
+              </p>
               <Table
                 head={[
                   "Source",
                   "Visitors",
                   "Generations",
-                  "Visitors who clicked out to NIAT",
-                  "Click-through",
+                  "Unique visitors who clicked to the NIAT website",
+                  "NIAT website click-through",
                 ]}
                 rows={report.acquisition.map((a) => [
                   a.name,
                   a.visitors,
                   a.generations,
                   a.outbound_visitors,
-                  formatRate(rate(a.outbound_visitors, a.visitors)),
+                  describeRate(ratio(a.outbound_visitors, a.visitors), "unique visitors"),
                 ])}
               />
             </section>
 
             <section className="chart-panel">
               <h2>Campaign performance.</h2>
-              {report.campaigns.length === 0 ? (
-                <p>No visits with campaign tags in this period.</p>
+              <p>
+                Real campaign traffic only. Visitors are unique; generations, shares and NIAT
+                website clicks are events.
+              </p>
+              {realCampaigns.length === 0 ? (
+                <p className="mt-4">No real campaign-tagged visits in this period.</p>
               ) : (
-                <Table
-                  head={[
-                    "Source",
-                    "Medium",
-                    "Campaign",
-                    "Visitors",
-                    "Generations",
-                    "Share actions",
-                    "NIAT outbound clicks",
-                  ]}
-                  rows={report.campaigns.map((c) => [
-                    c.source,
-                    c.medium,
-                    c.campaign,
-                    c.visitors,
-                    c.generations,
-                    c.shares,
-                    c.niat_outbound,
-                  ])}
-                />
+                <CampaignTable rows={realCampaigns} />
               )}
             </section>
+            {testCampaigns.length > 0 && (
+              <section className="chart-panel">
+                <h2>Test / QA traffic.</h2>
+                <p>
+                  Visits tagged with a test source (qa, test, testing, internal). Kept for the
+                  record and excluded from campaign performance above; attribution is unchanged.
+                </p>
+                <CampaignTable rows={testCampaigns} />
+              </section>
+            )}
           </>
         )}
       </main>
@@ -651,6 +824,31 @@ function Distribution({
         </>
       )}
     </section>
+  );
+}
+
+function CampaignTable({ rows }: { rows: GrowthReport["campaigns"] }) {
+  return (
+    <Table
+      head={[
+        "Source",
+        "Medium",
+        "Campaign",
+        "Unique visitors",
+        "Generations (events)",
+        "Share actions (events)",
+        "NIAT website clicks (events)",
+      ]}
+      rows={rows.map((c) => [
+        c.source,
+        c.medium,
+        c.campaign,
+        c.visitors,
+        c.generations,
+        c.shares,
+        c.niat_outbound,
+      ])}
+    />
   );
 }
 

@@ -59,7 +59,12 @@ export type Heartbeat = {
   active_seconds: number;
   created_at: string;
 };
-export type ReferralOwner = { code: string; owner_visitor_hash: string };
+export type ReferralOwner = {
+  code: string;
+  owner_visitor_hash: string;
+  /** Project the link points to; referral_visit events always carry it. */
+  generated_project_id?: string;
+};
 export type FamilyEvidence = { key: string; label: string; at: string; note: string };
 export type NamedMetric = { name: string; value: number };
 
@@ -232,16 +237,20 @@ export function buildLeadView(
   const relatedBeats = heartbeats.filter(
     (beat) => lead.visitor_hash !== null && beat.visitor_hash === lead.visitor_hash,
   );
-  const ownedCodes = new Set(
-    referralOwners
-      .filter((link) => link.owner_visitor_hash === lead.visitor_hash)
-      .map((link) => link.code),
-  );
+  const owned = referralOwners.filter((link) => link.owner_visitor_hash === lead.visitor_hash);
+  const ownedCodes = new Set(owned.map((link) => link.code));
+  const ownedProjects = new Set(owned.map((link) => link.generated_project_id).filter(Boolean));
+  const knownCodes = new Set(referralOwners.map((link) => link.code));
+  // referral_code on an event is the visitor's first touch. A visitor whose first touch
+  // was direct has no code on the referral_visit row, so fall back to the linked project.
   const referralCount = events.filter(
     (event) =>
       event.event_name === "referral_visit" &&
-      event.referral_code &&
-      ownedCodes.has(event.referral_code),
+      lead.visitor_hash !== null &&
+      event.visitor_hash !== lead.visitor_hash &&
+      (event.referral_code && knownCodes.has(event.referral_code)
+        ? ownedCodes.has(event.referral_code)
+        : !!event.generated_project_id && ownedProjects.has(event.generated_project_id)),
   ).length;
   const meaningful = related.filter(isMeaningful);
   const decisions = new Set<string>();
