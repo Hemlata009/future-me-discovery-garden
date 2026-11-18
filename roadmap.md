@@ -107,3 +107,13 @@
 - [x] Strengthen generated-project and parent decision guidance without changing functionality or tracking.
 - [x] Add focused regression tests; verify campaign/default journeys, languages, actions, phone/desktop layouts, lint and build.
 - [ ] Commit this focused change without publishing.
+
+## Phase 1 counsellor lead intelligence workspace (Nov 18)
+
+- [ ] Audit lead, engagement, referral and role data paths; define privacy-safe metrics.
+- [ ] Add additive lead-management and active-engagement schema with equivalent RLS.
+- [ ] Add server-validated engagement heartbeat and clear measurement notice.
+- [ ] Build protected /counsellor analytics, lead list/detail and authorised operational actions.
+- [ ] Document counsellor provisioning and retention implications.
+- [ ] Add acceptance/security tests; verify real workflows, phone/desktop layouts, lint and build.
+- [ ] Commit one focused Phase 1 change without publishing.

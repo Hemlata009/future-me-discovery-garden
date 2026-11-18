@@ -73,6 +73,10 @@ on conflict (user_id, role) do nothing;
 
 To remove access: `delete from public.user_roles where role = 'admin' and user_id = (select id from auth.users where email = 'ADMIN_EMAIL_HERE');`
 
+## Counsellor lead workspace
+
+Authorised admins and assigned counsellors use `/counsellor` for consented lead follow-up, engagement evidence and real lead analytics. See [the counsellor provisioning, security and metric guide](docs/counsellor-workspace.md) for the one-time SQL, exact definitions and retention implications. No accounts or roles are created automatically.
+
 ## Growth dashboard formulas
 
 All numbers are live database aggregates over UTC dates; a rate with a zero denominator shows "—".
@@ -89,7 +93,7 @@ All numbers are live database aggregates over UTC dates; a rate with a zero deno
 
 - `VISITOR_HASH_SALT` (required, 32+ random characters, server secret). Without it, visitor-tracking and generation requests fail outside localhost. Changing it resets all visitor identities.
 - Team accounts are invitation-only: public sign-up is disabled. Add the person as a user from the backend's Users section, then grant admin with the SQL above. New accounts never get a role automatically.
-- Retention: `purge_expired_growth_data()` runs daily at 03:30 UTC via `/api/public/cron/purge-growth-data` (cron secret required). It deletes generation-limit records older than 30 days, growth events older than 395 days (~13 months), and counsellor requests older than 180 days. Minimums are enforced (2, 90 and 30 days respectively).
+- Retention: `purge_expired_growth_data()` runs daily at 03:30 UTC via `/api/public/cron/purge-growth-data` (cron secret required). It deletes generation-limit records older than 30 days, growth events and inactive engagement sessions older than 395 days (~13 months), and counsellor requests older than 180 days. Minimums are enforced (2, 90 and 30 days respectively).
 - Tracking abuse protection: same-origin check, JSON only, 2 KB body cap, a visitor cookie must already exist (issued by `/api/visitor`), fixed event/field allow-list, 200 events per visitor per 10 minutes, server-side dedupe. Write failures return 503, rate limits 429.
 
 ## Development

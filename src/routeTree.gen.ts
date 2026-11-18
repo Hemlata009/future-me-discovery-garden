@@ -20,7 +20,9 @@ import { Route as ProjectRouteImport } from './routes/project'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedCounsellorRouteImport } from './routes/_authenticated/counsellor'
 import { Route as ApiCounsellorRequestRouteImport } from './routes/api/counsellor-request'
+import { Route as ApiEngagementRouteImport } from './routes/api/engagement'
 import { Route as ApiGenerateProjectRouteImport } from './routes/api/generate-project'
 import { Route as ApiParentBriefRouteImport } from './routes/api/parent-brief'
 import { Route as ApiParentQuestionRouteImport } from './routes/api/parent-question'
@@ -83,9 +85,19 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCounsellorRoute = AuthenticatedCounsellorRouteImport.update({
+  id: '/counsellor',
+  path: '/counsellor',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiCounsellorRequestRoute = ApiCounsellorRequestRouteImport.update({
   id: '/api/counsellor-request',
   path: '/api/counsellor-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEngagementRoute = ApiEngagementRouteImport.update({
+  id: '/api/engagement',
+  path: '/api/engagement',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGenerateProjectRoute = ApiGenerateProjectRouteImport.update({
@@ -136,7 +148,9 @@ export interface FileRoutesByFullPath {
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/counsellor': typeof AuthenticatedCounsellorRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
+  '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
   '/api/parent-brief': typeof ApiParentBriefRoute
   '/api/parent-question': typeof ApiParentQuestionRoute
@@ -156,7 +170,9 @@ export interface FileRoutesByTo {
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/counsellor': typeof AuthenticatedCounsellorRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
+  '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
   '/api/parent-brief': typeof ApiParentBriefRoute
   '/api/parent-question': typeof ApiParentQuestionRoute
@@ -178,7 +194,9 @@ export interface FileRoutesById {
   '/projects': typeof ProjectsRoute
   '/showcase': typeof ShowcaseRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/counsellor': typeof AuthenticatedCounsellorRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
+  '/api/engagement': typeof ApiEngagementRoute
   '/api/generate-project': typeof ApiGenerateProjectRoute
   '/api/parent-brief': typeof ApiParentBriefRoute
   '/api/parent-question': typeof ApiParentQuestionRoute
@@ -200,7 +218,9 @@ export interface FileRouteTypes {
     | '/projects'
     | '/showcase'
     | '/admin'
+    | '/counsellor'
     | '/api/counsellor-request'
+    | '/api/engagement'
     | '/api/generate-project'
     | '/api/parent-brief'
     | '/api/parent-question'
@@ -220,7 +240,9 @@ export interface FileRouteTypes {
     | '/projects'
     | '/showcase'
     | '/admin'
+    | '/counsellor'
     | '/api/counsellor-request'
+    | '/api/engagement'
     | '/api/generate-project'
     | '/api/parent-brief'
     | '/api/parent-question'
@@ -241,7 +263,9 @@ export interface FileRouteTypes {
     | '/projects'
     | '/showcase'
     | '/_authenticated/admin'
+    | '/_authenticated/counsellor'
     | '/api/counsellor-request'
+    | '/api/engagement'
     | '/api/generate-project'
     | '/api/parent-brief'
     | '/api/parent-question'
@@ -263,6 +287,7 @@ export interface RootRouteChildren {
   ProjectsRoute: typeof ProjectsRoute
   ShowcaseRoute: typeof ShowcaseRoute
   ApiCounsellorRequestRoute: typeof ApiCounsellorRequestRoute
+  ApiEngagementRoute: typeof ApiEngagementRoute
   ApiGenerateProjectRoute: typeof ApiGenerateProjectRoute
   ApiParentBriefRoute: typeof ApiParentBriefRoute
   ApiParentQuestionRoute: typeof ApiParentQuestionRoute
@@ -351,11 +376,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/counsellor': {
+      id: '/_authenticated/counsellor'
+      path: '/counsellor'
+      fullPath: '/counsellor'
+      preLoaderRoute: typeof AuthenticatedCounsellorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/counsellor-request': {
       id: '/api/counsellor-request'
       path: '/api/counsellor-request'
       fullPath: '/api/counsellor-request'
       preLoaderRoute: typeof ApiCounsellorRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/engagement': {
+      id: '/api/engagement'
+      path: '/api/engagement'
+      fullPath: '/api/engagement'
+      preLoaderRoute: typeof ApiEngagementRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/generate-project': {
@@ -412,10 +451,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedCounsellorRoute: typeof AuthenticatedCounsellorRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedCounsellorRoute: AuthenticatedCounsellorRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -433,6 +474,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectsRoute: ProjectsRoute,
   ShowcaseRoute: ShowcaseRoute,
   ApiCounsellorRequestRoute: ApiCounsellorRequestRoute,
+  ApiEngagementRoute: ApiEngagementRoute,
   ApiGenerateProjectRoute: ApiGenerateProjectRoute,
   ApiParentBriefRoute: ApiParentBriefRoute,
   ApiParentQuestionRoute: ApiParentQuestionRoute,

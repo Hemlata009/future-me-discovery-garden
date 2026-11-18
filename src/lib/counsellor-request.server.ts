@@ -173,6 +173,7 @@ async function createCounsellorRequest(request: Request, visitorHash: string): P
     .insert({
       parent_brief_id: input.parent_brief_id ?? null,
       generated_project_id: project.id,
+      visitor_hash: visitorHash,
       contact_name: input.contact_name,
       phone: input.phone,
       who: input.who,

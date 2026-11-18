@@ -51,3 +51,4 @@ use the editor.
 - Consented counsellor requests reuse visitor first-touch attribution and the existing event log, retain the database row when webhook delivery fails, and are purged after 180 days by the existing retention function.
 - Referral journey counts come from a separate service-only database function called by the admin report server code, so the main growth report stays unchanged.
 - Vite explicitly defines the public Cloud URL for published browser builds because managed publishing omitted it; never define server credentials or service keys there.
+- The /counsellor CRM reuses consented counsellor_requests as identified leads; every server function checks admin/counsellor roles, assigned counsellors are RLS-scoped to their own leads, phone reveals are separate, and active-time analytics come only from server-timestamped heartbeats.

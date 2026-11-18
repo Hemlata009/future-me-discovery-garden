@@ -1,16 +1,29 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Bot, Check, Droplets, Gamepad2, Play, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { plantCare, gameMatches, robotPath, robotWalls } from "@/lib/demo-logic";
+import { track } from "@/lib/tracking";
 
-export function ProjectDemo({ theme }: { theme: string }) {
+export function ProjectDemo({
+  theme,
+  generatedProjectId,
+}: {
+  theme: string;
+  generatedProjectId?: string;
+}) {
+  const tracked = useRef(false);
+  const recordInteraction = () => {
+    if (!generatedProjectId || tracked.current) return;
+    tracked.current = true;
+    void track({ event: "demo_interacted", project_id: generatedProjectId });
+  };
   const [moisture, setMoisture] = useState(48);
   const [genre, setGenre] = useState<keyof typeof gameMatches>("Adventure");
   const [match, setMatch] = useState<keyof typeof gameMatches | null>(null);
   const [position, setPosition] = useState(0);
   const care = plantCare(moisture);
   return (
-    <div className="demo-panel">
+    <div className="demo-panel" onPointerDown={recordInteraction} onKeyDown={recordInteraction}>
       <div className="demo-top">
         <h2>Try the interactive demo</h2>
         <span className="demo-badge">Interactive sample</span>

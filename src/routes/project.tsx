@@ -197,7 +197,7 @@ function GeneratedProjectView({
             <p className="section-description">{content.problem}</p>
           </section>
           <div id="try-demo" className="demo-anchor">
-            <ProjectDemo key={theme} theme={theme} />
+            <ProjectDemo key={theme} theme={theme} generatedProjectId={generated.id} />
           </div>
         </div>
 

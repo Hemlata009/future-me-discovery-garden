@@ -8,6 +8,7 @@ type ServerEvent =
   | "generation_failed"
   | "project_viewed"
   | "project_shared"
+  | "demo_interacted"
   | "referral_visit"
   | "cta_clicked"
   | "parent_brief_generated"

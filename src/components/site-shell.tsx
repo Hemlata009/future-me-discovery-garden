@@ -121,6 +121,10 @@ export function SiteShell({
       )}
       <main>{children}</main>
       <footer className="site-footer page-width">
+        <p className="engagement-privacy-note">
+          Privacy: we measure meaningful actions and active time only while this tab is visible and
+          recently used. We never record keystroke contents, form values or pointer coordinates.
+        </p>
         <Brand />
         <p>
           Explore first. Decide together. · AI-powered project discovery for students and families.

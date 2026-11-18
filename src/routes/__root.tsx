@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEntryOnce } from "@/lib/tracking";
+import { startEngagementHeartbeat } from "@/lib/engagement";
 
 function NotFoundComponent() {
   return (
@@ -149,6 +150,7 @@ function RootComponent() {
   // Counts the visitor on whichever public page they enter (once per page load).
   useEffect(() => {
     trackEntryOnce();
+    return startEngagementHeartbeat();
   }, []);
 
   return (

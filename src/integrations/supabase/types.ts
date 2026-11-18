@@ -34,6 +34,8 @@ export type Database = {
       }
       counsellor_requests: {
         Row: {
+          assigned_to: string | null
+          call_outcome: string | null
           consent: boolean
           contact_name: string
           created_at: string
@@ -41,16 +43,24 @@ export type Database = {
           delivered_at: string | null
           generated_project_id: string
           id: string
+          internal_notes: string
           language: string
+          last_contacted_at: string | null
+          next_follow_up_at: string | null
           parent_brief_id: string | null
           phone: string
           referral_code: string | null
+          status: string
+          updated_at: string
           utm_campaign: string | null
           utm_medium: string | null
           utm_source: string | null
+          visitor_hash: string | null
           who: string
         }
         Insert: {
+          assigned_to?: string | null
+          call_outcome?: string | null
           consent: boolean
           contact_name: string
           created_at?: string
@@ -58,16 +68,24 @@ export type Database = {
           delivered_at?: string | null
           generated_project_id: string
           id?: string
+          internal_notes?: string
           language: string
+          last_contacted_at?: string | null
+          next_follow_up_at?: string | null
           parent_brief_id?: string | null
           phone: string
           referral_code?: string | null
+          status?: string
+          updated_at?: string
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          visitor_hash?: string | null
           who: string
         }
         Update: {
+          assigned_to?: string | null
+          call_outcome?: string | null
           consent?: boolean
           contact_name?: string
           created_at?: string
@@ -75,13 +93,19 @@ export type Database = {
           delivered_at?: string | null
           generated_project_id?: string
           id?: string
+          internal_notes?: string
           language?: string
+          last_contacted_at?: string | null
+          next_follow_up_at?: string | null
           parent_brief_id?: string | null
           phone?: string
           referral_code?: string | null
+          status?: string
+          updated_at?: string
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          visitor_hash?: string | null
           who?: string
         }
         Relationships: [
@@ -144,6 +168,86 @@ export type Database = {
             columns: ["matched_project"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_heartbeats: {
+        Row: {
+          active_seconds: number
+          created_at: string
+          generated_project_id: string | null
+          id: string
+          session_id: string
+          visitor_hash: string
+        }
+        Insert: {
+          active_seconds: number
+          created_at?: string
+          generated_project_id?: string | null
+          id?: string
+          session_id: string
+          visitor_hash: string
+        }
+        Update: {
+          active_seconds?: number
+          created_at?: string
+          generated_project_id?: string | null
+          id?: string
+          session_id?: string
+          visitor_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_heartbeats_generated_project_id_fkey"
+            columns: ["generated_project_id"]
+            isOneToOne: false
+            referencedRelation: "generated_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engagement_heartbeats_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "engagement_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_sessions: {
+        Row: {
+          active_seconds: number
+          generated_project_id: string | null
+          heartbeat_count: number
+          id: string
+          last_heartbeat_at: string
+          started_at: string
+          visitor_hash: string
+        }
+        Insert: {
+          active_seconds?: number
+          generated_project_id?: string | null
+          heartbeat_count?: number
+          id: string
+          last_heartbeat_at?: string
+          started_at?: string
+          visitor_hash: string
+        }
+        Update: {
+          active_seconds?: number
+          generated_project_id?: string | null
+          heartbeat_count?: number
+          id?: string
+          last_heartbeat_at?: string
+          started_at?: string
+          visitor_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_sessions_generated_project_id_fkey"
+            columns: ["generated_project_id"]
+            isOneToOne: false
+            referencedRelation: "generated_projects"
             referencedColumns: ["id"]
           },
         ]
@@ -724,6 +828,14 @@ export type Database = {
         }
         Returns: Json
       }
+      record_engagement_heartbeat: {
+        Args: {
+          _generated_project_id?: string
+          _session_id: string
+          _visitor_hash: string
+        }
+        Returns: Json
+      }
       record_growth_event: {
         Args: {
           _channel?: string
@@ -757,7 +869,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "student"
+      app_role: "admin" | "student" | "counsellor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -885,7 +997,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "student"],
+      app_role: ["admin", "student", "counsellor"],
     },
   },
 } as const

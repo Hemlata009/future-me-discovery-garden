@@ -7,6 +7,7 @@ export const BROWSER_EVENTS = [
   "discovery_started",
   "project_viewed",
   "project_shared",
+  "demo_interacted",
   "referral_visit",
   "cta_clicked",
   "parent_brief_shared",
@@ -38,7 +39,7 @@ export type EntryPage = (typeof ENTRY_PAGES)[number];
 /** Maps a path to a fixed entry-page name; team pages return null and are never counted. */
 export function entryPageFor(pathname: string): EntryPage | null {
   const path = pathname.replace(/\/+$/, "") || "/";
-  if (path === "/admin" || path === "/auth" || path.startsWith("/api/")) return null;
+  if (["/admin", "/counsellor", "/auth"].includes(path) || path.startsWith("/api/")) return null;
   const map: Record<string, EntryPage> = {
     "/": "home",
     "/discover": "discover",
@@ -75,7 +76,12 @@ export const trackPayloadSchema = z
   })
   .strict()
   .superRefine((v, ctx) => {
-    if ((v.event === "project_viewed" || v.event === "project_shared") && !v.project_id) {
+    if (
+      (v.event === "project_viewed" ||
+        v.event === "project_shared" ||
+        v.event === "demo_interacted") &&
+      !v.project_id
+    ) {
       ctx.addIssue({ code: "custom", message: "project_id required" });
     }
     if (v.event === "project_shared" && !v.channel) {
