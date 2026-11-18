@@ -13,6 +13,9 @@ export const engagementPayloadSchema = z
 
 const HEARTBEAT_MS = 30_000;
 const RECENT_INTERACTION_MS = 60_000;
+/** The server rejects heartbeats under 15 s apart; a fresh page load must not send one sooner. */
+export const MIN_HEARTBEAT_GAP_MS = 16_000;
+const LAST_BEAT_KEY = "fm_engagement_last_beat";
 
 function publicEngagementPath(pathname: string): boolean {
   return !["/admin", "/counsellor", "/auth"].includes(pathname) && !pathname.startsWith("/api/");
@@ -53,6 +56,9 @@ export function startEngagementHeartbeat(): () => void {
     ) {
       return;
     }
+    const lastBeat = Number(sessionStorage.getItem(LAST_BEAT_KEY) ?? 0);
+    if (Date.now() - lastBeat < MIN_HEARTBEAT_GAP_MS) return;
+    sessionStorage.setItem(LAST_BEAT_KEY, String(Date.now()));
     try {
       await ensureVisitor();
       const response = await fetch("/api/engagement", {

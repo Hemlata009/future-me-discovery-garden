@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { engagementPayloadSchema, startEngagementHeartbeat } from "@/lib/engagement";
+import {
+  MIN_HEARTBEAT_GAP_MS,
+  engagementPayloadSchema,
+  startEngagementHeartbeat,
+} from "@/lib/engagement";
 import { trackPayloadSchema } from "@/lib/tracking";
 
 const projectId = "b6bd5c92-0b67-4ebb-ae27-592e9338fd9c";
@@ -47,6 +51,7 @@ describe("active engagement browser measurement", () => {
     const first = startEngagementHeartbeat();
     await vi.advanceTimersByTimeAsync(0);
     first();
+    await vi.advanceTimersByTimeAsync(MIN_HEARTBEAT_GAP_MS);
     const second = startEngagementHeartbeat();
     await vi.advanceTimersByTimeAsync(0);
     second();
@@ -56,6 +61,21 @@ describe("active engagement browser measurement", () => {
       .map((call) => JSON.parse(String(call[1]?.body)) as { session_id: string });
     expect(bodies).toHaveLength(2);
     expect(bodies[0]?.session_id).toBe(bodies[1]?.session_id);
+  });
+
+  it("waits out the server's minimum gap when a new page loads quickly", async () => {
+    const first = startEngagementHeartbeat();
+    await vi.advanceTimersByTimeAsync(0);
+    first();
+    await vi.advanceTimersByTimeAsync(5_000);
+    const second = startEngagementHeartbeat();
+    await vi.advanceTimersByTimeAsync(0);
+    const sends = () =>
+      vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/api/engagement")).length;
+    expect(sends()).toBe(1);
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(sends()).toBe(2);
+    second();
   });
 
   it("does not send while the tab is hidden", async () => {
