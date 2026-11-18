@@ -60,3 +60,41 @@ All report date filters use inclusive UTC calendar dates. The lead cohort is req
 ## Retention implications
 
 The existing daily retention job keeps its 180-day counsellor-request purge and 395-day growth-event purge. Engagement sessions and their heartbeat rows are also purged after 395 days without a heartbeat. Deleting a generated project cascades to its engagement rows under the existing data lifecycle. Operational status, assignment, notes and follow-up fields are deleted with the parent counsellor request at its existing retention deadline. The optional webhook behavior is unchanged.
+
+## CRM sections (added 2026-11-18)
+
+`/counsellor` is organised into Overview, Lead pipeline, All leads, Follow-ups, Campaign performance and (admins only) Team performance. Every section is computed in the browser from the same authorised workspace response, so a counsellor only ever sees their assigned leads. Reporting presets are Today, 7 days, 30 days, This month and Custom, all in UTC calendar days.
+
+### Priority labels (rule-based, `src/lib/counsellor-crm.ts`)
+
+Only active leads (`new`, `assigned`, `contacted`, `follow_up`, `qualified`) get a follow-up priority. Each label shows its reasons.
+
+- **Follow up now** — new and unassigned; follow-up overdue; or no recorded contact yet and any of: high engagement, a parent question, an application-link click.
+- **Follow up today** — follow-up due later today (UTC), or a consented request not yet contacted. A low-engagement lead is never hidden.
+- **Follow up later** — follow-up due tomorrow or later, or contacted with no next follow-up scheduled.
+- **No immediate action** — closed or not interested.
+
+Opening a lead never marks it contacted. `last_contacted_at` changes only when a new call outcome is recorded.
+
+### Follow-up queue
+
+Active leads are grouped as Overdue, Due today, Due tomorrow, Upcoming and No follow-up scheduled (UTC days). Quick filters: My follow-ups, All (admins), Overdue, Due today, Unassigned (admins), New not contacted, Undelivered requests.
+
+### Funnel and campaign performance (admins)
+
+The funnel reuses the existing admin growth report for the same dates. Anonymous stages are aggregate counts only. "Interactive demo used" has no aggregate total and "Completed NIAT application" needs NIAT admissions data, so both are shown as unavailable. Stages use different units, so a step can exceed 100% of the previous one.
+
+Campaign rows join site-wide traffic (visitors, generated projects) from the growth report to consented-lead outcomes by UTM source, medium and campaign. `futureme_family_warmlead_test` is pinned and highlighted. Counsellors see lead columns for their own leads only. **Lead → app click** = leads with at least one application-link click ÷ leads in that row.
+
+### Team performance (admins)
+
+Per assignee and an Unassigned row: assigned, still new, contacted (outcome recorded), qualified, pending follow-ups, overdue, application-click leads. It is not a ranking. Average time to first contact and follow-up completion rate are **not** shown: only the latest contact time is stored, so they can't be computed reliably without an activity-history table.
+
+### CSV export
+
+All leads → Export CSV downloads the currently filtered, already-authorised leads with masked phone numbers only. Internal notes and visitor hashes are never exported, and cells are protected against spreadsheet formula injection.
+
+### Not built yet
+
+- Field-level audit history of status, assignment, notes and follow-up changes (needs a new table created through Lovable).
+- Optional "preferred callback time" and "question" fields on the request form (needs new `counsellor_requests` columns through Lovable).
