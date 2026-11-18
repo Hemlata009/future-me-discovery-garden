@@ -96,7 +96,7 @@ describe("NIAT application attribution", () => {
   it("adds decision-card UTM parameters to the project application link", () => {
     render(<ProjectDecisionCard projectId={projectId} language="english" />);
     expectApplicationCampaign(
-      screen.getByRole("link", { name: /Start my application/ }),
+      screen.getByRole("link", { name: /Continue to the NIAT application/ }),
       "decision_card",
     );
   });
@@ -104,8 +104,12 @@ describe("NIAT application attribution", () => {
   it("adds parent-page UTM parameters to the parent application link", () => {
     render(<ParentBriefPageView brief={brief} />);
     expectApplicationCampaign(
-      screen.getByRole("link", { name: /Start application/ }),
+      screen.getByRole("link", { name: /Continue to the NIAT application/ }),
       "parent_page",
+    );
+    expect(screen.getByRole("link", { name: "Ask a NIAT counsellor" })).toHaveAttribute(
+      "href",
+      "#counsellor-request",
     );
   });
 

@@ -1,6 +1,7 @@
 /** Browser-safe copy and rules for the explore-before-you-apply journey. */
 
 export const homePromise = "Five questions. Five minutes. Your own tech project.";
+export const WARM_LEAD_CAMPAIGN = "futureme_family_warmlead_test";
 
 export const inviteValueCopy =
   "Explore together. Your friend gets their own 5-minute project, you can compare ideas.";

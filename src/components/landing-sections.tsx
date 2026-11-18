@@ -16,29 +16,54 @@ import { projects } from "@/lib/projects";
 import { ProjectCard } from "./project-card";
 import { SectionHeading } from "./site-shell";
 
-export function NextSteps() {
+export function NextSteps({ variant = "general" }: { variant?: "general" | "warm-lead" }) {
+  const warmLead = variant === "warm-lead";
+  const steps = warmLead
+    ? [
+        {
+          Icon: Compass,
+          title: "EXPLORE YOUR PROJECT",
+          text: "Discover a technology project connected to your interests.",
+        },
+        {
+          Icon: Users,
+          title: "DECIDE WITH YOUR FAMILY",
+          text: "Generate a Parent Brief, review verified NIAT information and ask grounded questions.",
+        },
+        {
+          Icon: Send,
+          title: "TAKE YOUR NEXT STEP",
+          text: "Request a counsellor conversation or continue to the official NIAT application.",
+        },
+      ]
+    : [
+        { Icon: Compass, title: "Discover", text: "Answer five quick questions." },
+        { Icon: Sparkles, title: "Get your project", text: "AI builds one around you." },
+        {
+          Icon: Users,
+          title: "Decide with your family",
+          text: "Share a clear brief, no pressure.",
+        },
+      ];
+
   return (
-    <section className="page-width next-steps" aria-labelledby="next-steps-title">
+    <section
+      id={warmLead ? "track-b-journey" : undefined}
+      className="page-width next-steps"
+      aria-labelledby="next-steps-title"
+    >
       <h2 id="next-steps-title" className="eyebrow">
         WHAT HAPPENS NEXT
       </h2>
       <ol className="next-steps-list">
-        {[
-          { Icon: Compass, title: "Discover", text: "Answer five quick questions." },
-          { Icon: Sparkles, title: "Get your project", text: "AI builds one around you." },
-          {
-            Icon: Users,
-            title: "Decide with your family",
-            text: "Share a clear brief, no pressure.",
-          },
-        ].map(({ Icon, title, text }, index) => (
+        {steps.map(({ Icon, title, text }, index) => (
           <li key={title}>
             <span className="step-icon">
               <Icon size={20} />
             </span>
             <div>
               <strong>
-                {index + 1}. {title}
+                {warmLead ? `STEP ${index + 1} — ${title}` : `${index + 1}. ${title}`}
               </strong>
               <p>{text}</p>
             </div>

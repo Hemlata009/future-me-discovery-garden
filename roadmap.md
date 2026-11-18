@@ -100,3 +100,10 @@
 
 - [x] Diagnose the published homepage failure and restore its public Cloud URL without tracking `.env` or exposing private credentials.
 - [x] Verify secure secret configuration, publish the corrected configuration and check the live pages (nine public paths loaded, no browser errors; saved parent records and new AI generation not exercised).
+
+## Track B warm-lead decision journey (Nov 18)
+
+- [x] Add the exact-campaign homepage variant and explicit three-stage decision journey.
+- [x] Strengthen generated-project and parent decision guidance without changing functionality or tracking.
+- [x] Add focused regression tests; verify campaign/default journeys, languages, actions, phone/desktop layouts, lint and build.
+- [ ] Commit this focused change without publishing.

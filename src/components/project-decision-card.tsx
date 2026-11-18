@@ -118,40 +118,46 @@ export function ProjectDecisionCard({
 
       <div className="family-panel decision-card">
         <div className="decision-card-heading">
-          <p className="eyebrow">YOUR NEXT MOVE</p>
-          <h2>Explore first. Decide together.</h2>
-          <p>Choose what feels useful now—there is no pressure to apply.</p>
+          <p className="eyebrow">FROM EXPLORATION TO DECISION</p>
+          <h2>Your Next Step with NIAT</h2>
+          <p>
+            You have explored what you could build. Now discuss the opportunity with your family,
+            get the information you need and decide whether applying to NIAT is right for you.
+          </p>
         </div>
         <ul className="next-step-cards">
           <li className="next-step-card next-step-recommended">
-            <span className="next-step-badge">Recommended</span>
+            <span className="next-step-badge">Recommended action</span>
             <BookOpen className="text-primary" aria-hidden="true" />
-            <h3>Share with my parents</h3>
-            <p>Creates a one-page brief in English, हिन्दी or తెలుగు. It does not contact NIAT.</p>
+            <h3>Share the Parent Brief with my family</h3>
+            <p>
+              Create a brief with your project and verified NIAT information in English, हिन्दी or
+              తెలుగు. It does not contact NIAT.
+            </p>
             <ParentBriefLauncher projectId={projectId} initialLanguage={language} />
           </li>
           <li className="next-step-card">
-            <Users className="text-primary" aria-hidden="true" />
-            <h3>Invite a friend</h3>
-            <p>{inviteValueCopy}</p>
-            <InviteFriend projectId={projectId} language={language} />
-          </li>
-          <li className="next-step-card">
             <PhoneCall className="text-primary" aria-hidden="true" />
-            <h3>Talk to a counsellor</h3>
-            <p>Request a call back. This is not an application.</p>
+            <h3>Talk to a NIAT counsellor</h3>
+            <p>
+              Request a callback from the team. This requires follow-up and is not an instant call
+              or an application.
+            </p>
             <CounsellorDialog projectId={projectId} initialLanguage={language} />
           </li>
           <li className="next-step-card">
             <ArrowUpRight className="text-primary" aria-hidden="true" />
-            <h3>Start my application</h3>
-            <p>Opens the NIAT apply page in a new tab. Nothing is submitted from here.</p>
-            <Button asChild variant="soft">
+            <h3>Continue to the NIAT application</h3>
+            <p>
+              Opens the official NIAT application page in a new tab. Nothing is submitted
+              automatically.
+            </p>
+            <Button asChild variant="premium">
               <a
                 href={niatApplicationUrl("decisionCard")}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Start my application (opens the external NIAT page in a new tab)"
+                aria-label="Continue to the NIAT application (opens the official NIAT application page in a new tab)"
                 onClick={() =>
                   void track({
                     event: "cta_clicked",
@@ -160,9 +166,15 @@ export function ProjectDecisionCard({
                   })
                 }
               >
-                Start my application <ArrowUpRight />
+                Continue to application <ArrowUpRight />
               </a>
             </Button>
+          </li>
+          <li className="next-step-card">
+            <Users className="text-primary" aria-hidden="true" />
+            <h3>Invite a friend</h3>
+            <p>Optional: {inviteValueCopy}</p>
+            <InviteFriend projectId={projectId} language={language} />
           </li>
         </ul>
         <p className="honesty-note">{honestyNote[language]}</p>

@@ -1,14 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { z } from "zod";
 import heroImage from "@/assets/student-project-lab.jpg";
 import { Button } from "@/components/ui/button";
 import { SiteShell, SectionHeading } from "@/components/site-shell";
 import { ProjectCard } from "@/components/project-card";
 import { HowItWorks, NextSteps, Showcase, Referral } from "@/components/landing-sections";
-import { homePromise } from "@/lib/journey-copy";
+import { homePromise, WARM_LEAD_CAMPAIGN } from "@/lib/journey-copy";
 import { pageHead, projects } from "@/lib/projects";
 
+const homeSearchSchema = z.object({
+  ref: z.string().optional(),
+  utm_source: z.string().optional(),
+  utm_medium: z.string().optional(),
+  utm_campaign: z.string().optional(),
+});
+export type HomeSearch = z.infer<typeof homeSearchSchema>;
+
 export const Route = createFileRoute("/")({
+  validateSearch: homeSearchSchema,
   head: () =>
     pageHead(
       "Before you choose your future, experience what you could build",
@@ -18,32 +28,67 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  return <HomePageContent search={Route.useSearch()} />;
+}
+
+export function HomePageContent({ search }: { search: HomeSearch }) {
+  const warmLead = search.utm_campaign === WARM_LEAD_CAMPAIGN;
+  const discoverySearch = warmLead
+    ? {
+        utm_source: search.utm_source,
+        utm_medium: search.utm_medium,
+        utm_campaign: search.utm_campaign,
+      }
+    : {};
+
   return (
     <SiteShell>
       <section className="hero">
         <div className="page-width hero-layout">
           <div className="hero-copy">
             <div className="hero-pill">
-              <Sparkles size={13} /> AI-POWERED PROJECT DISCOVERY <ArrowRight size={12} />
+              <Sparkles size={13} />
+              {warmLead ? "FOR STUDENTS ALREADY EXPLORING NIAT" : "AI-POWERED PROJECT DISCOVERY"}
+              <ArrowRight size={12} />
             </div>
             <h1 className="hero-headline">
-              Before you choose your future,
-              <span>experience what you could build.</span>
+              {warmLead ? (
+                <>
+                  Already considering NIAT?{" "}
+                  <span>Explore what you could build before you apply.</span>
+                </>
+              ) : (
+                <>
+                  Before you choose your future,
+                  <span>experience what you could build.</span>
+                </>
+              )}
             </h1>
             <p className="hero-subtitle">
-              Explore a technology idea shaped around your interests.
-              <br />
-              Share it with your family, ask questions and discover your next step.
+              {warmLead ? (
+                "Take five minutes to create a technology project shaped around your interests. Explore it, share it with your family, ask questions and decide your next step."
+              ) : (
+                <>
+                  Explore a technology idea shaped around your interests.
+                  <br />
+                  Share it with your family, ask questions and discover your next step.
+                </>
+              )}
             </p>
             <p className="hero-promise">{homePromise}</p>
             <div className="hero-buttons">
               <Button asChild variant="premium">
-                <Link to="/discover">
-                  <Sparkles /> Start My 5-Minute Discovery <ArrowRight />
+                <Link to="/discover" search={discoverySearch}>
+                  <Sparkles /> {warmLead ? "Explore Before I Apply" : "Start My 5-Minute Discovery"}
+                  <ArrowRight />
                 </Link>
               </Button>
               <Button asChild variant="soft">
-                <Link to="/how-it-works">See How It Works</Link>
+                {warmLead ? (
+                  <a href="#track-b-journey">How This Helps Me Decide</a>
+                ) : (
+                  <Link to="/how-it-works">See How It Works</Link>
+                )}
               </Button>
             </div>
             <div className="hero-proof">
@@ -51,8 +96,14 @@ function Index() {
                 <Check size={16} />
               </span>
               <div>
-                Explore first. Decide together.
-                <span className="proof-note">No experience needed. No pressure to apply.</span>
+                {warmLead
+                  ? "A practical way for you and your family to explore your next step before applying."
+                  : "Explore first. Decide together."}
+                <span className="proof-note">
+                  {warmLead
+                    ? "Explore first. Decide together."
+                    : "No experience needed. No pressure to apply."}
+                </span>
               </div>
             </div>
           </div>
@@ -71,7 +122,7 @@ function Index() {
           </div>
         </div>
       </section>
-      <NextSteps />
+      <NextSteps variant={warmLead ? "warm-lead" : "general"} />
       <section className="page-width section-space featured-section">
         <SectionHeading
           eyebrow="BUILT AROUND WHAT YOU LOVE"

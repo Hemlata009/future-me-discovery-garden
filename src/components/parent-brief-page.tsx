@@ -153,28 +153,40 @@ export function ParentBriefPageView({
           />
         </section>
 
-        <section className="parent-closing">
+        <section className="parent-closing" aria-labelledby="parent-next-step-title">
           <div>
-            <Button asChild variant="soft">
-              <a
-                href={niatApplicationUrl("parentPage")}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Start application (opens the external NIAT page in a new tab)"
-                onClick={() =>
-                  void track({
-                    event: "cta_clicked",
-                    cta: "start_application",
-                    project_id: brief.project_id,
-                    brief_id: brief.id,
-                  })
-                }
-              >
-                Start application <ArrowUpRight />
-              </a>
-            </Button>
+            <p className="eyebrow">YOUR FAMILY'S NEXT STEP</p>
+            <h2 id="parent-next-step-title">Clarify first. Apply when you're ready.</h2>
+            <p>
+              Ask a NIAT counsellor about anything that is still unclear. When your family is ready,
+              continue to the official NIAT application.
+            </p>
+            <div className="modal-actions">
+              <Button asChild variant="soft">
+                <a href="#counsellor-request">Ask a NIAT counsellor</a>
+              </Button>
+              <Button asChild variant="premium">
+                <a
+                  href={niatApplicationUrl("parentPage")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Continue to the NIAT application (opens the official NIAT application page in a new tab)"
+                  onClick={() =>
+                    void track({
+                      event: "cta_clicked",
+                      cta: "start_application",
+                      project_id: brief.project_id,
+                      brief_id: brief.id,
+                    })
+                  }
+                >
+                  Continue to application <ArrowUpRight />
+                </a>
+              </Button>
+            </div>
             <p className="decision-helper">
-              Opens the external NIAT page in a new tab. A counsellor call is not an application.
+              Opens the official NIAT application page in a new tab. Nothing is submitted
+              automatically.
             </p>
           </div>
           <div>
