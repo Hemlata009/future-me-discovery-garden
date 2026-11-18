@@ -17,6 +17,11 @@ describe("published browser connection configuration", () => {
     const url = new URL(JSON.parse(encodedUrl));
     expect(url.protocol).toBe("https:");
     expect(url.hostname.endsWith(".lovable.cloud")).toBe(true);
-    expect(Object.keys(definitions)).toEqual(["import.meta.env.VITE_SUPABASE_URL"]);
+    expect(Object.keys(definitions).sort()).toEqual([
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY",
+      "import.meta.env.VITE_SUPABASE_URL",
+    ]);
+    const key = JSON.parse(definitions["import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY"]!);
+    expect(key.startsWith("sb_publishable_")).toBe(true);
   });
 });

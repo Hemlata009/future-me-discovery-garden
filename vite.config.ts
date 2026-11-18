@@ -17,6 +17,10 @@ export default defineConfig({
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
         "https://c--109ee762-3463-4bff-b824-8ce3d4a90fc2-prod.lovable.cloud",
       ),
+      // Publishable (browser-safe) key only; never define service-role keys here.
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
+        "sb_publishable_CVXkxptJaNWUIp-qCtDtlg_Sk_ZCB7V",
+      ),
     },
   },
   tanstackStart: {
