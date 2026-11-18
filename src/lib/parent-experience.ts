@@ -154,22 +154,20 @@ export function parentBriefUserPrompt(
 
 export function parentQuestionSystemPrompt(language: ParentLanguage): string {
   return [
-    "Answer a parent's question using only the supplied parent brief and NIAT fact sheet.",
+    "Answer a parent's question using only the saved project, saved parent brief and NIAT fact sheet returned by your tools.",
+    "Before answering, call get_saved_project, get_parent_brief and get_verified_niat_facts and use their results.",
     `Write in ${languageName(language)}${language === "english" ? "" : " using native script"}.`,
     "Do not use outside knowledge or invent details, statistics or promises.",
     "Refuse every job, internship, placement, salary, scholarship or admission outcome promise.",
+    "Do not mention jobs, internships, placements, salaries, scholarships or admissions unless the parent asks about them.",
     "Clearly attribute the B.Tech degree to the partner university whenever degree questions arise.",
     'If the answer is not explicitly supported by the supplied material, answer exactly: "Please ask a NIAT counsellor".',
     "Return only the structured answer field.",
   ].join("\n");
 }
 
-export function parentQuestionUserPrompt(
-  brief: ParentBriefContent,
-  question: string,
-  facts: NiatFact[] = niatFacts,
-): string {
-  return JSON.stringify({ parent_brief: brief, niat_facts: facts, parent_question: question });
+export function parentQuestionUserPrompt(question: string): string {
+  return JSON.stringify({ parent_question: question });
 }
 
 /** Display points for the NIAT summary, splitting older single-string briefs into sentences. */

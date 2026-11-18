@@ -89,3 +89,9 @@
 - [x] Verify interactions, accessibility and layouts at phone and desktop widths; run tests, lint and build.
 - [x] Fresh acceptance audit: all five wizard steps, all three themes, both parent routes, every action and feedback state at phone/desktop widths.
 - [x] Fix any audit gaps, rerun checks and save the verified result.
+
+## Parent Q&A callable tools (Nov 18)
+
+- [x] Add three server-bound Anthropic tools with validated tool-result continuation.
+- [x] Return non-sensitive tools_used evidence and add dispatcher/loop regression tests.
+- [x] Run the full tests, changed-file lint, build and commit only this scoped change.
