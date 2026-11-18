@@ -512,3 +512,22 @@ export function dateTime(value: string | null): string {
       }).format(new Date(value))} UTC`
     : "—";
 }
+
+/** Mutually exclusive slices: a free sign-up first, otherwise the request's contact. */
+export function whoAsked(leads: LeadView[]) {
+  const signup = leads.filter((lead) => lead.lead_source === "student_signup");
+  const rest = leads.filter((lead) => lead.lead_source !== "student_signup");
+  return [
+    {
+      name: "Parent / guardian",
+      value: rest.filter((lead) => lead.who === "parent").length,
+      color: "var(--gd-navy)",
+    },
+    {
+      name: "Student (callback)",
+      value: rest.filter((lead) => lead.who !== "parent").length,
+      color: "var(--gd-teal)",
+    },
+    { name: "Student (free sign-up)", value: signup.length, color: "var(--gd-mint)" },
+  ];
+}

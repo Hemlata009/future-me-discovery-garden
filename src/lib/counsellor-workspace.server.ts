@@ -324,7 +324,14 @@ export async function runCounsellorWorkspace(
       viewer: viewerOf(context, role),
       leads,
       assignees,
-      report: buildCounsellorReport(leads, related.events, related.heartbeats, range),
+      report: buildCounsellorReport(
+        leads,
+        related.events,
+        related.heartbeats,
+        range,
+        new Date(),
+        related.activity,
+      ),
     };
   } catch (error) {
     console.error(

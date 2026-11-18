@@ -3,6 +3,7 @@
 // A deterministic, browser-only fixture for the admin dashboard's Demo Preview.
 // It is never sent to the server, never written to Supabase and never mixed with
 // live report data. It contains no names, phone numbers, emails or visitor IDs.
+import { finish, type Heatmap } from "@/lib/chart-data";
 import type { JourneyDetail } from "@/lib/growth-journey";
 import type { GrowthReport } from "@/lib/growth-metrics";
 
@@ -172,6 +173,7 @@ export function buildDemoReport(end: Date = new Date()): GrowthReport {
       { name: "campaign", visitors: 22 },
       { name: "referral", visitors: 3 },
     ],
+    heatmap: demoHeatmap(),
     campaigns: DEMO_CAMPAIGNS.map((c) => ({
       source: c.source,
       medium: c.medium,
@@ -242,4 +244,20 @@ export function buildDemoReport(end: Date = new Date()): GrowthReport {
     medium_options: [],
     campaign_options: [],
   };
+}
+
+/** Illustrative weekly rhythm: after-school and evening peaks, busier weekends. */
+export function demoHeatmap(): Heatmap {
+  const hourShape = [
+    1, 0, 0, 0, 0, 1, 2, 4, 6, 7, 8, 9, 10, 9, 8, 10, 14, 17, 21, 26, 28, 24, 15, 6,
+  ];
+  const dayShape = [0.9, 0.95, 1, 0.95, 0.85, 1.25, 1.35];
+  return finish({
+    cells: dayShape.map((d, day) =>
+      hourShape.map((h, hour) => Math.round(h * d * (1 + 0.12 * Math.sin(day * 3 + hour)))),
+    ),
+    max: 0,
+    total: 0,
+    peak: null,
+  });
 }

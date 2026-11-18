@@ -1,3 +1,5 @@
+import { activityHeatmap } from "@/lib/chart-data";
+
 // Browser-safe, pure journey calculations for the admin growth dashboard.
 // Every figure states its unit: unique visitors, unique projects, unique briefs
 // or raw events. Rates always name numerator, denominator and cohort, and a
@@ -144,6 +146,10 @@ export function buildJourneyDetail(events: JourneyEvent[], links: ReferralLinkRo
       ),
     })),
     campaigns: campaignEngagement(events),
+    /** Unique people per IST day-and-hour slot. */
+    heatmap: activityHeatmap(
+      events.map((event) => ({ who: event.visitor_hash, at: event.created_at })),
+    ),
     test_traffic_visitors: distinct(
       events.filter((event) => isTestTraffic(event.utm_source)).map((e) => e.visitor_hash),
     ),

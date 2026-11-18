@@ -9,7 +9,7 @@ import {
   PipelineSection,
   TeamSection,
 } from "@/components/counsellor-sections";
-import { WARM_LEAD_CAMPAIGN } from "@/lib/counsellor-crm";
+import { WARM_LEAD_CAMPAIGN, whoAsked } from "@/lib/counsellor-crm";
 import type { CounsellorViewer, LeadView } from "@/lib/counsellor-metrics";
 
 const ME = "33333333-3333-4333-8333-333333333333";
@@ -171,5 +171,18 @@ describe("Pipeline, campaigns and team", () => {
     );
     expect(screen.getByText("me@example.com")).toBeInTheDocument();
     expect(screen.getByText("Unassigned")).toBeInTheDocument();
+  });
+});
+
+describe("Who asked pie", () => {
+  it("never counts a lead in two slices", () => {
+    const mixed = [
+      lead("p", { who: "parent" }),
+      lead("s", { who: "student" }),
+      lead("u", { who: "parent", lead_source: "student_signup" }),
+    ];
+    const slices = whoAsked(mixed);
+    expect(slices.reduce((sum, slice) => sum + slice.value, 0)).toBe(mixed.length);
+    expect(slices.map((slice) => slice.value)).toEqual([1, 1, 1]);
   });
 });

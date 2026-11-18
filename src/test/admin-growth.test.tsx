@@ -39,6 +39,7 @@ function liveReport(): GrowthReport {
     ...demo,
     totals: { ...demo.totals, visitors: 37, counsellor_requests: 2 },
     campaigns: [],
+    acquisition: [{ name: "direct", visitors: 37, generations: 5, outbound_visitors: 1 }],
   };
 }
 

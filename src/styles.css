@@ -5573,3 +5573,165 @@ details.metric-definitions ul {
     display: none;
   }
 }
+
+/* ===== Shared charts: donut, heat map, radar ===== */
+.chart-donut {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+.chart-donut-ring {
+  position: relative;
+  flex: none;
+}
+.chart-donut-empty {
+  position: absolute;
+  inset: 6%;
+  border: 14px solid var(--secondary);
+  border-radius: 50%;
+}
+.chart-donut-total {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.chart-donut-total strong {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.1;
+}
+.chart-donut-total small {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.chart-legend {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+.chart-legend li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto 38px;
+  align-items: center;
+  gap: 8px;
+}
+.chart-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.chart-legend span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chart-legend strong {
+  font-variant-numeric: tabular-nums;
+}
+.chart-legend small {
+  color: var(--muted-foreground);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.heatmap-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.heatmap-scroll {
+  /* Positioned so the cells' screen-reader labels stay inside the scroll box. */
+  position: relative;
+  overflow-x: auto;
+}
+.heatmap-grid {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: separate;
+  border-spacing: 3px;
+  table-layout: fixed;
+}
+.heatmap-grid th {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+.heatmap-grid thead th {
+  height: 16px;
+}
+.heatmap-grid tbody th {
+  width: 36px;
+  padding-right: 4px;
+}
+.heatmap-grid td {
+  height: 22px;
+  border-radius: 4px;
+}
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 10px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+.heatmap-legend i {
+  width: 14px;
+  height: 10px;
+  border-radius: 3px;
+}
+.gd-acq-visuals {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.gd-acq-visuals .chart-donut {
+  flex-direction: column;
+  align-items: stretch;
+}
+.gd-acq-visuals .chart-donut-ring {
+  align-self: center;
+}
+.crm-chart-grid.wide-left {
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+}
+.team-shell .crm-chart-grid + .chart-panel,
+.team-shell .chart-panel + .crm-chart-grid,
+.team-shell .crm-chart-grid + .crm-chart-grid {
+  margin-top: 16px;
+}
+.score-radar {
+  height: 220px;
+  margin-bottom: 10px;
+}
+@media (max-width: 1100px) {
+  .gd-acq-visuals {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 860px) {
+  .crm-chart-grid.wide-left {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .chart-donut {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .chart-donut-ring {
+    align-self: center;
+  }
+}

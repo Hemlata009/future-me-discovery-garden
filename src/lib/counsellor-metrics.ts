@@ -1,3 +1,4 @@
+import { activityHeatmap } from "@/lib/chart-data";
 import {
   behaviourScore,
   summariseActivity,
@@ -373,6 +374,7 @@ export function buildCounsellorReport(
   heartbeats: Heartbeat[],
   range: { from: string; to: string },
   now = new Date(),
+  activity: (ActivityRow & { user_id: string | null; visitor_hash: string | null })[] = [],
 ) {
   const leadIds = new Set(leads.map((lead) => lead.id));
   const visitors = new Set(leads.map((lead) => lead.visitor_hash).filter(Boolean));
@@ -454,6 +456,14 @@ export function buildCounsellorReport(
       ).length,
     },
     lead_count_check: leadIds.size,
+    /** When these leads were active: events, timed engagement and account activity (IST). */
+    heatmap: activityHeatmap([
+      ...relatedEvents.map((event) => ({ who: event.visitor_hash, at: event.created_at })),
+      ...relatedBeats.map((beat) => ({ who: beat.visitor_hash, at: beat.created_at })),
+      ...leads.flatMap((lead) =>
+        leadActivity(lead, activity).map((row) => ({ who: lead.id, at: row.created_at })),
+      ),
+    ]),
   };
 }
 

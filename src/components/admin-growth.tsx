@@ -30,6 +30,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { DonutChart, HeatmapChart } from "@/components/charts";
 import { Button } from "@/components/ui/button";
 import { buildDemoReport, DEMO_LABEL } from "@/lib/admin-demo-data";
 import { isTestTraffic, ratio, type RateValue } from "@/lib/growth-journey";
@@ -434,6 +435,15 @@ export function GrowthDashboard({ report, mode }: { report: GrowthReport; mode: 
 
       <ActivityChart report={report} />
 
+      {report.journey_detail?.heatmap && (
+        <Card
+          title="When students are active"
+          info="Unique visitors per day and hour, in India Standard Time. Each person counts once per hour. Use it to time campaigns and counsellor calls."
+        >
+          <HeatmapChart map={report.journey_detail.heatmap} unit="visitor-hours" />
+        </Card>
+      )}
+
       <div className="gd-grid-2">
         <Funnel report={report} />
         <Acquisition report={report} />
@@ -772,27 +782,39 @@ function Acquisition({ report }: { report: GrowthReport }) {
       title="Acquisition sources"
       info="First touch: referral link, campaign tags or direct. Visitors are unique; generations are events, shown per 100 visitors."
     >
-      <div className="gd-chart small" role="img" aria-label="Visitors and generations by source">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={rows.map((row) => ({
-              name: title(row.name),
-              Visitors: row.visitors,
-              Generations: row.generations,
-            }))}
-            layout="vertical"
-            margin={{ top: 0, right: 12, bottom: 0, left: 8 }}
-            barGap={3}
-          >
-            <CartesianGrid stroke="var(--border)" horizontal={false} />
-            <XAxis type="number" {...axis} allowDecimals={false} />
-            <YAxis type="category" dataKey="name" {...axis} width={72} />
-            <Tooltip {...tooltipStyle} cursor={{ fill: "var(--secondary)" }} />
-            <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="Visitors" fill="var(--gd-navy)" radius={[0, 6, 6, 0]} barSize={12} />
-            <Bar dataKey="Generations" fill="var(--gd-mint)" radius={[0, 6, 6, 0]} barSize={12} />
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="gd-acq-visuals">
+        <DonutChart
+          label="Visitors by source"
+          unit="visitors"
+          size={150}
+          items={rows.map((row, index) => ({
+            name: title(row.name),
+            value: row.visitors,
+            color: ["var(--gd-navy)", "var(--gd-teal)", "var(--gd-mint)"][index],
+          }))}
+        />
+        <div className="gd-chart small" role="img" aria-label="Visitors and generations by source">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={rows.map((row) => ({
+                name: title(row.name),
+                Visitors: row.visitors,
+                Generations: row.generations,
+              }))}
+              layout="vertical"
+              margin={{ top: 0, right: 12, bottom: 0, left: 8 }}
+              barGap={3}
+            >
+              <CartesianGrid stroke="var(--border)" horizontal={false} />
+              <XAxis type="number" {...axis} allowDecimals={false} />
+              <YAxis type="category" dataKey="name" {...axis} width={72} />
+              <Tooltip {...tooltipStyle} cursor={{ fill: "var(--secondary)" }} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+              <Bar dataKey="Visitors" fill="var(--gd-navy)" radius={[0, 6, 6, 0]} barSize={12} />
+              <Bar dataKey="Generations" fill="var(--gd-mint)" radius={[0, 6, 6, 0]} barSize={12} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
       <div className="gd-table-wrap">
         <table className="gd-table">
@@ -930,36 +952,17 @@ function Campaigns({ report, mode }: { report: GrowthReport; mode: Mode }) {
 }
 
 function Audience({ title: heading, items }: { title: string; items: Named[] }) {
-  const total = items.reduce((sum, item) => sum + item.value, 0);
-  const colors = [
-    "var(--gd-navy)",
-    "var(--gd-teal)",
-    "var(--gd-indigo)",
-    "var(--gd-mint)",
-    "var(--muted-foreground)",
-  ];
   return (
     <Card title={heading} info="Share of successful generations in the period.">
       {items.length === 0 ? (
         <p className="gd-muted">No generations yet.</p>
       ) : (
-        <ul className="gd-bars">
-          {items.map((item, index) => (
-            <li key={item.name ?? index}>
-              <span>{title(item.name)}</span>
-              <span className="gd-bar" aria-hidden="true">
-                <i
-                  style={{
-                    width: `${total ? (item.value / total) * 100 : 0}%`,
-                    background: colors[index % colors.length],
-                  }}
-                />
-              </span>
-              <strong>{n(item.value)}</strong>
-              <small>{pct(ratio(item.value, total))}</small>
-            </li>
-          ))}
-        </ul>
+        <DonutChart
+          label={heading}
+          unit="projects"
+          size={140}
+          items={items.map((item) => ({ name: title(item.name), value: item.value }))}
+        />
       )}
     </Card>
   );

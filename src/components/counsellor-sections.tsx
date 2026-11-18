@@ -45,6 +45,7 @@ import {
   sortLeads,
   teamPerformance,
   WARM_LEAD_CAMPAIGN,
+  whoAsked,
   type FollowUpBucket,
   type LeadSort,
 } from "@/lib/counsellor-crm";
@@ -56,6 +57,7 @@ import {
   type CounsellorWorkspaceResult,
   type LeadView,
 } from "@/lib/counsellor-metrics";
+import { DonutChart, HeatmapChart } from "@/components/charts";
 import { BAND_LABELS } from "@/lib/behaviour-score";
 import { formatRate, type GrowthReport } from "@/lib/growth-metrics";
 
@@ -265,6 +267,15 @@ export function OverviewSection({
       <CrmCharts leads={data.leads} kpis={kpis} />
       <TopStudents leads={data.leads} kpis={kpis} onOpen={onOpen} />
 
+      <Panel
+        title="Best time to reach your students"
+        subtitle="When these leads were active, by day and hour (IST). Each person counts once per hour."
+      >
+        <HeatmapChart map={data.report.heatmap} unit="student-hours" />
+      </Panel>
+
+      <LeadMix data={data} />
+
       <div className="counsellor-chart-grid">
         <Panel title="Engagement" subtitle="Observable behaviour in the selected period">
           <div className="readiness-grid">
@@ -351,10 +362,15 @@ export function OverviewSection({
         >
           <Bars items={data.report.family_stages} total={leadsTotal} />
         </Panel>
-        <Panel title="Languages & interests" subtitle="From the request and generated project">
-          <Bars items={data.report.languages} total={leadsTotal} />
-          <hr className="panel-rule" />
-          <Bars items={data.report.interests} total={leadsTotal} />
+        <Panel title="Interests" subtitle="From each lead's generated project">
+          <DonutChart
+            label="Interests"
+            unit="leads"
+            size={150}
+            items={data.report.interests
+              .filter((item) => item.name !== "—")
+              .map((item) => ({ name: cap(item.name), value: item.value }))}
+          />
         </Panel>
       </div>
 
@@ -1118,59 +1134,6 @@ const chartAxis = {
   stroke: "var(--muted-foreground)",
 };
 
-function Donut({
-  items,
-  label,
-}: {
-  items: { name: string; value: number; color: string }[];
-  label: string;
-}) {
-  const total = items.reduce((sum, item) => sum + item.value, 0);
-  return (
-    <div
-      className="crm-donut"
-      role="img"
-      aria-label={`${label}: ${items.map((i) => `${i.name} ${i.value}`).join(", ")}`}
-    >
-      <div className="crm-donut-chart">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={items.filter((item) => item.value > 0)}
-              dataKey="value"
-              nameKey="name"
-              innerRadius="62%"
-              outerRadius="92%"
-              paddingAngle={2}
-              stroke="none"
-            >
-              {items
-                .filter((item) => item.value > 0)
-                .map((item) => (
-                  <Cell key={item.name} fill={item.color} />
-                ))}
-            </Pie>
-            <Tooltip {...chartTooltip} />
-          </PieChart>
-        </ResponsiveContainer>
-        <span className="crm-donut-total">
-          <strong>{total}</strong>
-          <small>leads</small>
-        </span>
-      </div>
-      <ul className="crm-legend">
-        {items.map((item) => (
-          <li key={item.name}>
-            <i style={{ background: item.color }} />
-            {item.name}
-            <strong>{item.value}</strong>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function CrmCharts({ leads, kpis }: { leads: LeadView[]; kpis: Kpis }) {
   const buckets = leads.map((lead) => followUpBucket(lead));
   const workload = (["overdue", "today", "tomorrow", "upcoming", "none"] as const).map(
@@ -1216,7 +1179,8 @@ function CrmCharts({ leads, kpis }: { leads: LeadView[]; kpis: Kpis }) {
         </div>
       </Panel>
       <Panel title="Engagement mix" subtitle="Rule-based tiers, not predictions">
-        <Donut
+        <DonutChart
+          unit="leads"
           label="Engagement tiers"
           items={[
             { name: "High", value: kpis.high, color: "var(--gd-mint)" },
@@ -1243,7 +1207,8 @@ function CrmCharts({ leads, kpis }: { leads: LeadView[]; kpis: Kpis }) {
         </div>
       </Panel>
       <Panel title="Lead sources" subtitle="First touch on each consented request">
-        <Donut
+        <DonutChart
+          unit="leads"
           label="Lead sources"
           items={(["campaign", "referral", "direct"] as const).map((type, index) => ({
             name: SOURCE_LABELS[type],
@@ -1318,5 +1283,112 @@ function TopStudents({ leads, kpis, onOpen }: { leads: LeadView[]; kpis: Kpis; o
         </div>
       </Panel>
     </div>
+  );
+}
+
+const cap = (value: string | null) =>
+  !value
+    ? "Unknown"
+    : value.length <= 3
+      ? value.toUpperCase()
+      : value[0]!.toUpperCase() + value.slice(1);
+
+/* ------------------------------ Lead mix ------------------------------ */
+
+function LeadMix({ data }: { data: Workspace }) {
+  const leads = data.leads;
+  const perDay = data.report.daily.map((day) => {
+    const today = leads.filter((lead) => lead.created_at.slice(0, 10) === day.day);
+    return {
+      day: day.day.slice(5),
+      Campaign: today.filter((lead) => leadSourceType(lead) === "campaign").length,
+      Referral: today.filter((lead) => leadSourceType(lead) === "referral").length,
+      Direct: today.filter((lead) => leadSourceType(lead) === "direct").length,
+    };
+  });
+  const drivers = (leads[0]?.score_parts ?? []).map((part) => {
+    const avg = leads.length
+      ? leads.reduce(
+          (sum, lead) => sum + (lead.score_parts.find((p) => p.key === part.key)?.points ?? 0),
+          0,
+        ) / leads.length
+      : 0;
+    return { name: part.label, value: Math.round((avg / part.max) * 100) };
+  });
+  return (
+    <>
+      <div className="crm-chart-grid wide-left">
+        <Panel
+          title="New leads by day and source"
+          subtitle="Consented requests and free sign-ups (UTC days)"
+        >
+          <div className="crm-chart" role="img" aria-label="New leads per day split by source">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={perDay} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+                <CartesianGrid stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="day" {...chartAxis} minTickGap={14} />
+                <YAxis allowDecimals={false} {...chartAxis} />
+                <Tooltip {...chartTooltip} cursor={{ fill: "var(--secondary)" }} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="Campaign" stackId="leads" fill="var(--gd-navy)" />
+                <Bar dataKey="Referral" stackId="leads" fill="var(--gd-mint)" />
+                <Bar
+                  dataKey="Direct"
+                  stackId="leads"
+                  fill="var(--gd-indigo)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+        <Panel title="Who asked" subtitle="Contact on the consented request">
+          <DonutChart label="Who asked" unit="leads" size={150} items={whoAsked(leads)} />
+        </Panel>
+      </div>
+      <div className="crm-chart-grid wide-left">
+        <Panel
+          title="What drives engagement"
+          subtitle="Average share of each score part earned across these leads"
+        >
+          <div className="crm-chart" role="img" aria-label="Average score part completion">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={drivers}
+                layout="vertical"
+                margin={{ top: 0, right: 24, bottom: 0, left: 8 }}
+              >
+                <CartesianGrid stroke="var(--border)" horizontal={false} />
+                <XAxis type="number" domain={[0, 100]} unit="%" {...chartAxis} />
+                <YAxis type="category" dataKey="name" width={118} {...chartAxis} />
+                <Tooltip
+                  {...chartTooltip}
+                  cursor={{ fill: "var(--secondary)" }}
+                  formatter={(v) => `${v}%`}
+                />
+                <Bar
+                  dataKey="value"
+                  name="Average earned"
+                  fill="var(--gd-teal)"
+                  radius={[0, 6, 6, 0]}
+                  barSize={12}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+        <Panel title="Languages" subtitle="Preferred language on the request">
+          <DonutChart
+            label="Languages"
+            unit="leads"
+            size={150}
+            items={data.report.languages.map((item) => ({
+              name: cap(item.name),
+              value: item.value,
+            }))}
+          />
+        </Panel>
+      </div>
+    </>
   );
 }

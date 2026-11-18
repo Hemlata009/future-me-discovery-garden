@@ -2,6 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowUpRight, CheckCircle2, CircleAlert, Copy, Eye, RefreshCw, X } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+} from "recharts";
 
 import { Button } from "@/components/ui/button";
 import { BAND_LABELS } from "@/lib/behaviour-score";
@@ -327,6 +335,31 @@ export function LeadDetail({
                     What this student actually did. Not an admission prediction.
                   </p>
                 </div>
+              </div>
+              <div className="score-radar" role="img" aria-label="Behaviour score shape">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart
+                    data={lead.score_parts.map((part) => ({
+                      part: part.label,
+                      value: Math.round((part.points / part.max) * 100),
+                    }))}
+                    outerRadius="72%"
+                  >
+                    <PolarGrid stroke="var(--border)" />
+                    <PolarAngleAxis
+                      dataKey="part"
+                      tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                    />
+                    <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                    <Radar
+                      dataKey="value"
+                      name="Earned"
+                      stroke="var(--gd-teal)"
+                      fill="var(--gd-teal)"
+                      fillOpacity={0.3}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
               </div>
               <ul className="score-parts">
                 {lead.score_parts.map((part) => (
