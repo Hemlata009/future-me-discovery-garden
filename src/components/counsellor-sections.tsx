@@ -16,6 +16,10 @@ import {
   AreaChart,
   Bar,
   BarChart,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -239,16 +243,9 @@ export function OverviewSection({
         )}
       </div>
 
-      <div className="counsellor-chart-grid three-panels">
-        <Panel title="Lead status" subtitle={`Share of ${leadsTotal} identified leads`}>
-          <Bars
-            items={LEAD_STATUSES.map((status) => ({
-              name: STATUS_LABELS[status]!,
-              value: kpis.by_status[status],
-            }))}
-            total={leadsTotal}
-          />
-        </Panel>
+      <CrmCharts leads={data.leads} kpis={kpis} />
+
+      <div className="counsellor-chart-grid">
         <Panel title="Engagement" subtitle="Observable behaviour in the selected period">
           <div className="readiness-grid">
             <Stat label="High" value={kpis.high} />
@@ -1060,5 +1057,169 @@ export function TeamSection({
         calculated reliably yet.
       </p>
     </Panel>
+  );
+}
+
+/* ------------------------------ Overview charts ------------------------------ */
+
+const STATUS_COLORS: Record<string, string> = {
+  new: "var(--gd-indigo)",
+  assigned: "var(--gd-navy)",
+  contacted: "var(--gd-teal)",
+  follow_up: "oklch(0.7 0.13 75)",
+  qualified: "var(--gd-mint)",
+  not_interested: "var(--muted-foreground)",
+  closed: "oklch(0.75 0.01 260)",
+};
+const chartTooltip = {
+  contentStyle: {
+    borderRadius: 10,
+    border: "1px solid var(--border)",
+    boxShadow: "var(--shadow-card)",
+    fontSize: 12,
+  },
+};
+const chartAxis = {
+  fontSize: 11,
+  tickLine: false,
+  axisLine: false,
+  stroke: "var(--muted-foreground)",
+};
+
+function Donut({
+  items,
+  label,
+}: {
+  items: { name: string; value: number; color: string }[];
+  label: string;
+}) {
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  return (
+    <div
+      className="crm-donut"
+      role="img"
+      aria-label={`${label}: ${items.map((i) => `${i.name} ${i.value}`).join(", ")}`}
+    >
+      <div className="crm-donut-chart">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={items.filter((item) => item.value > 0)}
+              dataKey="value"
+              nameKey="name"
+              innerRadius="62%"
+              outerRadius="92%"
+              paddingAngle={2}
+              stroke="none"
+            >
+              {items
+                .filter((item) => item.value > 0)
+                .map((item) => (
+                  <Cell key={item.name} fill={item.color} />
+                ))}
+            </Pie>
+            <Tooltip {...chartTooltip} />
+          </PieChart>
+        </ResponsiveContainer>
+        <span className="crm-donut-total">
+          <strong>{total}</strong>
+          <small>leads</small>
+        </span>
+      </div>
+      <ul className="crm-legend">
+        {items.map((item) => (
+          <li key={item.name}>
+            <i style={{ background: item.color }} />
+            {item.name}
+            <strong>{item.value}</strong>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CrmCharts({ leads, kpis }: { leads: LeadView[]; kpis: Kpis }) {
+  const buckets = leads.map((lead) => followUpBucket(lead));
+  const workload = (["overdue", "today", "tomorrow", "upcoming", "none"] as const).map(
+    (bucket) => ({
+      name: FOLLOW_UP_LABELS[bucket],
+      value: buckets.filter((b) => b === bucket).length,
+      fill:
+        bucket === "overdue"
+          ? "var(--destructive)"
+          : bucket === "today"
+            ? "oklch(0.7 0.13 75)"
+            : bucket === "none"
+              ? "var(--muted-foreground)"
+              : "var(--gd-teal)",
+    }),
+  );
+  const pipeline = LEAD_STATUSES.map((status) => ({
+    name: STATUS_LABELS[status]!,
+    value: kpis.by_status[status],
+    fill: STATUS_COLORS[status]!,
+  }));
+  return (
+    <div className="crm-chart-grid">
+      <Panel title="Pipeline" subtitle="Leads at each stage">
+        <div className="crm-chart" role="img" aria-label="Leads by status">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={pipeline}
+              layout="vertical"
+              margin={{ top: 0, right: 16, bottom: 0, left: 8 }}
+            >
+              <CartesianGrid stroke="var(--border)" horizontal={false} />
+              <XAxis type="number" allowDecimals={false} {...chartAxis} />
+              <YAxis type="category" dataKey="name" width={96} {...chartAxis} />
+              <Tooltip {...chartTooltip} cursor={{ fill: "var(--secondary)" }} />
+              <Bar dataKey="value" name="Leads" radius={[0, 6, 6, 0]} barSize={14}>
+                {pipeline.map((item) => (
+                  <Cell key={item.name} fill={item.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Panel>
+      <Panel title="Engagement mix" subtitle="Rule-based tiers, not predictions">
+        <Donut
+          label="Engagement tiers"
+          items={[
+            { name: "High", value: kpis.high, color: "var(--gd-mint)" },
+            { name: "Medium", value: kpis.medium, color: "var(--gd-teal)" },
+            { name: "Low", value: kpis.low, color: "var(--gd-navy)" },
+          ]}
+        />
+      </Panel>
+      <Panel title="Follow-up workload" subtitle="Active leads by next follow-up (UTC)">
+        <div className="crm-chart" role="img" aria-label="Follow-up workload">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={workload} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+              <CartesianGrid stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="name" {...chartAxis} interval={0} tick={{ fontSize: 10 }} />
+              <YAxis allowDecimals={false} {...chartAxis} />
+              <Tooltip {...chartTooltip} cursor={{ fill: "var(--secondary)" }} />
+              <Bar dataKey="value" name="Leads" radius={[6, 6, 0, 0]} barSize={28}>
+                {workload.map((item) => (
+                  <Cell key={item.name} fill={item.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Panel>
+      <Panel title="Lead sources" subtitle="First touch on each consented request">
+        <Donut
+          label="Lead sources"
+          items={(["campaign", "referral", "direct"] as const).map((type, index) => ({
+            name: SOURCE_LABELS[type],
+            value: leads.filter((lead) => leadSourceType(lead) === type).length,
+            color: ["var(--gd-navy)", "var(--gd-mint)", "var(--gd-indigo)"][index]!,
+          }))}
+        />
+      </Panel>
+    </div>
   );
 }

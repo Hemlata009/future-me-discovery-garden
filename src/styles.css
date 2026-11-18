@@ -4898,3 +4898,448 @@ details.metric-definitions ul {
     transform: none;
   }
 }
+
+/* ===== Shared app look: one palette and one header for every signed-in page ===== */
+:root {
+  --gd-navy: oklch(0.32 0.07 265);
+  --gd-indigo: var(--electric);
+  --gd-teal: oklch(0.62 0.1 190);
+  --gd-mint: var(--mint);
+  --gd-radius: 14px;
+  --gd-shadow:
+    0 1px 2px color-mix(in oklab, var(--foreground) 5%, transparent),
+    0 8px 24px color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+.team-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--warm-surface);
+}
+.team-header .header-inner {
+  gap: 20px;
+}
+.team-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+  margin-left: 18px;
+}
+.team-nav a,
+.team-nav-mobile a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.team-nav a:hover,
+.team-nav-mobile a:hover {
+  background: var(--secondary);
+  color: var(--foreground);
+}
+.team-nav a.nav-active,
+.team-nav-mobile a.nav-active {
+  background: color-mix(in oklab, var(--gd-navy) 8%, var(--card));
+  color: var(--gd-navy);
+}
+.team-nav-mobile {
+  display: none;
+}
+.team-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+.team-email {
+  max-width: 220px;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.team-main {
+  flex: 1;
+  padding-top: 28px;
+  padding-bottom: 48px;
+}
+.team-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-block: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+/* Sign-in */
+.auth-page {
+  display: grid;
+  place-items: center;
+  padding-block: 48px 64px;
+}
+.auth-card {
+  width: min(440px, 100%);
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--gd-radius);
+  background: var(--card);
+  box-shadow: var(--gd-shadow);
+}
+.auth-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--primary);
+}
+.auth-card h1 {
+  margin-top: 16px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+}
+.auth-card > p {
+  margin-top: 4px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+.auth-roles {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--warm-surface);
+  font-size: 12px;
+}
+.auth-roles li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.auth-roles svg {
+  flex: none;
+  color: var(--gd-teal);
+}
+.auth-form {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+.auth-form button {
+  margin-top: 18px;
+}
+.auth-foot {
+  margin-top: 18px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+/* Counsellor CRM inside the shared shell */
+.team-shell .gd {
+  max-width: none;
+}
+.crm-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+.crm-tabs button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.crm-tabs button.is-active {
+  background: var(--gd-navy);
+  color: var(--card);
+}
+.crm-tabs button:focus-visible {
+  outline: 2px solid var(--gd-indigo);
+  outline-offset: 1px;
+}
+.team-shell .chart-panel,
+.team-shell .counsellor-kpi,
+.team-shell .pipeline-column {
+  border-radius: var(--gd-radius);
+  box-shadow: var(--gd-shadow);
+}
+.team-shell .counsellor-kpi strong {
+  font-family: var(--font-display);
+}
+.crm-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.crm-chart-grid > * {
+  min-width: 0;
+}
+.crm-chart {
+  height: 230px;
+  margin-top: 8px;
+}
+.crm-donut {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 8px;
+}
+.crm-donut-chart {
+  position: relative;
+  flex: none;
+  width: 190px;
+  height: 190px;
+}
+.crm-donut-total {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.crm-donut-total strong {
+  font-family: var(--font-display);
+  font-size: 26px;
+}
+.crm-donut-total small {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.crm-legend {
+  display: grid;
+  flex: 1;
+  gap: 10px;
+  min-width: 0;
+  font-size: 13px;
+}
+.crm-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.crm-legend i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.crm-legend strong {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* My FutureMe */
+.student-home .gd-header .button {
+  flex: none;
+}
+.journey-steps {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.journey-steps li {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  background: var(--secondary);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  text-align: center;
+}
+.journey-steps li.is-done {
+  background: color-mix(in oklab, var(--gd-mint) 12%, var(--card));
+  color: var(--foreground);
+}
+.journey-steps li.is-done svg {
+  color: var(--success-text);
+}
+.student-projects {
+  display: grid;
+  gap: 12px;
+}
+.student-projects li {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.student-projects strong {
+  display: block;
+  font-size: 15px;
+}
+.student-projects p {
+  margin: 4px 0 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.student-projects small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.chip {
+  display: inline-flex;
+  margin-right: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--warm-surface);
+  font-size: 11px;
+}
+.student-project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.student-side {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-width: 0;
+}
+.student-request strong {
+  display: block;
+  font-size: 14px;
+}
+.student-request p,
+.student-request small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.student-profile {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.student-profile div {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 8px;
+}
+.student-profile dt {
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 1100px) {
+  .journey-steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 860px) {
+  .team-nav,
+  .team-email {
+    display: none;
+  }
+  .team-nav-mobile {
+    display: flex;
+    gap: 4px;
+    padding-bottom: 10px;
+    overflow-x: auto;
+  }
+  .crm-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .team-main {
+    padding-top: 18px;
+  }
+  .team-signout-label {
+    display: none;
+  }
+  .auth-card {
+    padding: 24px 20px;
+  }
+  .journey-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .crm-donut {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .crm-donut-chart {
+    align-self: center;
+    width: 170px;
+    height: 170px;
+  }
+}
+
+.header-signin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+.header-signin:hover {
+  background: var(--secondary);
+  color: var(--foreground);
+}
+@media (max-width: 1100px) {
+  .header-signin {
+    padding: 8px;
+  }
+  .header-signin span {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .header-signin {
+    display: none;
+  }
+}
+@media (min-width: 761px) and (max-width: 900px) {
+  .site-header .desktop-nav {
+    gap: 14px;
+  }
+  .site-header .header-actions {
+    gap: 4px;
+  }
+}
+.gd-seg {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.site-header.team-header {
+  height: auto;
+  background: var(--card);
+}
+.team-header .header-inner {
+  height: 76px;
+}

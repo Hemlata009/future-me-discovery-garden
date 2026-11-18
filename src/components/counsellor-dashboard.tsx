@@ -1,15 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Activity,
-  ArrowLeft,
-  BarChart3,
   CalendarClock,
   Columns3,
   LayoutDashboard,
   ListChecks,
-  LogOut,
   Megaphone,
   RefreshCw,
   ShieldAlert,
@@ -27,9 +23,8 @@ import {
   PipelineSection,
   TeamSection,
 } from "@/components/counsellor-sections";
-import { Brand } from "@/components/site-shell";
+import { TeamShell } from "@/components/team-shell";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { crmKpis, rangeForPreset } from "@/lib/counsellor-crm";
 import type { CounsellorWorkspaceResult } from "@/lib/counsellor-metrics";
 import { getCounsellorWorkspace } from "@/lib/counsellor-workspace.functions";
@@ -61,7 +56,6 @@ function isWorkspaceOk(
 }
 
 export function CounsellorDashboard() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fetchWorkspace = useServerFn(getCounsellorWorkspace);
   const fetchGrowth = useServerFn(getGrowthReport);
@@ -107,13 +101,6 @@ export function CounsellorDashboard() {
   );
   const kpis = useMemo(() => (data ? crmKpis(data.leads) : null), [data]);
 
-  async function signOut() {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  }
-
   function goTo(target: string, queueValue?: string) {
     if (target === "leads" && queueValue) setQueue((q) => ({ ...q, leads: queueValue }));
     if (target === "followups" && queueValue) setQueue((q) => ({ ...q, followups: queueValue }));
@@ -122,135 +109,100 @@ export function CounsellorDashboard() {
   }
 
   const visibleSections = SECTIONS.filter((item) => !item.adminOnly || isAdmin);
-  const nav = (
-    <nav aria-label="CRM sections" className="crm-nav">
-      {visibleSections.map((item) => (
-        <button
-          key={item.id}
-          className={section === item.id ? "counsellor-nav-active" : ""}
-          aria-current={section === item.id ? "page" : undefined}
-          onClick={() => setSection(item.id)}
-        >
-          <item.icon size={17} /> {item.label}
-        </button>
-      ))}
-      {isAdmin && (
-        <Link to="/admin">
-          <BarChart3 size={17} /> Growth dashboard
-        </Link>
-      )}
-    </nav>
-  );
-
-  const sidebar = (
-    <aside className="counsellor-sidebar">
-      <Brand />
-      <p className="counsellor-product">Counsellor CRM</p>
-      {data && nav}
-      <div className="counsellor-sidebar-actions">
-        <Button variant="ghost" onClick={() => void signOut()}>
-          <LogOut size={15} /> Sign out
-        </Button>
-        <Link className="admin-back" to="/">
-          <ArrowLeft size={15} /> Back to FutureMe Family
-        </Link>
-      </div>
-    </aside>
-  );
 
   if (query.data?.access === "denied") {
     return (
-      <div className="counsellor-layout">
-        {sidebar}
-        <main className="counsellor-main">
-          <section className="chart-panel access-panel">
-            <ShieldAlert />
-            <h1>This account isn't authorised for lead access.</h1>
-            <p>
-              An administrator must grant the counsellor role through trusted SQL before leads
-              appear here. Roles can't be chosen in the app.
-            </p>
-          </section>
-        </main>
-      </div>
+      <TeamShell>
+        <div className="gd-empty">
+          <ShieldAlert />
+          <h1>This account isn't authorised for lead access</h1>
+          <p>An administrator grants the counsellor role. Roles can't be chosen in the app.</p>
+        </div>
+      </TeamShell>
     );
   }
 
   const refreshed = query.dataUpdatedAt
     ? new Intl.DateTimeFormat("en-IN", { timeStyle: "short" }).format(query.dataUpdatedAt)
     : null;
-  const title = SECTIONS.find((item) => item.id === section)?.label ?? "Overview";
 
   return (
-    <div className="counsellor-layout">
-      {sidebar}
-      <main className="counsellor-main">
-        <header className="counsellor-heading crm-heading">
+    <TeamShell>
+      <div className="gd crm">
+        <header className="gd-header">
           <div>
-            <p className="eyebrow">FUTUREME FAMILY · COUNSELLOR CRM</p>
-            <h1>{title}</h1>
+            <h1>{data && !isAdmin ? "My leads" : "Counsellor CRM"}</h1>
             <p>Understand every prospect's journey. Follow up with the right context.</p>
           </div>
-          <div className="crm-identity">
-            {data && (
-              <span>
-                {data.viewer.email ?? "Signed in"}
-                <strong className="role-pill">{data.role}</strong>
-              </span>
-            )}
+          <span className="gd-toolbar-end">
+            {refreshed && <small>Updated {refreshed}</small>}
             <Button
               variant="soft"
+              size="sm"
               onClick={() => void Promise.all([query.refetch(), growthQuery.refetch()])}
               disabled={query.isFetching || !validRange}
             >
               <RefreshCw size={15} className={query.isFetching ? "spin" : ""} /> Refresh
             </Button>
-            {refreshed && <small>Last refreshed {refreshed}</small>}
-          </div>
+          </span>
         </header>
 
-        <div className="crm-range">
-          <div className="filter-bar mb-0" role="group" aria-label="Reporting range">
+        <div className="gd-toolbar">
+          <span className="gd-period">
+            {range.from} – {range.to} <small>UTC</small>
+          </span>
+          <div className="gd-seg" role="group" aria-label="Reporting range">
             {PRESETS.map((item) => (
-              <Button
+              <button
                 key={item.id}
-                variant="soft"
-                className={preset === item.id ? "filter-active" : ""}
+                type="button"
+                className={preset === item.id ? "is-active" : ""}
                 aria-pressed={preset === item.id}
                 onClick={() => setPreset(item.id)}
               >
                 {item.label}
-              </Button>
+              </button>
             ))}
           </div>
-          {preset === "custom" && (
-            <div className="filter-bar counsellor-date-filter mb-0">
-              <label>
-                From
-                <input
-                  type="date"
-                  value={custom.from}
-                  max={custom.to}
-                  onChange={(event) => setCustom({ ...custom, from: event.target.value })}
-                />
-              </label>
-              <label>
-                To
-                <input
-                  type="date"
-                  value={custom.to}
-                  min={custom.from}
-                  onChange={(event) => setCustom({ ...custom, to: event.target.value })}
-                />
-              </label>
-            </div>
-          )}
-          <p>
-            Leads created {range.from} to {range.to}. Timezone: UTC. Activity uses the same dates.
-          </p>
         </div>
+        {preset === "custom" && (
+          <div className="gd-custom-range">
+            <label>
+              From
+              <input
+                type="date"
+                value={custom.from}
+                max={custom.to}
+                onChange={(event) => setCustom({ ...custom, from: event.target.value })}
+              />
+            </label>
+            <label>
+              To
+              <input
+                type="date"
+                value={custom.to}
+                min={custom.from}
+                onChange={(event) => setCustom({ ...custom, to: event.target.value })}
+              />
+            </label>
+          </div>
+        )}
 
-        {data && <div className="crm-nav-mobile">{nav}</div>}
+        {data && (
+          <nav aria-label="CRM sections" className="crm-tabs">
+            {visibleSections.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={section === item.id ? "is-active" : ""}
+                aria-current={section === item.id ? "page" : undefined}
+                onClick={() => setSection(item.id)}
+              >
+                <item.icon size={15} /> {item.label}
+              </button>
+            ))}
+          </nav>
+        )}
 
         {!validRange && (
           <div className="chart-panel" role="alert">
@@ -361,7 +313,7 @@ export function CounsellorDashboard() {
             </details>
           </>
         )}
-      </main>
+      </div>
       {selectedLead && data && (
         <LeadDetail
           key={selectedLead}
@@ -373,6 +325,6 @@ export function CounsellorDashboard() {
           }}
         />
       )}
-    </div>
+    </TeamShell>
   );
 }

@@ -21,6 +21,7 @@ import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCounsellorRouteImport } from './routes/_authenticated/counsellor'
+import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated/me'
 import { Route as ApiApplicationProfileRouteImport } from './routes/api/application-profile'
 import { Route as ApiCounsellorRequestRouteImport } from './routes/api/counsellor-request'
 import { Route as ApiEngagementRouteImport } from './routes/api/engagement'
@@ -91,6 +92,11 @@ const AuthenticatedCounsellorRoute = AuthenticatedCounsellorRouteImport.update({
   path: '/counsellor',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMeRoute = AuthenticatedMeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiApplicationProfileRoute = ApiApplicationProfileRouteImport.update({
   id: '/api/application-profile',
   path: '/api/application-profile',
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/showcase': typeof ShowcaseRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/counsellor': typeof AuthenticatedCounsellorRoute
+  '/me': typeof AuthenticatedMeRoute
   '/api/application-profile': typeof ApiApplicationProfileRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/showcase': typeof ShowcaseRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/counsellor': typeof AuthenticatedCounsellorRoute
+  '/me': typeof AuthenticatedMeRoute
   '/api/application-profile': typeof ApiApplicationProfileRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/showcase': typeof ShowcaseRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/counsellor': typeof AuthenticatedCounsellorRoute
+  '/_authenticated/me': typeof AuthenticatedMeRoute
   '/api/application-profile': typeof ApiApplicationProfileRoute
   '/api/counsellor-request': typeof ApiCounsellorRequestRoute
   '/api/engagement': typeof ApiEngagementRoute
@@ -228,6 +237,7 @@ export interface FileRouteTypes {
     | '/showcase'
     | '/admin'
     | '/counsellor'
+    | '/me'
     | '/api/application-profile'
     | '/api/counsellor-request'
     | '/api/engagement'
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/showcase'
     | '/admin'
     | '/counsellor'
+    | '/me'
     | '/api/application-profile'
     | '/api/counsellor-request'
     | '/api/engagement'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/showcase'
     | '/_authenticated/admin'
     | '/_authenticated/counsellor'
+    | '/_authenticated/me'
     | '/api/application-profile'
     | '/api/counsellor-request'
     | '/api/engagement'
@@ -396,6 +408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCounsellorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/me': {
+      id: '/_authenticated/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof AuthenticatedMeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/application-profile': {
       id: '/api/application-profile'
       path: '/api/application-profile'
@@ -472,11 +491,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedCounsellorRoute: typeof AuthenticatedCounsellorRoute
+  AuthenticatedMeRoute: typeof AuthenticatedMeRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCounsellorRoute: AuthenticatedCounsellorRoute,
+  AuthenticatedMeRoute: AuthenticatedMeRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

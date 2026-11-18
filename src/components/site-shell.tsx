@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, MessageCircle, Menu, Sparkles, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, LogIn, MessageCircle, Menu, Sparkles, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -51,6 +51,10 @@ export function SiteShell({
               </Link>
             </nav>
             <div className="header-actions">
+              <Link to="/auth" className="header-signin" aria-label="Sign in">
+                <LogIn size={16} aria-hidden="true" />
+                <span>Sign in</span>
+              </Link>
               <Button asChild variant="premium" className="header-cta">
                 <Link to="/discover">
                   Start discovery <ArrowUpRight />
@@ -97,6 +101,13 @@ export function SiteShell({
                 onClick={() => setOpen(false)}
               >
                 Student showcase
+              </Link>
+              <Link
+                to="/auth"
+                activeProps={{ className: "mobile-nav-active" }}
+                onClick={() => setOpen(false)}
+              >
+                Sign in
               </Link>
             </nav>
           )}

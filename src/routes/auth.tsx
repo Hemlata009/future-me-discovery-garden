@@ -1,62 +1,102 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
-import { ArrowLeft, LockKeyhole } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, type FormEvent } from "react";
+import { GraduationCap, LockKeyhole, Users } from "lucide-react";
 import { z } from "zod";
 
-import { supabase } from "@/integrations/supabase/client";
-import { Brand } from "@/components/site-shell";
+import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { pageHead } from "@/lib/projects";
+import { destinationFor, primaryRole } from "@/lib/roles";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({ redirect: z.string().optional() }),
   head: () =>
     pageHead(
-      "Team sign in",
-      "Sign in to the FutureMe Family growth dashboard for the NxtWave team.",
+      "Sign in",
+      "Sign in to FutureMe Family: students see their projects; counsellors and the team see their dashboards.",
     ),
   component: AuthPage,
 });
 
-function safePath(path: string | undefined): string {
-  return path && path.startsWith("/") && !path.startsWith("//") ? path : "/admin";
+/** Reads the signed-in user's own roles (RLS limits this to their rows). */
+async function roleOf(userId: string) {
+  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+  return primaryRole((data ?? []).map((row) => String(row.role)));
 }
 
 function AuthPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  async function goHome(userId: string) {
+    const role = await roleOf(userId);
+    if (!role) {
+      await supabase.auth.signOut();
+      setError(
+        "This account doesn't have access yet. Ask the FutureMe Family team to set up your account.",
+      );
+      return false;
+    }
+    queryClient.removeQueries({ queryKey: ["identity"] });
+    navigate({ to: destinationFor(role, search.redirect), replace: true });
+    return true;
+  }
+
+  // Already signed in: go straight to the right place.
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled && data.user) void goHome(data.user.id);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setPending(true);
     setError(null);
-    setMessage(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setPending(false);
-    if (error) {
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError || !data.user) {
+      setPending(false);
       setError("That email and password didn't match an account.");
       return;
     }
-    navigate({ to: safePath(search.redirect), replace: true });
+    const ok = await goHome(data.user.id);
+    if (!ok) setPending(false);
   }
 
   return (
-    <div className="admin-layout">
-      <main className="admin-main mx-auto w-full max-w-md">
-        <Brand />
-        <div className="chart-panel mt-8">
-          <LockKeyhole className="text-primary" />
-          <h1 className="mt-3 text-2xl font-semibold">Team sign in</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            The growth dashboard is for the FutureMe Family team. Students don't need an account.
-            Team accounts are by invitation only.
-          </p>
-          <form className="mt-6 grid gap-3" onSubmit={submit}>
+    <SiteShell>
+      <section className="auth-page page-width">
+        <div className="auth-card">
+          <span className="auth-icon">
+            <LockKeyhole size={20} />
+          </span>
+          <h1>Sign in</h1>
+          <p>One sign-in for everyone. We'll take you to the right place.</p>
+          <ul className="auth-roles" aria-label="Who signs in here">
+            <li>
+              <GraduationCap size={16} aria-hidden="true" /> Students: your projects, Parent Briefs
+              and next steps
+            </li>
+            <li>
+              <Users size={16} aria-hidden="true" /> Counsellors and team: leads and dashboards
+            </li>
+          </ul>
+          <form className="auth-form" onSubmit={submit}>
             <label className="family-field">
               Email
               <input
@@ -79,25 +119,22 @@ function AuthPage() {
               />
             </label>
             {error && (
-              <p role="alert" className="text-sm text-destructive">
+              <p role="alert" className="field-error">
                 {error}
               </p>
             )}
-            {message && (
-              <p role="status" className="notice text-sm">
-                {message}
-              </p>
-            )}
-            <Button type="submit" variant="premium" disabled={pending}>
-              {pending ? "Please wait…" : "Sign in"}
+            <Button type="submit" variant="premium" size="lg" disabled={pending}>
+              {pending ? "Signing in…" : "Sign in"}
             </Button>
           </form>
+          <p className="auth-foot">
+            New here? You don't need an account to explore.{" "}
+            <Link to="/discover" className="text-link">
+              Start a discovery
+            </Link>
+          </p>
         </div>
-        <Link className="admin-back mt-6" to="/">
-          <ArrowLeft size={15} />
-          Back to discovery
-        </Link>
-      </main>
-    </div>
+      </section>
+    </SiteShell>
   );
 }
