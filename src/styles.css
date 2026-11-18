@@ -3800,6 +3800,8 @@ h2 {
   font-size: 26px;
 }
 .crm-identity {
+  flex-shrink: 0;
+  max-width: 45%;
   display: grid;
   justify-items: end;
   gap: 8px;
@@ -3813,6 +3815,8 @@ h2 {
   overflow-wrap: anywhere;
 }
 .role-pill {
+  flex-shrink: 0;
+  white-space: nowrap;
   padding: 3px 8px;
   border-radius: 999px;
   background: var(--brand-soft);
@@ -3876,9 +3880,21 @@ h2 {
   color: var(--muted-foreground);
   font-size: 9px;
 }
-.chart-panel + .chart-panel,
-.counsellor-chart-grid + .chart-panel {
+.counsellor-main > .chart-panel + .chart-panel,
+.counsellor-main > .chart-panel + .counsellor-chart-grid {
   margin-top: 16px;
+}
+.lead-filters.campaign-filters {
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  margin-bottom: 16px;
+  padding: 0;
+}
+.lead-table.funnel-table,
+.lead-table.team-table {
+  min-width: 640px;
+}
+.lead-table.campaign-table {
+  min-width: 980px;
 }
 
 /* Priority and follow-up labels */
@@ -4006,6 +4022,9 @@ h2.follow-tag {
 }
 
 /* Leads table additions */
+.lead-heading-actions > span {
+  white-space: nowrap;
+}
 .lead-heading-actions {
   display: flex;
   align-items: center;
@@ -4127,8 +4146,10 @@ details.metric-definitions ul {
   }
   .crm-identity {
     justify-items: start;
+    max-width: none;
   }
-  .lead-filters-wide {
+  .lead-filters-wide,
+  .lead-filters.campaign-filters {
     grid-template-columns: minmax(0, 1fr);
   }
   .lead-heading-actions {

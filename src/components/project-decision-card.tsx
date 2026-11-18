@@ -143,8 +143,8 @@ export function ProjectDecisionCard({
             <PhoneCall className="text-primary" aria-hidden="true" />
             <h3>Talk to a NIAT counsellor</h3>
             <p>
-              Request a callback from the team. This requires follow-up and is not an instant call
-              or an application.
+              Have questions about the programme, course, admission process or next steps? Leave
+              your details and request a callback. It isn't an instant call or an application.
             </p>
             <CounsellorDialog projectId={projectId} initialLanguage={language} />
           </li>

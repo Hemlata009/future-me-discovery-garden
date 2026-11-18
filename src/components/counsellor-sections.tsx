@@ -894,7 +894,7 @@ export function CampaignsSection({
 
   return (
     <>
-      <div className="filter-bar">
+      <div className="lead-filters campaign-filters">
         <Select label="Campaign" value={campaign} onChange={setCampaign}>
           <option value="">All campaigns</option>
           {options.map((value) => (
@@ -1020,7 +1020,7 @@ export function TeamSection({
       subtitle="Assigned leads in the selected range. Not a ranking: volumes and lead mix differ."
     >
       <div className="lead-table-scroll">
-        <table className="lead-table">
+        <table className="lead-table team-table">
           <thead>
             <tr>
               {[
