@@ -18,6 +18,10 @@ BEGIN
     UNION ALL SELECT 'friend-' || a || '-' || b FROM generate_series(1, 6) a, generate_series(1, 4) b
   ) seeds;
 
+  -- student_activity exists only after 03-student-signup-and-activity.sql.
+  IF to_regclass('public.student_activity') IS NOT NULL THEN
+    EXECUTE 'DELETE FROM public.student_activity WHERE visitor_hash = ANY ($1)' USING ids;
+  END IF;
   DELETE FROM public.growth_events WHERE visitor_hash = ANY (ids);
   DELETE FROM public.engagement_heartbeats WHERE visitor_hash = ANY (ids);
   DELETE FROM public.engagement_sessions WHERE visitor_hash = ANY (ids);
