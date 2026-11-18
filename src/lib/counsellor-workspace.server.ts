@@ -9,6 +9,7 @@ import {
   type CounsellorAssignee,
   type CounsellorLeadResult,
   type CounsellorRole,
+  type CounsellorViewer,
   type CounsellorWorkspaceResult,
   type Heartbeat,
   type LeadEvent,
@@ -20,7 +21,7 @@ import type { updateLeadSchema } from "@/lib/counsellor-workspace.functions";
 import type { z } from "zod";
 
 type Db = SupabaseClient<Database>;
-type Context = { supabase: unknown; userId: string };
+type Context = { supabase: unknown; userId: string; claims?: { email?: unknown } };
 type Role = CounsellorRole;
 type Assignee = CounsellorAssignee;
 type WorkspaceResult = CounsellorWorkspaceResult;
@@ -207,6 +208,28 @@ async function relatedData(db: Db, sources: LeadSource[], range?: { from: string
   return { events: uniqueEvents, heartbeats, referralOwners };
 }
 
+/** Admin-only: team members with their sign-in emails, read with the service client. */
+async function readAssignees(db: Db): Promise<Assignee[]> {
+  const rows = await readPages<Assignee>((from, to) =>
+    db
+      .from("user_roles")
+      .select("user_id, role")
+      .in("role", ["admin", "counsellor"])
+      .range(from, to),
+  );
+  const emails = new Map<string, string | null>();
+  for (const userId of new Set(rows.map((row) => row.user_id))) {
+    const { data } = await db.auth.admin.getUserById(userId);
+    emails.set(userId, data.user?.email ?? null);
+  }
+  return rows.map((row) => ({ ...row, email: emails.get(row.user_id) ?? null }));
+}
+
+function viewerOf(context: Context, role: Role): CounsellorViewer {
+  const email = context.claims?.email;
+  return { user_id: context.userId, email: typeof email === "string" ? email : null, role };
+}
+
 export async function runCounsellorWorkspace(
   context: Context,
   range: { from: string; to: string },
@@ -221,19 +244,11 @@ export async function runCounsellorWorkspace(
     const leads = sources.map((lead) =>
       buildLeadView(lead, related.events, related.heartbeats, related.referralOwners, range.to),
     );
-    const assignees =
-      role === "admin"
-        ? await readPages<Assignee>((from, to) =>
-            supabaseAdmin
-              .from("user_roles")
-              .select("user_id, role")
-              .in("role", ["admin", "counsellor"])
-              .range(from, to),
-          )
-        : [];
+    const assignees = role === "admin" ? await readAssignees(supabaseAdmin) : [];
     return {
       access: "ok" as const,
       role,
+      viewer: viewerOf(context, role),
       leads,
       assignees,
       report: buildCounsellorReport(leads, related.events, related.heartbeats, range),
@@ -265,16 +280,7 @@ export async function runCounsellorLead(context: Context, id: string): Promise<L
     related.referralOwners,
     today,
   );
-  const assignees =
-    role === "admin"
-      ? await readPages<Assignee>((from, to) =>
-          supabaseAdmin
-            .from("user_roles")
-            .select("user_id, role")
-            .in("role", ["admin", "counsellor"])
-            .range(from, to),
-        )
-      : [];
+  const assignees = role === "admin" ? await readAssignees(supabaseAdmin) : [];
   const timeline = related.events
     .filter(
       (event) =>

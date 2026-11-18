@@ -80,12 +80,16 @@ export type CounsellorRole = "admin" | "counsellor";
 export type CounsellorAssignee = {
   user_id: string;
   role: "admin" | "counsellor" | "student";
+  /** Team member's sign-in email; only returned to admins. */
+  email?: string | null;
 };
+export type CounsellorViewer = { user_id: string; email: string | null; role: CounsellorRole };
 export type CounsellorWorkspaceResult =
   | { access: "denied" }
   | {
       access: "ok";
       role: CounsellorRole;
+      viewer: CounsellorViewer;
       leads: LeadView[];
       assignees: CounsellorAssignee[];
       report: ReturnType<typeof buildCounsellorReport>;

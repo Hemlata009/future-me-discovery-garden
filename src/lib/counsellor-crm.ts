@@ -467,3 +467,32 @@ export function crmKpis(leads: LeadView[], now = new Date()) {
     leads_generating_referrals: count((lead) => lead.referral_count > 0),
   };
 }
+
+export const STATUS_LABELS: Record<string, string> = {
+  new: "New",
+  assigned: "Assigned",
+  contacted: "Contacted",
+  follow_up: "Follow up",
+  qualified: "Qualified",
+  not_interested: "Not interested",
+  closed: "Closed",
+};
+export const OUTCOME_LABELS: Record<string, string> = {
+  reached: "Reached",
+  no_answer: "No answer",
+  busy: "Busy",
+  wrong_number: "Wrong number",
+  callback_requested: "Callback requested",
+  not_interested: "Not interested",
+};
+
+/** Timestamps are shown in UTC, the documented reporting timezone. */
+export function dateTime(value: string | null): string {
+  return value
+    ? `${new Intl.DateTimeFormat("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "UTC",
+      }).format(new Date(value))} UTC`
+    : "—";
+}
