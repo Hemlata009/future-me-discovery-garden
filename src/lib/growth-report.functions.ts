@@ -29,7 +29,7 @@ export type ReportResult = { access: "denied" } | { access: "ok"; report: Growth
 /** Admin-only: checks the caller's role on every request before reading anything. */
 export const getGrowthReport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => filtersSchema.parse(input))
+  .validator((input: unknown) => filtersSchema.parse(input))
   .handler(async ({ data, context }): Promise<ReportResult> => {
     const { runGrowthReport } = await import("@/lib/growth-report.server");
     return runGrowthReport(context, data);

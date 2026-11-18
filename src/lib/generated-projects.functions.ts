@@ -27,7 +27,7 @@ export type GeneratedProject = {
  * runs, and only the one matching row is ever returned.
  */
 export const getGeneratedProject = createServerFn({ method: "GET" })
-  .inputValidator((input: { id: string }) => input)
+  .validator((input: { id: string }) => input)
   .handler(async ({ data }): Promise<GeneratedProject | null> => {
     if (!UUID.test(data.id)) return null;
 

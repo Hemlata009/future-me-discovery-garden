@@ -39,7 +39,7 @@ export const updateLeadSchema = z
 
 export const getCounsellorWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => counsellorRangeSchema.parse(input))
+  .validator((input: unknown) => counsellorRangeSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { runCounsellorWorkspace } = await import("@/lib/counsellor-workspace.server");
     return runCounsellorWorkspace(context, data);
@@ -47,7 +47,7 @@ export const getCounsellorWorkspace = createServerFn({ method: "POST" })
 
 export const getCounsellorLead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).strict().parse(input))
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).strict().parse(input))
   .handler(async ({ data, context }) => {
     const { runCounsellorLead } = await import("@/lib/counsellor-workspace.server");
     return runCounsellorLead(context, data.id);
@@ -55,7 +55,7 @@ export const getCounsellorLead = createServerFn({ method: "POST" })
 
 export const revealCounsellorPhone = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).strict().parse(input))
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).strict().parse(input))
   .handler(async ({ data, context }) => {
     const { runRevealCounsellorPhone } = await import("@/lib/counsellor-workspace.server");
     return runRevealCounsellorPhone(context, data.id);
@@ -63,7 +63,7 @@ export const revealCounsellorPhone = createServerFn({ method: "POST" })
 
 export const updateCounsellorLead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => updateLeadSchema.parse(input))
+  .validator((input: unknown) => updateLeadSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { runUpdateCounsellorLead } = await import("@/lib/counsellor-workspace.server");
     return runUpdateCounsellorLead(context, data);

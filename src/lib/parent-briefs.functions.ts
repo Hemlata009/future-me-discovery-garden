@@ -19,7 +19,7 @@ export type ParentBrief = {
 
 /** Public by link, but read only through this server-side, single-id lookup. */
 export const getParentBrief = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).strict().parse(input))
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).strict().parse(input))
   .handler(async ({ data }): Promise<ParentBrief | null> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: brief, error } = await supabaseAdmin
