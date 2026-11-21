@@ -41,16 +41,18 @@ export type Database = {
           created_at: string
           delivered: boolean
           delivered_at: string | null
-          generated_project_id: string
+          generated_project_id: string | null
           id: string
           internal_notes: string
           language: string
           last_contacted_at: string | null
+          lead_source: string
           next_follow_up_at: string | null
           parent_brief_id: string | null
           phone: string
           referral_code: string | null
           status: string
+          student_user_id: string | null
           updated_at: string
           utm_campaign: string | null
           utm_medium: string | null
@@ -66,16 +68,18 @@ export type Database = {
           created_at?: string
           delivered?: boolean
           delivered_at?: string | null
-          generated_project_id: string
+          generated_project_id?: string | null
           id?: string
           internal_notes?: string
           language: string
           last_contacted_at?: string | null
+          lead_source?: string
           next_follow_up_at?: string | null
           parent_brief_id?: string | null
           phone: string
           referral_code?: string | null
           status?: string
+          student_user_id?: string | null
           updated_at?: string
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -91,16 +95,18 @@ export type Database = {
           created_at?: string
           delivered?: boolean
           delivered_at?: string | null
-          generated_project_id?: string
+          generated_project_id?: string | null
           id?: string
           internal_notes?: string
           language?: string
           last_contacted_at?: string | null
+          lead_source?: string
           next_follow_up_at?: string | null
           parent_brief_id?: string | null
           phone?: string
           referral_code?: string | null
           status?: string
+          student_user_id?: string | null
           updated_at?: string
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -488,6 +494,65 @@ export type Database = {
           },
         ]
       }
+      pre_application_profiles: {
+        Row: {
+          city: string
+          consent_at: string
+          created_at: string
+          email: string | null
+          generated_project_id: string | null
+          id: string
+          intended_course: string
+          passing_year: string | null
+          qualification: string
+          state: string
+          student_name: string
+          student_phone: string
+          updated_at: string
+          visitor_hash: string
+        }
+        Insert: {
+          city: string
+          consent_at: string
+          created_at?: string
+          email?: string | null
+          generated_project_id?: string | null
+          id?: string
+          intended_course: string
+          passing_year?: string | null
+          qualification: string
+          state: string
+          student_name: string
+          student_phone: string
+          updated_at?: string
+          visitor_hash: string
+        }
+        Update: {
+          city?: string
+          consent_at?: string
+          created_at?: string
+          email?: string | null
+          generated_project_id?: string | null
+          id?: string
+          intended_course?: string
+          passing_year?: string | null
+          qualification?: string
+          state?: string
+          student_name?: string
+          student_phone?: string
+          updated_at?: string
+          visitor_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_application_profiles_generated_project_id_fkey"
+            columns: ["generated_project_id"]
+            isOneToOne: false
+            referencedRelation: "generated_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_shares: {
         Row: {
           channel: string
@@ -695,6 +760,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_accounts: {
+        Row: {
+          city: string | null
+          class_status: string | null
+          consent_at: string | null
+          created_at: string
+          full_name: string | null
+          invite_code: string | null
+          invited_by: string | null
+          phone: string | null
+          user_id: string
+          visitor_hash: string | null
+        }
+        Insert: {
+          city?: string | null
+          class_status?: string | null
+          consent_at?: string | null
+          created_at?: string
+          full_name?: string | null
+          invite_code?: string | null
+          invited_by?: string | null
+          phone?: string | null
+          user_id: string
+          visitor_hash?: string | null
+        }
+        Update: {
+          city?: string | null
+          class_status?: string | null
+          consent_at?: string | null
+          created_at?: string
+          full_name?: string | null
+          invite_code?: string | null
+          invited_by?: string | null
+          phone?: string | null
+          user_id?: string
+          visitor_hash?: string | null
+        }
+        Relationships: []
+      }
+      student_activity: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          kind: string
+          path: string | null
+          seconds: number | null
+          user_id: string | null
+          visitor_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          kind: string
+          path?: string | null
+          seconds?: number | null
+          user_id?: string | null
+          visitor_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          kind?: string
+          path?: string | null
+          seconds?: number | null
+          user_id?: string | null
+          visitor_hash?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
