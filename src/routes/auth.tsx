@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { GraduationCap, LockKeyhole, Users } from "lucide-react";
 import { z } from "zod";
 
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { pageHead } from "@/lib/projects";
 import { destinationFor, primaryRole } from "@/lib/roles";
+import { DEMO_ACCOUNTS, type DemoRole } from "@/lib/demo-accounts";
+import { ensureDemoAccount } from "@/lib/demo-login.functions";
 import { recordStudentActivity } from "@/lib/student-activity.functions";
 
 export const Route = createFileRoute("/auth")({
@@ -33,9 +35,8 @@ function AuthPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const recordActivity = useServerFn(recordStudentActivity);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [pending, setPending] = useState(false);
+  const ensureAccount = useServerFn(ensureDemoAccount);
+  const [pending, setPending] = useState<DemoRole | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function goHome(userId: string, fresh = false) {
@@ -73,21 +74,22 @@ function AuthPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setPending(true);
+  async function loginAs(role: DemoRole) {
+    setPending(role);
     setError(null);
+    await ensureAccount({ data: { role } }).catch(() => undefined);
+    const account = DEMO_ACCOUNTS[role];
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: account.email,
+      password: account.password,
     });
     if (signInError || !data.user) {
-      setPending(false);
-      setError("That email and password didn't match an account.");
+      setPending(null);
+      setError("Sign-in didn't work. Please try again.");
       return;
     }
     const ok = await goHome(data.user.id, true);
-    if (!ok) setPending(false);
+    if (!ok) setPending(null);
   }
 
   return (
@@ -98,7 +100,7 @@ function AuthPage() {
             <LockKeyhole size={20} />
           </span>
           <h1>Sign in</h1>
-          <p>One sign-in for everyone. We'll take you to the right place.</p>
+          <p>Demo site: pick who you want to sign in as.</p>
           <ul className="auth-roles" aria-label="Who signs in here">
             <li>
               <GraduationCap size={16} aria-hidden="true" /> Students: your projects, Parent Briefs
@@ -108,45 +110,37 @@ function AuthPage() {
               <Users size={16} aria-hidden="true" /> Counsellors and team: leads and dashboards
             </li>
           </ul>
-          <form className="auth-form" onSubmit={submit}>
-            <label className="family-field">
-              Email
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-            <label className="family-field">
-              Password
-              <input
-                type="password"
-                required
-                minLength={8}
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
+          <div className="auth-form">
             {error && (
               <p role="alert" className="field-error">
                 {error}
               </p>
             )}
-            <Button type="submit" variant="premium" size="lg" disabled={pending}>
-              {pending ? "Signing in…" : "Sign in"}
+            <Button
+              type="button"
+              variant="premium"
+              size="lg"
+              disabled={pending !== null}
+              onClick={() => void loginAs("student")}
+            >
+              <GraduationCap size={18} aria-hidden="true" />
+              {pending === "student" ? "Signing in…" : "Login as Student"}
             </Button>
-          </form>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              disabled={pending !== null}
+              onClick={() => void loginAs("counsellor")}
+            >
+              <Users size={18} aria-hidden="true" />
+              {pending === "counsellor" ? "Signing in…" : "Login as Counsellor"}
+            </Button>
+          </div>
           <p className="auth-foot">
-            New student?{" "}
-            <Link to="/signup" className="text-link">
-              Create a free account
-            </Link>{" "}
-            or{" "}
+            Or{" "}
             <Link to="/discover" className="text-link">
-              explore without one
+              explore without signing in
             </Link>
             .
           </p>
